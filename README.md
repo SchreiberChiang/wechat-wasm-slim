@@ -11,6 +11,7 @@
 
 实测数据（打砖块）：
 - 只保留 2D 的裁剪版：引擎 8.69 MB → 5.08 MB。
+- 保留 3D 的裁剪版（balanced 档）：引擎下载体积 8.70 MB → 5.95 MB（-31.6%），开发者工具里 2D 和 3D 实玩正常（手机未测），详见 [examples/breakout3d/RESULT.md](examples/breakout3d/RESULT.md)。
 - 分包：开局只下 3.54 MB，剩余 5.59 MB 点进 3D 时才下。
 
 ## 我是哪种工程？
@@ -25,6 +26,8 @@
 - 编译环境：微信版 Godot 引擎源码（citizenll/godot 微信分支，本例提交 `df3cdd9bc`）、emscripten 4.0.10、Python 3.9+ 和 SCons 4.4+。路径填进 `trim/trim.toolchain.json`。首次编译前运行 `node trim/trim.mjs check` 检查。
 - 你的 Godot 项目目录（有 `project.godot` 的那个），用来扫描。
 - 每次编译约 30–50 分钟、约 1 GB 磁盘。
+- 编译目录放在工具包外，`.gitignore` 会排除 `build-*/`。
+- clang 偶发崩溃（0xC0000005）时工具会自动重试（`--retries`，默认 2 次）；失败就用同一个 `--work` 目录重跑续编，崩得频繁时加 `--jobs 4`。
 
 **还要用分包（split）**：再加上下面这些，详见 `split/SETUP.md`。
 - 小游戏后台：开发者/体验成员权限、WXGameKit 插件、代码分包私钥。
@@ -40,9 +43,11 @@ node trim/trim.mjs check                                                   # 检
 node trim/trim.mjs scan --project <Godot项目> --out my.trim.json            # 扫描，生成配置
 （打开 my.trim.json：选“当前档位”，在“手动覆盖”里决定保留哪些能力）
 node trim/trim.mjs profile --config my.trim.json --out my.gdbuild          # 预览会去掉什么
-node trim/trim.mjs build --config my.trim.json --work build-1              # 编译（30–50 分钟）
-node trim/trim.mjs apply --engine build-1/artifacts --minigame <小游戏工程> --out <新工程>   # 模板版直接替换
+node trim/trim.mjs build --config my.trim.json --work D:/wasm-build/build-1              # 编译（30–50 分钟）
+node trim/trim.mjs apply --engine D:/wasm-build/build-1/artifacts --minigame <小游戏工程> --out <新工程>   # 模板版直接替换
 ```
+编译目录约 1 GB，建议放在工具包外面；上面的 `D:/wasm-build/build-1` 是示例路径，请按自己的磁盘位置调整。
+
 然后用微信开发者工具打开新工程，把游戏**完整玩一遍**，确认没有被裁坏。
 
 **分包**（只适用于通用适配版）：见 `split/README.md` 的“新游戏完整流程”。

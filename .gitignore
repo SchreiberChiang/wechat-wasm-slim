@@ -2,6 +2,8 @@ build-*/
 run-logs/
 *.wasm
 *.wasm.br
+*.js.symbols
+symbols.json
 ledgers/
 kit-work/
 *.private.*
