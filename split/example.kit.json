@@ -1,0 +1,19 @@
+{
+  "projectName": "My Game",
+  "clientName": "Claude",
+  "devtoolsDir": "C:/Program Files (x86)/Tencent/微信web开发者工具",
+  "workDir": "./work",
+  "workProject": "./work/minigame",
+  "symbols": "./input/godot.web.template_release.wasm32.nothreads.js.symbols.json",
+  "officialCli": "./node_modules/wasmsplit-v2-ci/bin/cli.js",
+  "privateKeyPath": "REPLACE_WITH_ABSOLUTE_PEM_PATH",
+  "releasePck": null,
+  "trainingPck": null,
+  "releaseInterfaces": null,
+  "cloud": {
+    "env": null,
+    "functionName": "phoneLogIngest",
+    "collection": "phone_log_batches"
+  },
+  "trainingGateHost": "godot-data/local-interfaces.js"
+}

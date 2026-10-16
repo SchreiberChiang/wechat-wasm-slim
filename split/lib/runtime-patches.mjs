@@ -1,0 +1,93 @@
+// Patches for the official wasmsplit V2 runtime (wasm-split.js, verified template sha 53322659…).
+// Order and text are identical to the device-verified stage12 chain (03 → 05 → 08 → 13), see PLAYBOOK.md.
+// Every anchor must match exactly once, otherwise the patch fails loudly (runtime template changed).
+import crypto from 'node:crypto';
+export const OFFICIAL_RUNTIME_SHA256 = ['53322659add07a2ad67daf93fefc3792ff7b70803d10c70ba414c3d08b6e2e29'];
+const sha = s => crypto.createHash('sha256').update(s).digest('hex');
+const T = 'GameGlobal.__WX15_TIMING__&&GameGlobal.__WX15_TIMING__.mark';
+
+function patcher(src) {
+  let s = src; const applied = [];
+  const one = (old, next, label) => { const n = s.split(old).length - 1; if (n !== 1) throw Error(`ANCHOR_${n === 0 ? 'MISSING' : 'NOT_UNIQUE'}:${label}`); s = s.replace(old, next); applied.push(label); };
+  const range = (startText, endText, label) => { const a = s.indexOf(startText), b = s.indexOf(endText, a); if (a < 0 || b < a) throw Error('RANGE:' + label); return s.slice(a, b); };
+  return { one, range, get text() { return s; }, applied };
+}
+
+/** Click-to-download gate (code1 only after the game's request), no code2, explicit miss error. */
+export function clickGate(p, core) {
+  p.one('var v,I=null;', 'var v,I=null;' + core, 'owned_gate_core');
+  p.one('function F(e,a){', 'function F(e,a){if(!__WX15_CLICK__.ownsDownload(e))throw Error("WX15_CLICK_DOWNLOAD_NOT_OWNED");', 'F_owned_only');
+  p.one('fail(e){l("load "+c.wasmcode1Name+" fail:",e);', 'fail(e){__WX15_CLICK__.downloadFailed();l("load "+c.wasmcode1Name+" fail:",e);', 'F_terminal_failure_cleanup');
+  p.one('v=function(e){r("start compileSubWasm: needBlock ",e);', 'v=function(e){__WX15_CLICK__.beginI();r("start compileSubWasm: needBlock ",e);', 'I_owned_start');
+  p.one('c.subWasmInstantiated=!0,c.canAwaitLoad', 'c.subWasmInstantiated=!0,__WX15_CLICK__.successI(),c.canAwaitLoad', 'I_real_success');
+  p.one('.then(n).catch(e=>{console.error(c.wasmcode1Name+" catch ",e)})', '.then(n).catch(e=>{__WX15_CLICK__.failedI();console.error(c.wasmcode1Name+" catch ",e)})', 'I_real_failure');
+  p.one(p.range('e.wasm_split.wait=function(){', ',e.wasm_split.logCall=', 'wait'), 'e.wasm_split.wait=function(){return __WX15_CLICK__.wait()}', 'synchronous_void_wait');
+  p.one('setTimeout(A,c.kDelayLoadWasmcode2Time)', 'void 0', 'disable_HP_archive_timer');
+  p.one('function A(){', 'function A(){throw Error("WX15_CODE2_DISABLED_IN_ORDINARY_ROUTE");', 'code2_unreachable_assert');
+  p.one('if(Object.entries(n.instance.exports)', 'Object.entries(n.instance.exports)', 'primary_receive_expression');
+  p.one(p.range(',WXGameKit.lifeCycle.on(WXGameKit.lifeCycle.event.InstantiateWasm,', '}),{}},GameGlobal.compileSubWasm=', 'tail'), ',__WX15_CLICK__.bind(),a(n.instance,n.module)', 'primary_immediate_receive_no_HP_private_or_preload');
+  const c0 = p.text.indexOf('GameGlobal.compileSubWasm=function()'); if (c0 < 0) throw Error('RANGE:compile');
+  p.one(p.text.slice(c0), 'GameGlobal.compileSubWasm=function(){return __WX15_CLICK__.compile()};', 'compile_no_fake_ready');
+  const m = p.text.match(/function publish\(\)\{try\{GameGlobal\.__WX15_CLICK_DIAGNOSTIC__=\{[^}]*\};\}catch\(_\)\{\}\}/g);
+  if (m?.length !== 1) throw Error('ANCHOR:publish');
+  p.one(m[0], m[0].replace(';}catch', ';if(typeof wx.setStorageSync==="function")wx.setStorageSync("WX15_RELEASE_CLICK_DIAGNOSTIC",GameGlobal.__WX15_CLICK_DIAGNOSTIC__);console.log("[WX15_RELEASE_CLICK]",JSON.stringify(GameGlobal.__WX15_CLICK_DIAGNOSTIC__));}catch'), 'bounded_diagnostic');
+}
+
+/** Timing marks consumed by assets/wx15-timing.js. */
+export function timingMarks(p) {
+  p.one('r("CallMain区间耗时",a.data.costTimeMs)', `(${T}("callmain_ms",a.data.costTimeMs),r("CallMain区间耗时",a.data.costTimeMs))`, 'mark_callmain');
+  p.one(',__WX15_CLICK__.bind(),', `,__WX15_CLICK__.bind(),${T}("primary_wasm_ready"),`, 'mark_primary_ready');
+  p.one("function request(){bump('requests');var current=status();", `function request(){bump('requests');var current=status();${T}("click_request",current==='READY');`, 'mark_click');
+  p.one("function onDownloaded(){if(state!=='PENDING'||!attempt||attempt.phase!=='DOWNLOAD')return;", `function onDownloaded(){if(state!=='PENDING'||!attempt||attempt.phase!=='DOWNLOAD')return;${T}("code1_downloaded");`, 'mark_downloaded');
+  p.one("receipt=snap();state='READY';publish();", `receipt=snap();state='READY';${T}("code1_ready");publish();`, 'mark_ready');
+}
+
+/** Primary-miss fallback (Android canAwaitLoad) + non-waiter click download (waiterMode tasks never complete without await()). */
+export function fallbackAndWaiterFix(p) {
+  p.one("var counts={requests:0,", "var counts={fallbacks:0,requests:0,", 'fb_count');
+  p.one("blockedWarmups:counts.blockedWarmups};", "blockedWarmups:counts.blockedWarmups,fallbacks:counts.fallbacks};", 'fb_publish');
+  p.one("ownsDownload:function(callback){return state==='PENDING'&&attempt&&attempt.phase==='DOWNLOAD'&&callback===onDownloaded;}",
+    "ownsDownload:function(callback){return state==='PENDING'&&!!attempt&&(attempt.phase==='DOWNLOAD'&&callback===onDownloaded||attempt.phase==='FALLBACK'&&callback===I);}", 'fb_owns');
+  p.one("beginI:function(){if(", "beginI:function(){if(state==='PENDING'&&attempt&&attempt.phase==='FALLBACK'){attempt.started=true;bump('instantiations');publish();return;}if(", 'fb_beginI');
+  p.one("successI:function(){if(", "successI:function(){if(state==='READY')return;if(", 'fb_successI');
+  p.one("failedI:function(){fail(", "failedI:function(){if(state==='READY')return;fail(", 'fb_failedI');
+  p.one("wait:function(){if(status()==='READY')return;bump('coverageFailures');",
+    "wait:function(){if(status()==='READY')return;" +
+    "if(c.canAwaitLoad&&(state==='PENDING'||state==='IDLE')&&valid()){var t0=Date.now(),clicked=state==='PENDING',fn=GameGlobal.waitTableId&&GameGlobal.waitTableId.value;" +
+    "if(state==='IDLE'){attempt={phase:'FALLBACK',snapshot:snap(),started:false};state='PENDING';bump('downloads');}else attempt.phase='FALLBACK';bump('fallbacks');publish();" +
+    "var inflight=!!c.loadSubWasmTask&&!c.loadSubWasmDone;try{if(inflight){var wt=wx.loadSubpackage({name:c.wasmcode1Name,waiterMode:!0,success:function(){},fail:function(){}});wt.await();c.loadSubWasmDone=!0;}D(!0);}catch(e){fail('FALLBACK_FAILED_RESTART_REQUIRED');throw e;}" +
+    "if(status()!=='READY'){fail('FALLBACK_NOT_READY_RESTART_REQUIRED');throw Error('WX15_FALLBACK_NOT_READY');}" +
+    `console.log('[WX15_FALLBACK]',JSON.stringify({clicked:clicked,inflight:inflight,ms:Date.now()-t0,func:fn}));${T}('fallback',{clicked:clicked,ms:Date.now()-t0,func:fn});return;}` +
+    "bump('coverageFailures');", 'fb_wait');
+  p.one("try{F(onDownloaded,false);}catch(_){downloadFailed();}return st",
+    "var awaitable=c.canAwaitLoad;c.canAwaitLoad=!1;try{F(onDownloaded,false);}catch(_){downloadFailed();}finally{c.canAwaitLoad=awaitable;}return st", 'android_non_waiter_click_download');
+}
+
+/** Every primary miss that ends in an explicit error also logs the table slot (error level → uploaded). */
+export function missLogging(p) {
+  p.one("bump('coverageFailures');fail('PRIMARY_COVERAGE_MISS_RESTART_REQUIRED');",
+    "bump('coverageFailures');try{console.error('[WX15_PRIMARY_MISS]',JSON.stringify({func:GameGlobal.waitTableId&&GameGlobal.waitTableId.value,state:state}));}catch(_){}fail('PRIMARY_COVERAGE_MISS_RESTART_REQUIRED');", 'miss_log');
+  p.one("catch(e){fail('FALLBACK_FAILED_RESTART_REQUIRED');throw e;}",
+    "catch(e){try{console.error('[WX15_FALLBACK_FAILED]',JSON.stringify({func:fn,inflight:inflight,error:String(e&&e.message||e)}));}catch(_){}fail('FALLBACK_FAILED_RESTART_REQUIRED');throw e;}", 'fallback_fail_log');
+}
+
+/** measured mode: primary already holds every measured function (2D and heavy scene). The game's request
+ * is answered READY without downloading; code1 is only fetched by the miss fallback (Android) if shipped. */
+export function measuredMode(p) {
+  p.one("if(current==='PENDING')return current;if(current!=='IDLE'&&current!=='DOWNLOAD_FAILED_RETRYABLE')return current;",
+    "if(current==='PENDING')return current;if(current==='IDLE'&&valid()){state='PRIMARY_ONLY';publish();return state;}if(current!=='IDLE'&&current!=='DOWNLOAD_FAILED_RETRYABLE')return current;", 'measured_request');
+  p.one("GameGlobal.__WX15_RELEASE_CLICK_GATE__=Object.freeze({request:function(){return __WX15_CLICK__.request();},status:function(){return __WX15_CLICK__.status();}",
+    "GameGlobal.__WX15_RELEASE_CLICK_GATE__=Object.freeze({request:function(){var s=__WX15_CLICK__.request();return s==='PRIMARY_ONLY'?'READY':s;},status:function(){var s=__WX15_CLICK__.status();return s==='PRIMARY_ONLY'?'READY':s;}", 'measured_gate_api');
+  p.one("if(c.canAwaitLoad&&(state==='PENDING'||state==='IDLE')&&valid()){", "if(c.canAwaitLoad&&(state==='PENDING'||state==='IDLE'||state==='PRIMARY_ONLY')&&valid()){", 'measured_fallback_state');
+  p.one("if(state==='IDLE'){attempt={phase:'FALLBACK'", "if(state==='IDLE'||state==='PRIMARY_ONLY'){attempt={phase:'FALLBACK'", 'measured_fallback_attempt');
+}
+
+/** Release runtime: click gate + marks + fallback + waiter fix (+ measured mode). Profile runtime: callMain mark only. */
+export function patchRuntime(src, { mode, core, measured = false, allowUnknownTemplate = false }) {
+  const before = sha(src);
+  if (!allowUnknownTemplate && !OFFICIAL_RUNTIME_SHA256.includes(before)) throw Error('UNKNOWN_OFFICIAL_RUNTIME_TEMPLATE:' + before + ' (re-verify anchors, then pass --allow-unknown-runtime)');
+  const p = patcher(src);
+  if (mode === 'release') { clickGate(p, core); timingMarks(p); fallbackAndWaiterFix(p); missLogging(p); if (measured) measuredMode(p); }
+  else p.one('r("CallMain区间耗时",a.data.costTimeMs)', `(${T}("callmain_ms",a.data.costTimeMs),r("CallMain区间耗时",a.data.costTimeMs))`, 'mark_callmain');
+  return { text: p.text, applied: p.applied, beforeSha256: before, afterSha256: sha(p.text) };
+}

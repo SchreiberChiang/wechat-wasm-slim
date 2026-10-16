@@ -1,0 +1,9 @@
+build-*/
+run-logs/
+*.wasm
+*.wasm.br
+ledgers/
+kit-work/
+*.private.*
+node_modules/
+*.pem

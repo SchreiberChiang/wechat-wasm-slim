@@ -1,0 +1,8 @@
+{
+  "说明": "工具链路径示例，均相对于本配置文件；请替换为自己的现有工具链，engineSource 必须是 citizenll/godot 微信分支的 git 仓库。",
+  "engineSource": "./input/godot-source",
+  "pin": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "emsdk": "./input/emsdk",
+  "python": "./input/venv/Scripts/python.exe",
+  "patches": []
+}
