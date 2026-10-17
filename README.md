@@ -38,6 +38,44 @@ convert 做的事：把上面两样接起来——接上启动桥，把 PCK 打�
 - **能直接转**：任何 Godot 4.7.2 项目，只要能用微信版引擎跑（单线程、不用 GDExtension）。
 - **不能直接转**：官方 Godot Web 导出（引擎不对，`check` 会拦下）；其他 Godot 版本（见下面“其他 Godot 版本”）。
 
+## 一个游戏一份配置：wxslim.json
+
+一个游戏只填一份 `wxslim.json`（放在游戏的工作目录里），convert、trim、split 都用 `--config wxslim.json` 读自己那一段。同目录有 `wxslim.private.json` 时自动合并覆盖：**AppID 来源、AppID、私钥路径、云环境 ID 只能写在 private 文件里**（`*.private.*` 已在 .gitignore 里），写进公开文件会直接报错。完整示例见 [examples/startap/wxslim.json](examples/startap/wxslim.json)。
+
+```jsonc
+{
+  "格式": "wechat-wasm-slim/game-v1",
+  "game":   { "name": "startap", "godotProject": "./game", "pck": "./build/startap.pck",
+              "interfaces": "./wx/demowx-gate2d.js", "orientation": "portrait" },
+  "engine": { "fromTrim": true },      // 或 "artifacts": "<编译产物目录>" / "export": "<Web导出目录>" / "js"+"wasm"(+"symbols")
+  "trim":   { "config": "./trim.config.json", "level": "balanced", "overrides": {}, "lto": "thin", "work": "D:/wasm-build/startap" },
+  "split":  { "projectName": "Star Tap B", "mode": "onclick", "officialCli": "./node_modules/wasmsplit-v2-ci/bin/cli.js",
+              "cloud": { "env": null } },
+  "output": { "dir": "./out" }
+}
+```
+
+`wxslim.private.json`（同目录，不进仓库）：
+
+```json
+{ "game": { "appidFrom": "<已有小游戏工程目录>" }, "split": { "privateKeyPath": "<私钥 PEM 的绝对路径>", "cloud": { "env": "<云环境 ID>" } } }
+```
+
+| 段 | 谁读 | 字段 |
+|---|---|---|
+| `game` | 都读 | `name`、`godotProject`（trim scan）、`pck`、`interfaces`、`orientation`、`locale`、`compat`/`timing`（false = 不装兼容层/计时）；private：`appidFrom` 或 `appid` |
+| `engine` | convert | 引擎来源四选一：`fromTrim`（用 `<trim.work>/artifacts`）、`artifacts`、`export`、`js`+`wasm`(+`symbols`) |
+| `trim` | trim | `config`（scan 生成的裁剪配置，默认 `./trim.config.json`）、`level`（覆盖其中的“当前档位”）、`overrides`（合并进“手动覆盖”，同样校验）、`lto`、`work`（编译目录，放在工具包外）、`jobs`、`maxMinutes` |
+| `split` | split | 和旧 `*.kit.json` 同名的字段：`projectName`、`mode`（assemble 的默认模式）、`workDir`、`workProject`、`symbols`、`officialCli`、`releasePck`、`trainingPck`、`releaseInterfaces`、`trainingGateHost`、`cloud`、`devtoolsDir`；private：`privateKeyPath`、`cloud.env` |
+| `output` | 都读 | `dir`（默认 `./out`）、`convert`（默认 `<dir>/convert`） |
+
+- **默认值互相推出来**：split 的 `workProject` 默认 `<output.convert>/minigame`，`symbols` 默认 `<output.convert>/webgl/symbols.json`，`releasePck`/`releaseInterfaces` 默认 `game.pck`/`game.interfaces`（写 `null` 表示不替换），`projectName` 默认 `game.name`；`trim profile` 默认写到 `<output.dir>/<name>.gdbuild`。
+- **优先级**：命令行参数 > `wxslim.private.json` > `wxslim.json` > 默认值。例如 `convert --config wxslim.json --out <新目录>` 换一个输出目录。
+- **校验**：未知的键、类型不对（枚举、布尔、整数）、引擎来源写了两种、私密字段写进公开文件，加载时就报错并列出全部问题；输入路径（PCK、接口文件、引擎、工程目录等）在命令真正要用时检查存在，报错里带键名和绝对路径。路径相对于 `wxslim.json` 所在目录。键名以“说明”开头的是注释，随便写。
+- **工具链不在这里**：转换器、emsdk、python、引擎源码是机器级配置，仍在 `convert/convert.toolchain(.private).json`、`trim/trim.toolchain(.private).json`。
+- `node wxslim.mjs config --config wxslim.json` 校验并打印合并后的值（私密值只显示“已设置”）；`node wxslim.mjs <convert|trim|split> <子命令> ...` 只是转发给对应工具。
+- **旧写法（兼容）**：不带 `--config` 的命令行参数、trim 的 `--config <裁剪配置>`、split 的 `--config <*.kit.json>` 都照旧可用；工具按 `"格式": "wechat-wasm-slim/game-v1"` 区分新旧配置。
+
 ## 一条龙顺序
 
 1. **准备引擎和 PCK**：引擎用 trim 编译（或现成的微信版引擎 `.js` + `.wasm` + `.js.symbols`）；游戏内容用编辑器导出 PCK：`godot --headless --path <项目> --export-pack "Web" game.pck`（项目要用 GL Compatibility 渲染）。
@@ -80,6 +118,23 @@ convert 做的事：把上面两样接起来——接上启动桥，把 PCK 打�
 
 ## 没有 AI：照着做
 
+先在游戏目录写好 `wxslim.json`（和 `wxslim.private.json`），下面的命令都带 `--config wxslim.json`：
+
+```
+node wxslim.mjs config --config wxslim.json                 # 校验配置
+node trim/trim.mjs check
+node trim/trim.mjs scan    --config wxslim.json             # 写到 trim.config（默认 ./trim.config.json）
+node trim/trim.mjs profile --config wxslim.json             # 校验档位和手动覆盖，打印最终会去掉什么
+node trim/trim.mjs build   --config wxslim.json             # 编译到 trim.work（25–50 分钟）
+node convert/convert.mjs check   --config wxslim.json
+node convert/convert.mjs convert --config wxslim.json       # 输出到 output.convert，已存在就换 --out <新目录>
+node convert/convert.mjs verify  --config wxslim.json
+node split/kit.mjs info --config wxslim.json                # 看分包会用到的值和工程状态
+node split/kit.mjs split init --config wxslim.json          # 之后的分包命令同样换成 --config wxslim.json
+```
+
+下面是逐个写参数的**旧写法（兼容，仍然可用）**。
+
 **转换**
 ```
 node convert/convert.mjs check   --export <Web导出目录>
@@ -117,6 +172,7 @@ node trim/trim.mjs apply --engine D:/wasm-build/build-1/artifacts --minigame <�
 
 ## 目录
 
+- `wxslim.mjs`：总入口（转发）和配置校验；`lib/game-config.mjs`：统一配置的解析和校验；`tests/config-tests.mjs`：配置测试（`node --test tests/config-tests.mjs`）。
 - `convert/`：转换工具（`convert.mjs`、胶水和兼容层 `assets/`、检查 `lib/`）。
 - `trim/`：裁剪工具（`trim.mjs`、扫描 `lib/scan.mjs`、编译 `lib/build.mjs`、默认引擎补丁 `patches/`、工具链配置）。
 - `split/`：分包工具（`kit.mjs`、README、SETUP）。
@@ -144,7 +200,7 @@ node trim/trim.mjs apply --engine D:/wasm-build/build-1/artifacts --minigame <�
 
 ## 示例配置与隐私
 
-包内配置已去敏，`REPLACE_WITH_…` 和 `./input/…` 均需换成使用者自己的值；未附引擎、私钥、登录状态或原始运行日志。工具链位置在 `trim/trim.toolchain.json` 和 `convert/convert.toolchain.json` 中填写；本机实际配置请另存为 `*.private.json`，私钥保存在仓库之外。
+包内配置已去敏，`REPLACE_WITH_…` 和 `./input/…` 均需换成使用者自己的值；未附引擎、私钥、登录状态或原始运行日志。工具链位置在 `trim/trim.toolchain.json` 和 `convert/convert.toolchain.json` 中填写；本机实际配置请另存为 `*.private.json`，私钥保存在仓库之外。游戏的 AppID 来源、私钥路径、云环境 ID 只写在 `wxslim.private.json`（工具会拒绝把它们写在公开的 `wxslim.json` 里）。
 
 云日志是可选功能：不用时把 `cloud.env` 设为 `null`。启用后会上报设备平台、系统、型号、SDK 版本和筛选后的日志；云函数使用微信身份校验，并保存 OpenID 的哈希用于归属和去重。日志脱敏规则不能识别所有自由文本，请勿在游戏日志中输出个人资料或凭据。
 

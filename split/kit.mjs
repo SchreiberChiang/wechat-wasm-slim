@@ -3,13 +3,24 @@
 import fs from 'node:fs';import path from 'node:path';
 import {sha, readJson, writeJson, check, copyTree, editText, asset, kitDir, projectInfo, installPck, packagingFixes, installTelemetry, wechatide, officialCli, setDevtoolsDir} from './lib/common.mjs';
 import {patchRuntime} from './lib/runtime-patches.mjs';
+import {treatAsGameConfig, loadGameConfig, splitConfig} from '../lib/game-config.mjs';
 
 const argv = process.argv.slice(2), cmd = argv[0];
 const opt = k => { const i = argv.indexOf('--' + k); return i > 0 ? argv[i + 1] : undefined; };
 const flag = k => argv.includes('--' + k);
 const need = k => { const v = opt(k); check(v, 'MISSING_OPTION --' + k); return v; };
 const abs = p => path.resolve(p);
-function config() { const f = abs(need('config')); const c = readJson(f); c.__dir = path.dirname(f); c.__file = f; if (c.devtoolsDir) setDevtoolsDir(path.resolve(c.__dir, c.devtoolsDir)); return c; }
+// --config 两种写法：统一配置 wxslim.json（读 split 段，缺的值从 game / output 段推出来），或者旧的 *.kit.json（兼容）。
+// 统一配置时按命令检查要用到的输入文件是否存在（NEEDS）。
+const IDE = ['devtoolsDir'];
+const NEEDS = {split: ['officialCli', 'workProject'], assemble: ['releasePck', 'releaseInterfaces'], 'collect-pack': ['releasePck', 'trainingPck', 'releaseInterfaces'], lookup: ['workProject', 'symbols'], info: ['workProject'], ide: IDE, preview: IDE, upload: IDE, task: IDE, logs: IDE};
+function config() {
+  const f = abs(need('config'));
+  const c = treatAsGameConfig(f) ? splitConfig(loadGameConfig(f), NEEDS[cmd] || []) : Object.assign(readJson(f), {__dir: path.dirname(f), __file: f});
+  if (c.devtoolsDir) setDevtoolsDir(path.resolve(c.__dir, c.devtoolsDir)); return c;
+}
+// --project 没写时，统一配置用 split.workProject（默认 <output.convert>/minigame）。
+const projectOf = () => opt('project') || !opt('config') || !treatAsGameConfig(abs(opt('config'))) ? abs(need('project')) : config().workProject;
 // Private key: env WASMSPLIT_KIT_KEY, config.privateKeyPath, or legacy config.keyMetadata (JSON with privateKeyPath). Never printed.
 function keyPathOf(c) { const k = process.env.WASMSPLIT_KIT_KEY || (c.privateKeyPath && path.resolve(c.__dir, c.privateKeyPath)) || (c.keyMetadata && readJson(path.resolve(c.__dir, c.keyMetadata)).privateKeyPath); check(k && path.isAbsolute(k) && fs.existsSync(k), 'PRIVATE_KEY_NOT_CONFIGURED'); return k; }
 const fromCfg = (c, p) => path.resolve(c.__dir, p);
@@ -26,7 +37,7 @@ function claimLabel(c, label) {
 const commands = {
   // 正式包：官方 Release 产物 → 点击下载门 + 计时/云日志 + 兜底 + 安卓 waiterMode 修复 + 正式 PCK。
   async assemble() {
-    const c = config(), from = abs(need('from')), out = abs(need('out')), label = need('label'), mode = opt('mode') || 'onclick', drop = flag('drop-secondary');
+    const c = config(), from = abs(need('from')), out = abs(need('out')), label = need('label'), mode = opt('mode') || c.mode || 'onclick', drop = flag('drop-secondary');
     check(['onclick', 'measured'].includes(mode), 'MODE onclick|measured'); check(!drop || mode === 'measured', 'DROP_SECONDARY_NEEDS_MEASURED');
     const info = projectInfo(from); check(info.isProfile === false, 'NEED_RELEASE_OUTPUT (isProfile=false)');
     copyTree(from, out);
@@ -133,9 +144,14 @@ const commands = {
   },
   // 兜底日志里的函数编号（表槽位）→ 函数名。需要完整 WASM（.plugincache/codesplitv2/backup）和 symbols.json。
   async lookup() { const {lookupSlots} = await import('./lib/lookup.mjs'); const c = config(); for (const l of lookupSlots(fromCfg(c, c.workProject), fromCfg(c, c.symbols), argv.slice(1).filter(x => /^\d+$/.test(x)).map(Number))) console.log(l); },
-  async info() { console.log(JSON.stringify(projectInfo(abs(need('project'))), null, 1)); },
+  async info() {
+    const p = projectOf();
+    // 统一配置且没写 --project：先打印分包会用到的配置值（私密值只说有没有设置），再看工程本身。
+    if (!opt('project')) { const c = config(); console.log('分包配置（' + c.__file + '）：\n' + JSON.stringify({projectName: c.projectName, mode: c.mode || 'onclick', workProject: c.workProject, symbols: c.symbols, workDir: c.workDir, officialCli: c.officialCli, releasePck: c.releasePck, trainingPck: c.trainingPck, releaseInterfaces: c.releaseInterfaces, cloud: {...c.cloud, env: c.cloud.env ? '（已设置）' : null}, privateKeyPath: c.privateKeyPath ? '（已设置）' : '（未设置）'}, null, 1)); }
+    const info = projectInfo(p); if (info.appid) info.appid = info.appid === 'wx0000000000000000' ? '（占位符）' : '（已设置，不显示）'; console.log(JSON.stringify(info, null, 1));
+  },
 };
 function readLabel(project) { const m = fs.readFileSync(path.join(project, 'phone-log-config.js'), 'utf8').match(/"build":\s*"([^"]+)"/); check(m, 'NO_BUILD_LABEL'); return m[1]; }
 
-try { check(commands[cmd], '用法：node kit.mjs <assemble|collect-pack|split|verify|ide|preview|upload|task|logs|lookup|info> ...（见 README.md）'); await commands[cmd](); }
+try { check(commands[cmd], '用法：node kit.mjs <assemble|collect-pack|split|verify|ide|preview|upload|task|logs|lookup|info> [--config wxslim.json 或 *.kit.json] ...（见 README.md）'); await commands[cmd](); }
 catch (e) { console.error('ERROR', e.code || e.message); process.exitCode = 1; }

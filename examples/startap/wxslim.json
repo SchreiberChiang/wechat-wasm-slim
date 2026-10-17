@@ -1,0 +1,36 @@
+{
+  "格式": "wechat-wasm-slim/game-v1",
+  "说明": "Star Tap 的统一配置（去敏示例）：convert / trim / split 都用 --config wxslim.json 读这一份。路径相对于本文件。AppID 来源、私钥路径、云环境 ID 只能写在同目录的 wxslim.private.json（不进仓库）。这里是方案二（标题首包，2D+3D 余包）；方案一把 game.interfaces 换成 ./wx/demowx.js、split.projectName 换成 Star Tap A。",
+  "game": {
+    "name": "startap",
+    "godotProject": "./game",
+    "pck": "./build/startap.pck",
+    "interfaces": "./wx/demowx-gate2d.js",
+    "orientation": "portrait"
+  },
+  "engine": {
+    "说明": "引擎来源四选一：fromTrim（用 <trim.work>/artifacts）、artifacts（现成的编译产物目录）、export（Godot Web 导出目录）、js+wasm(+symbols)",
+    "fromTrim": true
+  },
+  "trim": {
+    "config": "./trim.config.json",
+    "level": "balanced",
+    "overrides": {},
+    "lto": "thin",
+    "work": "D:/wasm-build/startap"
+  },
+  "split": {
+    "projectName": "Star Tap B",
+    "mode": "onclick",
+    "officialCli": "./node_modules/wasmsplit-v2-ci/bin/cli.js",
+    "cloud": {
+      "env": null,
+      "functionName": "phoneLogIngest",
+      "collection": "phone_log_batches"
+    },
+    "devtoolsDir": "C:/Program Files (x86)/Tencent/微信web开发者工具"
+  },
+  "output": {
+    "dir": "./out"
+  }
+}

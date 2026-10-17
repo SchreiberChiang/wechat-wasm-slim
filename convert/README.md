@@ -16,6 +16,18 @@
 
 ## 命令
 
+推荐用游戏的统一配置（见根 README 的“一个游戏一份配置”）：读 `game`、`engine`、`output` 三段，命令行参数仍然优先。
+
+```
+node convert/convert.mjs check   --config wxslim.json
+node convert/convert.mjs convert --config wxslim.json [--out <新目录>]   # 默认输出到 output.convert（默认 ./out/convert）
+node convert/convert.mjs verify  --config wxslim.json                   # 默认检查 <output.convert>/minigame
+```
+
+配置和参数的对应：`game.pck` → `--pck`，`game.interfaces` → `--interfaces`，`game.orientation/locale/name` → 同名参数，`game.compat: false` → `--no-compat`，`game.timing: false` → `--no-timing`，`engine.artifacts`/`engine.export`/`engine.fromTrim` → `--export`，`engine.js/wasm/symbols` → 同名参数；`wxslim.private.json` 里的 `game.appidFrom`/`game.appid` → `--appid-from`/`--appid`。
+
+下面是逐个写参数的写法（兼容，照旧可用）：
+
 ```
 node convert/convert.mjs check   --export <Web导出目录>  [--pck <x.pck>] [--symbols <x.js.symbols>]
 node convert/convert.mjs convert --export <Web导出目录>  --out <新目录> [选项]
