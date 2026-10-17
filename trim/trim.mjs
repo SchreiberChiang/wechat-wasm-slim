@@ -8,7 +8,11 @@ const argv = process.argv.slice(2), cmd = argv[0];
 const opt = k => { const i = argv.indexOf('--' + k); return i > 0 ? argv[i + 1] : undefined; };
 const need = k => { const v = opt(k); if (!v) throw Error('缺少参数 --' + k); return path.resolve(v); };
 const readJson = p => JSON.parse(fs.readFileSync(p, 'utf8'));
-const toolchain = () => { const f = path.resolve(opt('toolchain') || path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), 'trim.toolchain.json')); const t = readJson(f); for (const k of ['engineSource', 'emsdk', 'python']) t[k] = path.resolve(path.dirname(f), t[k]); t.patches = (t.patches || []).map(p => path.resolve(path.dirname(f), p)); return t; };
+// 工具链配置：--toolchain 指定的文件 > 同目录 trim.toolchain.private.json（本机，不进仓库）> trim.toolchain.json（示例）。
+// patches 相对路径按工具目录解析（私密配置里也能写 patches/xxx.patch）。
+const home = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+const toolchainFile = () => opt('toolchain') ? path.resolve(opt('toolchain')) : fs.existsSync(path.join(home, 'trim.toolchain.private.json')) ? path.join(home, 'trim.toolchain.private.json') : path.join(home, 'trim.toolchain.json');
+const toolchain = () => { const f = toolchainFile(); const t = readJson(f); for (const k of ['engineSource', 'emsdk', 'python']) t[k] = path.resolve(path.dirname(f), t[k]); t.patches = (t.patches || []).map(p => path.resolve(path.dirname(f), p)); return t; };
 const mb = n => (n / 1e6).toFixed(2) + ' MB';
 
 const commands = {

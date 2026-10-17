@@ -13,7 +13,8 @@ const readJson = p => JSON.parse(fs.readFileSync(p, 'utf8'));
 const writeJson = (p, v) => fs.writeFileSync(p, JSON.stringify(v, null, 2) + '\n');
 const asset = n => fs.readFileSync(path.join(home, 'assets', n), 'utf8');
 const mb = n => (n / 1e6).toFixed(2) + ' MB';
-const toolchain = () => { const f = path.resolve(opt('toolchain') || path.join(home, 'convert.toolchain.json')); const t = readJson(f); t.transformer = path.resolve(path.dirname(f), t.transformer); return t; };
+// 工具链配置：--toolchain > 同目录 convert.toolchain.private.json（本机，不进仓库）> convert.toolchain.json（示例）
+const toolchain = () => { const f = path.resolve(opt('toolchain') || (fs.existsSync(path.join(home, 'convert.toolchain.private.json')) ? path.join(home, 'convert.toolchain.private.json') : path.join(home, 'convert.toolchain.json'))); const t = readJson(f); t.transformer = path.resolve(path.dirname(f), t.transformer); return t; };
 const inputs = () => locateInputs({exportDir: opt('export') && path.resolve(opt('export')), js: opt('js'), wasm: opt('wasm'), pck: opt('pck'), symbols: opt('symbols')});
 function replaceOnce(s, a, b, label) { const n = s.split(a).length - 1; if (n !== 1) throw Error(`补丁锚点${n ? '不唯一' : '找不到'}：${label}（转换器版本变了？需要重新核对）`); return s.replace(a, () => b); }
 
