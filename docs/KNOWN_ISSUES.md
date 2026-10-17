@@ -26,6 +26,10 @@
 | `kit lookup` 对官方新增槽位只说“不在函数表内” | 查缺函数槽位 76284 | 说明这是官方拆分新增的跳转槽位、本地查不到，按缺函数补采处理 | 已用 |
 | **加载时长汇总一直没输出** | 用户发现云日志里只有原生计时，没有“首包进场景”“点击进场景” | 计时模块只认 `console.info('[STARTUP_3D_FLOW]', json)` + 字段 `stage`，Star Tap 按文档用 `print` 一整行 + 字段 `event`。现在两种都认；按场景统计（新增 `scene_first_frame`）；没分包也输出（callMain 取原生计时，WASM 就绪取启动桥日志）；**convert 默认装计时**；新增契约测试（`split/lib/timing-tests.mjs`，接进 `kit verify`，旧版计时模块会失败） | 契约测试 5/5；开发者工具：分包版“点击进3D 1471ms（下载 656 / 编译 673 / 场景 142）”“点击进2D 1432ms”，未分包版“首包进场景”“进3D 136ms（未分包）”。**手机未测** |
 | **实验期命名对新使用者不友好**（`WX15_`、`training12`、PLAYBOOK 里的阶段编号） | 用户审阅 | 统一改成 `WXSLIM_`，旧全局名和日志前缀继续兼容（见 README“命名变更”）；PLAYBOOK 压缩成“踩过的坑和结论” | 计时契约测试、离线测试、补丁锚点检查全过；Star Tap 示例改用新名字并保留旧名回退。**真机未测** |
+| **约定只靠文档，没有测试保证**（计时就是例子） | 用户审阅 | `tests/contracts.mjs` + `node tests/run.mjs [--godot <Godot>]`：点击门、采集门新旧全局名、接口文件和兼容层同时加载、插件事件格式和计时模块对得上、Godot headless 跑插件分支 | 41/41（含 Godot headless） |
+| **游戏接入要手写不少代码** | Star Tap 的点击门、采集包判断、计时事件、自动测试开关都是手写的 | Godot 插件 `godot-addon/addons/wx_split`（autoload `WxSplit`：`enter_scene`、`mark_title_ready`、`mark_first_frame` 等），convert 默认带它的 JS 侧；Star Tap 改用插件 | 电脑上 2D、3D 各一局；开发者工具：转换后登录、进 3D、计时、提交分数正常。**真机未测** |
+| **版本绑得死，升级时不知道哪里坏了** | 用户审阅 | `node doctor.mjs`：只读体检引擎、转换器、官方运行时、引擎补丁、工具链，不通过时指到文件和行；`docs/UPGRADING.md` 给 AI 和开发者的升级步骤 | 当前版本 26 项通过、0 不通过；反例能准确报错 |
+| **配置分散，一个游戏要填三四份** | 用户审阅 | 游戏级 `wxslim.json` + `wxslim.private.json`（AppID 来源、私钥路径），convert / trim / split 都支持 `--config`，旧写法兼容；`node wxslim.mjs` 总入口 | 20 项配置测试；Star Tap 用统一配置 convert + verify 通过。init、编译没用新配置实测 |
 | 没有 init、预览命令，只能手写脚本 | 本次操作 | `kit split init`（检查 game.symbols.json，防重复 init）、`kit preview`（推送手机预览，输出各分包大小） | init 防重复检查已用；preview 等同本次用的脚本 |
 
 ## 二、能力尚未实现（记录，以后做）
