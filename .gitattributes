@@ -1,0 +1,2 @@
+# 引擎补丁要以 LF 换行应用到引擎源码上，不能被 Windows 的 autocrlf 转成 CRLF
+*.patch text eol=lf
