@@ -41,7 +41,7 @@ node convert/convert.mjs verify  --project <新目录>/minigame
 
 ```
 <out>/minigame/          小游戏工程：开发者工具打开它；split 配置的 workProject 指向它（里面有官方 init 要用的 game.symbols.json，已从小游戏包排除）
-                         默认还装了加载计时汇总 godot-data/wx15-timing.js（日志前缀 [WX15_TIMING]，--no-timing 不装）
+                         默认还装了加载计时汇总 godot-data/wxslim-timing.js（日志前缀 [WXSLIM_TIMING]，--no-timing 不装）
 <out>/webgl/symbols.json 转换器生成的符号表；split 配置的 symbols 指向它
 <out>/convert-work/      接好启动桥的 JS、转换器配置和日志（转换器配置里只有占位 AppID）
 <out>/CONVERT_REPORT.json 输入 sha256、大小、md5、AppID 来源（不含 AppID 本身）
@@ -70,7 +70,7 @@ node convert/convert.mjs verify  --project <新目录>/minigame
 | `godot-data/wx-compat.js` | 浏览器对象兼容层：补 `__globalAdapter`、`TextEncoder`/`TextDecoder`、`Blob`、WebSocket 常量、`navigator.vibrate`，给 `wx.request` 打补丁。让 Godot 的 HTTPRequest、WebSocketPeer、LineEdit 键盘、`Input.vibrate_handheld` 能用（见下一节） | 通用（`--no-compat` 不生成） | Star Tap 的 `demo-login-01/wx/demo-interfaces.js` 第 1–5 项（2026-10-17 开发者工具实测） |
 | `godot-data/local-interfaces.js` | 游戏自己的 JS 接口；默认是空文件；split 的训练等待门默认追加在这里 | **游戏专用**（`--interfaces`） | 打砖块的 `__STARTUP_LAB_PROBE__`、QA 接口（实验用，不进通用模板） |
 | `godot-data/local-diagnostic-init.js` | 启动时清理实验诊断的本地存储 | 实验用，**不再生成** | `apply-native-dependency-exports.mjs` |
-| 本地存储诊断（`WX15_*_DIAGNOSTIC`） | 把启动各阶段写进 `wx.setStorageSync` | 实验用，**已去掉**；状态改为只放内存：`GameGlobal.__WX15_BOOT_STATE__`、`__WX15_RESOURCE_STATE__`、`__WX15_ENTRY_STATE__`、`Module.__WX15_ASSET_DIAGNOSTIC__` | 多个补丁脚本 |
+| 本地存储诊断（`WXSLIM_*_DIAGNOSTIC`） | 把启动各阶段写进 `wx.setStorageSync` | 实验用，**已去掉**；状态改为只放内存：`GameGlobal.__WXSLIM_BOOT_STATE__`、`__WXSLIM_RESOURCE_STATE__`、`__WXSLIM_ENTRY_STATE__`、`Module.__WXSLIM_ASSET_DIAGNOSTIC__` | 多个补丁脚本 |
 | `godot-data/breakout.pck` | 手工版遗留的 PCK 副本，实际不用（PCK 走数据包） | **不再生成** | `prepare-local-project.mjs` |
 
 ## wx-compat.js 补了什么
@@ -90,7 +90,7 @@ node convert/convert.mjs verify  --project <新目录>/minigame
 
 另一条经验与兼容层无关、要游戏自己注意：`JavaScriptBridge.eval` 读全局变量拿不到值，改用 `JavaScriptBridge.get_interface` 读接口对象的属性。
 
-控制台里的 `[WX15_BOOT]`、`[WX15_RESOURCE]` 阶段日志保留，用来排查启动问题。`WX15_` 前缀保持不变，因为 split 工具按这些名字工作。
+控制台里的 `[WXSLIM_BOOT]`、`[WXSLIM_RESOURCE]` 阶段日志保留，用来排查启动问题。`WXSLIM_` 前缀保持不变，因为 split 工具按这些名字工作。
 
 ## 转换后哪些要人工做
 

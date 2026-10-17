@@ -18,9 +18,12 @@
     return demo.state;
   };
   // 分包版（wasmsplit onclick）才有点击门；Godot 直接 get_interface 一个不存在的名字会打错误日志，所以先问这里
-  demo.hasClickGate = function () { return !!(G.__WX15_RELEASE_CLICK_GATE__ || (G.window && G.window.__WX15_RELEASE_CLICK_GATE__)); };
+  // 点击门的全局名：新名 __WXSLIM_CLICK_GATE__，旧版运行时（2026-10-17 前）叫 __WX15_RELEASE_CLICK_GATE__
+  function has(n) { return !!(G[n] || (G.window && G.window[n])); }
+  demo.clickGateName = function () { return has('__WXSLIM_CLICK_GATE__') ? '__WXSLIM_CLICK_GATE__' : has('__WX15_RELEASE_CLICK_GATE__') ? '__WX15_RELEASE_CLICK_GATE__' : ''; };
+  demo.hasClickGate = function () { return demo.clickGateName() !== ''; };
   // 分包采集包（split collect-pack）会装训练等待门并发布这个诊断对象：点 3D 时只走完等待，不进 3D
-  demo.isTraining = function () { return !!(G.__WX15_TRAINING12_GATE_DIAGNOSTIC__ || (G.window && G.window.__WX15_TRAINING12_GATE_DIAGNOSTIC__)); };
+  demo.isTraining = function () { return has('__WXSLIM_COLLECT_GATE__') || has('__WX15_TRAINING12_GATE_DIAGNOSTIC__'); };
   G.DemoWx = demo;
   if (G.window && G.window !== G) G.window.DemoWx = demo;
 })();

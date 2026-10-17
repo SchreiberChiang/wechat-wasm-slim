@@ -5,14 +5,14 @@
  'use strict';
  var firstModule=null, firstPromise=null;
  var state={requests:0,nativeFactoryCalls:0,reusedRequests:0,status:'NEW'};
- root.__WX15_ENTRY_STATE__=state;
- root.__WX15_CREATE_SINGLE_ENTRY__=function(factory){
-  if(typeof factory!=='function')throw Error('WX15_ENTRY_FACTORY_REQUIRED');
+ root.__WXSLIM_ENTRY_STATE__=state;
+ root.__WXSLIM_CREATE_SINGLE_ENTRY__=function(factory){
+  if(typeof factory!=='function')throw Error('WXSLIM_ENTRY_FACTORY_REQUIRED');
   return function(module){
    state.requests++;
-   if(!module || typeof module!=='object'){state.status='INVALID_MODULE';return Promise.reject(Error('WX15_ENTRY_MODULE_REQUIRED'));}
+   if(!module || typeof module!=='object'){state.status='INVALID_MODULE';return Promise.reject(Error('WXSLIM_ENTRY_MODULE_REQUIRED'));}
    if(firstPromise){
-    if(firstModule!==module){state.status='DISTINCT_MODULE_REJECTED';return Promise.reject(Error('WX15_DISTINCT_MODULE_REQUIRES_FRESH_SESSION'));}
+    if(firstModule!==module){state.status='DISTINCT_MODULE_REJECTED';return Promise.reject(Error('WXSLIM_DISTINCT_MODULE_REQUIRES_FRESH_SESSION'));}
     state.reusedRequests++;state.lastSameModule=true;
     return firstPromise;
    }

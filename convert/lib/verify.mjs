@@ -67,7 +67,7 @@ export function verifyProject(dir, plugin) {
           [pck.subarray(0, 4).toString('latin1') === 'GDPC', 'PCK 文件头 GDPC'],
           [typeof meta.pck?.filename === 'string' && meta.pck.filename.startsWith('/') && meta.pck.filename.endsWith('.pck'), 'PCK 挂载路径 ' + meta.pck?.filename]];
         for (const [ok, m] of checks) ok ? pass(m) : fail(m.replace('一致', '不一致'));
-      } else if (raw) fail('godot-data/package-info.js 读不出 __WX15_PACKAGE_META__');
+      } else if (raw) fail('godot-data/package-info.js 读不出 __WXSLIM_PACKAGE_META__');
     }
     for (const f of fs.readdirSync(file('data-package'))) if (f.endsWith('.data.bin') && f !== data.fileMD5 + '.data.bin') warn('data-package/ 里有多余的 ' + f + '（会被打进包里）');
   }
@@ -76,7 +76,7 @@ export function verifyProject(dir, plugin) {
   const idx = order.map(s => entry.indexOf(s));
   if (idx.some(i => i < 0) || idx.some((v, i) => i && v < idx[i - 1])) fail('game.js 的加载顺序不对，应为 package-info → wx-game-kit → custom-package → single-entry → framework');
   else pass('game.js 加载顺序正确');
-  if (!entry.includes('setModuleFunctionHandler(GameGlobal.__WX15_CREATE_SINGLE_ENTRY__(commFrameWork))')) fail('game.js 没有用单入口包装 Godot 工厂');
+  if (!entry.includes('setModuleFunctionHandler(GameGlobal.__WXSLIM_CREATE_SINGLE_ENTRY__(commFrameWork))')) fail('game.js 没有用单入口包装 Godot 工厂');
   if (entry.split("console.log('start success');").length !== 2) warn("game.js 没有模板的 console.log('start success') 行：split 计时里“插件加载器就绪”会显示未知");
   if (has('godot-data/local-interfaces.js') && !entry.includes("import './godot-data/local-interfaces'")) warn('godot-data/local-interfaces.js 存在但 game.js 没有加载它');
   const compatAt = entry.indexOf("import './godot-data/wx-compat'"), ifaceAt = entry.indexOf("import './godot-data/local-interfaces'");
@@ -90,19 +90,19 @@ export function verifyProject(dir, plugin) {
   }
 
   const fw = text('framework.js');
-  const fwChecks = [[fw.split('__WX15_GODOT_BRIDGE__.start(Godot,Module,').length === 2, 'framework.js 含 Godot 启动桥（只调用一次）'],
-    [fw.includes('/* WX15_ASSET_GATE_ADAPTER_BEGIN */') && fw.includes("Module.__WX15_ADD_ASSET_GATE__('converter');"), 'framework.js 含资源依赖门补丁'],
+  const fwChecks = [[fw.split('__WXSLIM_GODOT_BRIDGE__.start(Godot,Module,').length === 2, 'framework.js 含 Godot 启动桥（只调用一次）'],
+    [fw.includes('/* WXSLIM_ASSET_GATE_ADAPTER_BEGIN */') && fw.includes("Module.__WXSLIM_ADD_ASSET_GATE__('converter');"), 'framework.js 含资源依赖门补丁'],
     [!fw.includes("addRunDependency('wasm-preloadAssets');WXGameKit"), 'framework.js 不再直接添加资源依赖'],
     [!/=\s*nowPolyfill\b/.test(fw) || fw.includes('root.nowPolyfill = nowPolyfill'), 'framework.js 含全局 nowPolyfill 兜底（新版微信分支引擎需要）']];
   for (const [ok, m] of fwChecks) ok ? pass(m) : fail(m.replace('含', '缺少'));
 
   const lab = ['godot-data/local-diagnostic-init.js', 'godot-data/clean-profile-trace.js'].filter(has);
   if (lab.length) warn('工程里有实验诊断脚本：' + lab.join('、'));
-  if (/setStorageSync\('WX15_/.test(text('godot-data/custom-package.js') + text('godot-data/single-entry.js') + fw)) warn('工程里的胶水会把诊断写进本地存储（实验版行为）');
+  if (/setStorageSync\('WXSLIM_/.test(text('godot-data/custom-package.js') + text('godot-data/single-entry.js') + fw)) warn('工程里的胶水会把诊断写进本地存储（实验版行为）');
 
   const sym = path.join(path.dirname(dir), 'webgl', 'symbols.json');
   fs.existsSync(sym) ? pass('符号表 ../webgl/symbols.json 存在（split 配置里的 symbols 指向它）') : warn('没有 ../webgl/symbols.json：split 的 lookup 和问题排查需要符号表');
-  has('godot-data/wx15-timing.js') && /import '\.\/godot-data\/wx15-timing'/.test(text('game.js')) ? pass('装了加载计时汇总（godot-data/wx15-timing.js，日志前缀 [WX15_TIMING]）') : warn('没有加载计时汇总（转换时用了 --no-timing？）：日志里不会有“首包进场景”“点击进场景”等统计');
+  has('godot-data/wxslim-timing.js') && /import '\.\/godot-data\/wxslim-timing'/.test(text('game.js')) ? pass('装了加载计时汇总（godot-data/wxslim-timing.js，日志前缀 [WXSLIM_TIMING]）') : warn('没有加载计时汇总（转换时用了 --no-timing？）：日志里不会有“首包进场景”“点击进场景”等统计');
   if (has('game.symbols.json')) {
     const pc = JSON.parse(text('project.config.json') || '{}'), ign = pc.packOptions?.ignore || [];
     ign.some(x => x.value === 'game.symbols.json') ? pass('工程里有 game.symbols.json（官方 init 要用），且已从小游戏包排除') : fail('game.symbols.json 没有在 project.config.json 的 packOptions.ignore 里，会被打进小游戏包');

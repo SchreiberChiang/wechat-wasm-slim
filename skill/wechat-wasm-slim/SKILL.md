@@ -43,9 +43,9 @@ node <KIT>/convert/convert.mjs verify  --project <新目录>/minigame
 - 官方 wx-transformer 是本机运行的便携 exe，路径和 sha256 在 `convert/convert.toolchain.json`；没有就告诉用户下载地址，**下载前问用户**。
 - 没有 AppID 时可以先用占位符转换，但开发者工具打开前要有真实 AppID（后台已添加 WXGameKit 插件）。
 - 用 GDScript `JavaScriptBridge.get_interface` 的游戏，要让用户提供对应的 JS 接口文件（`--interfaces`），否则会报 `No interface 'X' registered`。
-- `verify` 0 失败后，用 `node <KIT>/split/kit.mjs ide open --config <配置> --project <新目录>/minigame` 本地打开（只 open/refresh/console/screenshot，不预览、不上传）。开发者工具刚打开时控制台可能是空的，要 refresh 后等编译完成再读。控制台出现 `[WX15_BOOT] CALL_MAIN` 和游戏自己的首帧日志才算进了游戏；3D 和完整玩法要用户手动玩。
+- `verify` 0 失败后，用 `node <KIT>/split/kit.mjs ide open --config <配置> --project <新目录>/minigame` 本地打开（只 open/refresh/console/screenshot，不预览、不上传）。开发者工具刚打开时控制台可能是空的，要 refresh 后等编译完成再读。控制台出现 `[WXSLIM_BOOT] CALL_MAIN` 和游戏自己的首帧日志才算进了游戏；3D 和完整玩法要用户手动玩。
 - 网络合法域名、存档、登录、支付、分享、广告等游戏自身的微信适配，convert 不管，要提醒用户。
-- 加载时长统计是自带的（`[WX15_TIMING]`），但要游戏打印 `[STARTUP_3D_FLOW]` 事件：`two_d_first_frame`、`click`/`scene_first_frame`（带 scene）。新游戏接入时一定要加，否则汇总里没有“首包进场景”“点击进场景”。约定见 `<KIT>/split/README.md`。
+- 加载时长统计是自带的（`[WXSLIM_TIMING]`），但要游戏打印 `[STARTUP_3D_FLOW]` 事件：`two_d_first_frame`、`click`/`scene_first_frame`（带 scene）。新游戏接入时一定要加，否则汇总里没有“首包进场景”“点击进场景”。约定见 `<KIT>/split/README.md`。
 
 ## 裁剪（trim）
 
@@ -74,7 +74,7 @@ node <KIT>/trim/trim.mjs apply --engine <编译目录>/artifacts --minigame <小
 
 两种模式：
 - `--mode measured`（游戏代码不用改）：采集时把**整个游戏**（包括重场景）在安卓和 iPhone 上都玩一遍。首包 = 实测用到的全部函数。`--drop-secondary` 会把其余代码整个不打包，只在多机型充分采集后才建议使用。
-- `--mode onclick`（默认）：首包只放进入重场景前用到的函数，点击时才下载其余代码。需要游戏代码调用点击门；推荐游戏用 `__WX15_TRAINING12_GATE_DIAGNOSTIC__` 判断采集包、过门就停，这样不用训练版 PCK。写法照 `<KIT>/examples/startap/`。
+- `--mode onclick`（默认）：首包只放进入重场景前用到的函数，点击时才下载其余代码。需要游戏代码调用点击门；推荐游戏用 `__WXSLIM_COLLECT_GATE__` 判断采集包、过门就停，这样不用训练版 PCK。写法照 `<KIT>/examples/startap/`。
 
 流程：（问用户）`split init` → `collect-pack` →（问用户）`preview` → 用户在手机上玩 → `split getinfo` / `showfuncname` → `split release` → `assemble` → `verify`（离线测试必须全部通过）→ `ide open` 本地检查（开发者工具不能点画布，用接口文件里的自动玩开关跑全流程）→（问用户）`preview` 或 `upload` → 用户真机测试 → `logs` 读中文汇总。
 

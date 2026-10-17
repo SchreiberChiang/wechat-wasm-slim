@@ -14,8 +14,8 @@ function config() { const f = abs(need('config')); const c = readJson(f); c.__di
 function keyPathOf(c) { const k = process.env.WASMSPLIT_KIT_KEY || (c.privateKeyPath && path.resolve(c.__dir, c.privateKeyPath)) || (c.keyMetadata && readJson(path.resolve(c.__dir, c.keyMetadata)).privateKeyPath); check(k && path.isAbsolute(k) && fs.existsSync(k), 'PRIVATE_KEY_NOT_CONFIGURED'); return k; }
 const fromCfg = (c, p) => path.resolve(c.__dir, p);
 const ledgerDir = c => { const d = fromCfg(c, c.workDir || '.'); fs.mkdirSync(path.join(d, 'ledgers'), {recursive: true}); return d; };
-const KEEP_RELEASE = 'WX15_TIMING|WX15_RELEASE_CLICK|WX15_FALLBACK|PHONE_LOG_START|transition_failed|COVERAGE_MISS|WX15_CLICK_';
-const KEEP_COLLECT = 'WX15_TIMING|PHONE_LOG_START|transition_failed|collection_gate_complete';
+const KEEP_RELEASE = 'WXSLIM_TIMING|WXSLIM_CLICK|WXSLIM_FALLBACK|PHONE_LOG_START|transition_failed|COVERAGE_MISS|WXSLIM_CLICK_';
+const KEEP_COLLECT = 'WXSLIM_TIMING|PHONE_LOG_START|transition_failed|collection_gate_complete';
 
 /** Build labels must be unique per uploaded package (two versions sharing a label are indistinguishable in cloud logs). */
 function claimLabel(c, label) {
@@ -36,7 +36,7 @@ const commands = {
     const pck = c.releasePck ? installPck(out, fromCfg(c, c.releasePck), label.toLowerCase(), 'release_primary_then_click_complement') : 'PROJECT_PCK_UNCHANGED';
     if (c.releaseInterfaces) fs.copyFileSync(fromCfg(c, c.releaseInterfaces), path.join(out, 'godot-data/local-interfaces.js'));
     if (drop) { fs.rmSync(path.join(out, 'wasmcode1'), {recursive: true}); const gf = path.join(out, 'game.json'), g = readJson(gf), k = Array.isArray(g.subpackages) ? 'subpackages' : 'subPackages'; g[k] = g[k].filter(x => x.name !== 'wasmcode1'); writeJson(gf, g); }
-    installTelemetry(out, {label, cloud: c.cloud, keep: KEEP_RELEASE + '|WX15_PRIMARY_MISS|WX15_FALLBACK_FAILED', mode});
+    installTelemetry(out, {label, cloud: c.cloud, keep: KEEP_RELEASE + '|WXSLIM_PRIMARY_MISS|WXSLIM_FALLBACK_FAILED', mode});
     packagingFixes(out, c.projectName + ' ' + label);
     claimLabel(c, label);
     const result = {kind: 'release', mode, dropSecondary: drop, at: new Date().toISOString(), from, out, label, runtime: {before: r.beforeSha256, after: r.afterSha256, patches: r.applied.length}, pck, ...projectInfo(out)};
@@ -52,8 +52,8 @@ const commands = {
     // Training gate is appended to a script the game already loads (config.trainingGateHost, default godot-data/local-interfaces.js).
     const li = path.join(out, c.trainingGateHost || 'godot-data/local-interfaces.js'); if (c.releaseInterfaces) fs.copyFileSync(fromCfg(c, c.releaseInterfaces), li);
     check(fs.existsSync(li), 'TRAINING_GATE_HOST_MISSING:' + li);
-    // 用训练门脚本自己的头注释判断是否已装（游戏接口里可能出现 __WX15_TRAINING12_GATE_DIAGNOSTIC__ 之类的名字）
-    editText(li, s => s.includes('WX15_TRAINING12_GATE: collection-only') ? s + '\n' : s + '\n' + asset('training-gate.js'));
+    // 用训练门脚本自己的头注释判断是否已装（游戏接口里可能出现 __WXSLIM_COLLECT_GATE__ 之类的名字）
+    editText(li, s => s.includes('WXSLIM_COLLECT_GATE: collection-only') || s.includes('WX15_TRAINING12_GATE: collection-only') ? s + '\n' : s + '\n' + asset('collect-gate.js'));
     installTelemetry(out, {label, cloud: c.cloud, keep: KEEP_COLLECT});
     packagingFixes(out, c.projectName + ' ' + label);
     claimLabel(c, label);
@@ -83,14 +83,14 @@ const commands = {
     const {runWaiterTests} = await import('./lib/offline-tests.mjs'), {runTimingTests} = await import('./lib/timing-tests.mjs');
     const dir = abs(need('project')), r = runWaiterTests(fs.readFileSync(path.join(dir, 'wasm-split.js'), 'utf8'));
     // 计时汇总契约：包里的计时模块能认出游戏的打印方式（Star Tap / 打砖块两种写法）
-    const tf = path.join(dir, 'godot-data/wx15-timing.js'); if (fs.existsSync(tf)) r.push(...runTimingTests(fs.readFileSync(tf, 'utf8')).map(x => ({...x, name: '计时：' + x.name})));
+    const tf = path.join(dir, 'godot-data/wxslim-timing.js'); if (fs.existsSync(tf)) r.push(...runTimingTests(fs.readFileSync(tf, 'utf8')).map(x => ({...x, name: '计时：' + x.name})));
     for (const x of r) console.log(x.ok ? 'PASS' : 'FAIL', x.name, x.ok ? '' : x.error); if (r.some(x => !x.ok)) process.exitCode = 1;
   },
   // 开发者工具本地操作（不含上传）：open / refresh / close / console / screenshot。
   async ide() {
     const c = config(), action = argv[1], project = abs(need('project'));
     const map = {open: 'open_project_window', refresh: 'simulator_refresh', close: 'close_project_window', console: 'get_simulator_console', screenshot: 'simulator_screenshot'};
-    check(map[action], 'IDE_ACTION'); const args = ['--project', project]; if (action === 'console') args.push('--command', opt('grep') || 'grep WX15_TIMING');
+    check(map[action], 'IDE_ACTION'); const args = ['--project', project]; if (action === 'console') args.push('--command', opt('grep') || 'grep WXSLIM_TIMING');
     if (action === 'screenshot') args.push('--path', abs(opt('path') || path.join(ledgerDir(c), 'shot.jpg')));
     const r = await wechatide(c.clientName || 'Claude', map[action], args, {cwd: path.dirname(project), evidenceDir: path.join(ledgerDir(c), 'ide-evidence')});
     // 控制台行保留参数（缺函数日志的槽位号在第二个参数里），过滤 AppID，每行最多 600 字符。
@@ -125,9 +125,9 @@ const commands = {
     const lines = [`build ${label} rows ${rows.length} sessions ${Object.keys(sessions).length}`];
     for (const [id, s] of Object.entries(sessions)) { const e = s.entries.sort((a, b) => a.seq - b.seq), start = new Date(e[0]?.at).toISOString(); if (start < since) continue; const d = s.device || {};
       lines.push(`== ${id} ${d.platform} ${d.model} ${d.system} start ${start}`); let last = '';
-      for (const x of e) { const m = x.message; if (m.includes('WX15_FALLBACK') || m.includes('PHONE_LOG_START')) continue;
-        if (m.includes('WX15_TIMING')) lines.push('  ' + m.replace(/^\[WX15_TIMING\]\s*/, '').replace(/\s*\{"kind".*$/, ''));
-        else if (m.includes('WX15_RELEASE_CLICK')) { const g = (m.match(/"state":"(\w+)"/) || [])[1]; if (g && g !== last) { lines.push('  点击门 ' + g); last = g; } }
+      for (const x of e) { const m = x.message; if (/WX(SLIM|15)_FALLBACK/.test(m) || m.includes('PHONE_LOG_START')) continue;  // 旧包的日志前缀是 WX15_，一起认
+        if (/WX(SLIM|15)_TIMING/.test(m)) lines.push('  ' + m.replace(/^\[WX(SLIM|15)_TIMING\]\s*/, '').replace(/\s*\{"kind".*$/, ''));
+        else if (/WX(SLIM_CLICK|15_RELEASE_CLICK)/.test(m)) { const g = (m.match(/"state":"(\w+)"/) || [])[1]; if (g && g !== last) { lines.push('  点击门 ' + g); last = g; } }
         else lines.push('  [' + x.level + '] ' + m.slice(0, 240)); } }
     fs.writeFileSync(path.join(tmp, 'DIGEST.txt'), lines.join('\n') + '\n'); console.log(lines.join('\n'));
   },

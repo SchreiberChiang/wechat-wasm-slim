@@ -159,7 +159,7 @@ func _on_ws_message(msg: Dictionary) -> void:
 
 
 # ---------- 进入玩法场景 ----------
-## 分包版（wasmsplit onclick 模式）运行时会暴露点击门 __WX15_RELEASE_CLICK_GATE__：request() 后轮询到 READY
+## 分包版（wasmsplit onclick 模式）运行时会暴露点击门 __WXSLIM_CLICK_GATE__：request() 后轮询到 READY
 ## （余包下载、编译完）才能用余包里的类和函数；没有分包时这个接口不存在，直接进。
 ## 哪些场景要先过点击门由 JS 接口 DemoWx.gate2d 决定：
 ##   方案一（标题+2D 首包，3D 余包）：gate2d=false，只有 3D 过门；
@@ -184,7 +184,7 @@ func _enter_scene(tag: String, path: String, gated: bool) -> String:
 		var d: JavaScriptObject = JavaScriptBridge.get_interface("DemoWx")
 		var gate: JavaScriptObject = null
 		if d != null and bool(d.hasClickGate()):
-			gate = JavaScriptBridge.get_interface("__WX15_RELEASE_CLICK_GATE__")
+			gate = JavaScriptBridge.get_interface(str(d.clickGateName()))
 		if gate != null:
 			var status := str(gate.request())
 			while status == "PENDING":

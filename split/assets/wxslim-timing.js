@@ -1,12 +1,12 @@
-// WX15 timing summary. Loaded first from game.js; clock = Date.now() from game.js start
+// wechat-wasm-slim 加载计时汇总（timing summary）. Loaded first from game.js; clock = Date.now() from game.js start
 // (excludes WeChat's main-package download before game.js runs).
 (function(root){
  'use strict';
  var t0=Date.now(),marks={},click=null,summaries=[],callMainMs=null,firstDone=false;
- var fmt=function(v){return v==null?'未知':Math.round(v)+'ms';},mb=function(b){return b?(b/1e6).toFixed(2)+'MB':'未知';},SZ=root.__WX15_SIZES__||{};
+ var fmt=function(v){return v==null?'未知':Math.round(v)+'ms';},mb=function(b){return b?(b/1e6).toFixed(2)+'MB':'未知';},SZ=root.__WXSLIM_SIZES__||{};
  var since=function(k){return marks[k]!=null?marks[k]-t0:null;};
  var device='';try{var i=wx.getSystemInfoSync();device=(i.platform||'')+' '+(i.model||'')+' 微信'+(i.version||'')+' 基础库'+(i.SDKVersion||'');}catch(_){}
- function emit(text,data){summaries.push(data);try{wx.setStorageSync('WX15_TIMING_SUMMARY',summaries);}catch(_){}console.info('[WX15_TIMING] '+text,JSON.stringify(data));}
+ function emit(text,data){summaries.push(data);try{wx.setStorageSync('WXSLIM_TIMING_SUMMARY',summaries);}catch(_){}console.info('[WXSLIM_TIMING] '+text,JSON.stringify(data));}
  var dropped={spam:0,dupErrors:0};
  var sh={compiles:0,compileUs:0,slowest:null,firsts:0,dropped:0,failed:0};
  function shaderText(scope){if(!sh.compiles&&!sh.firsts&&!sh.failed&&scope.indexOf('再次')===0)return;var t='着色器('+scope+')：编译 '+sh.compiles+' 次共 '+fmt(sh.compileUs/1000)+(sh.slowest?'（最慢 '+sh.slowest.name+' '+fmt(sh.slowest.us/1000)+'）':'')+(sh.failed?' 失败 '+sh.failed+' 次':'')+' | 首次使用 '+sh.firsts+' 个 | 已拦截重复绑定日志 '+sh.dropped+' 行 | 其它刷屏 '+dropped.spam+' 行 | 重复错误 '+dropped.dupErrors+' 行';
@@ -85,7 +85,7 @@
    if(arguments.length===1&&typeof a==='function')return;
    var fr=parseFlow(arguments);if(fr){if(!flow(fr))return;return log.apply(console,arguments);}
    // convert 启动桥的阶段日志：主 WASM 实例化完成（分包运行时没标记时用它）
-   if(a==='[WX15_BOOT]'&&arguments[1]==='WASM_INSTANTIATED')mark('primary_wasm_ready');
+   if((a==='[WXSLIM_BOOT]'||a==='[WX15_BOOT]')&&arguments[1]==='WASM_INSTANTIATED')mark('primary_wasm_ready');
    if(typeof a==='string'&&(a.indexOf('代码分包1下载进度')===0||a.indexOf('资源包下载进度')>=0||a.indexOf('[minigamefe keyValueReport]')===0||a==='Module is'||a==='unity framework')){dropped.spam++;return;}
    if(typeof a==='string'&&a.indexOf('[WX_SHADER_')===0){var o=JSON.parse(a.slice(a.indexOf('{')));
     if(a.indexOf('[WX_SHADER_BIND]')===0){if(!o.first){sh.dropped++;return;}sh.firsts++;return;}
@@ -112,5 +112,5 @@
    raf(tick);},delay);}
  var errSeen={},err=console.error;
  console.error=function(){try{var k=Array.prototype.map.call(arguments,function(x){return typeof x==='string'?x:'';}).join(' ').slice(0,200);if(k){errSeen[k]=(errSeen[k]||0)+1;if(errSeen[k]>1){dropped.dupErrors++;return;}}}catch(_){}return err.apply(console,arguments);};
- root.__WX15_TIMING__={mark:mark,t0:t0,dropped:dropped};
+ root.__WXSLIM_TIMING__={mark:mark,t0:t0,dropped:dropped};
 })(typeof GameGlobal!=='undefined'?GameGlobal:globalThis);

@@ -37,7 +37,7 @@ node kit.mjs split profile|release|getinfo|showfuncname    # 调用官方 CLI（
 node kit.mjs collect-pack --from <Profile产物> --out <dir> --label <唯一标记> [--full-game]
 node kit.mjs assemble --from <Release产物> --out <dir> --label <唯一标记> [--mode measured] [--drop-secondary]
 node kit.mjs verify --project <dir>                        # 离线测试（按包里的模式自动选择用例）
-node kit.mjs ide open|refresh|console|screenshot|close --project <dir> [--grep "grep WX15_TIMING"]
+node kit.mjs ide open|refresh|console|screenshot|close --project <dir> [--grep "grep WXSLIM_TIMING"]
 node kit.mjs preview --project <dir>                       # 推送手机预览（先问用户），输出各分包大小
 node kit.mjs upload --project <dir> --version 0.x.y --desc "备注"   # 上传开发版/体验版，需要在开发者工具里人工确认
 node kit.mjs task --id <taskId>                            # 查询上传确认结果
@@ -66,10 +66,10 @@ node kit.mjs lookup <槽位编号...>                           # 兜底/缺函�
 
 > 实测模式（measured）不需要接入点击门，游戏代码不用改。PCK 替换是可选的：配置不写 PCK 时，直接使用工程自带的 PCK。输入工程要满足的条件见 SETUP.md 第 3 节。
 
-运行时会在全局暴露 `__WX15_RELEASE_CLICK_GATE__`，提供 `request()`、`status()`、`cancel()`，都返回字符串：`IDLE`、`PENDING`、`READY`，或以 `_REQUIRED` / `_RETRYABLE` 结尾的错误码。完整写法见 [Star Tap 的 game.gd](../examples/startap/game/scripts/game.gd) `_enter_scene()`：
+运行时会在全局暴露 `__WXSLIM_CLICK_GATE__`，提供 `request()`、`status()`、`cancel()`，都返回字符串：`IDLE`、`PENDING`、`READY`，或以 `_REQUIRED` / `_RETRYABLE` 结尾的错误码。完整写法见 [Star Tap 的 game.gd](../examples/startap/game/scripts/game.gd) `_enter_scene()`：
 
 ```gdscript
-var gate := JavaScriptBridge.get_interface("__WX15_RELEASE_CLICK_GATE__")
+var gate := JavaScriptBridge.get_interface("__WXSLIM_CLICK_GATE__")
 var status := str(gate.request())
 while status == "PENDING":
     await get_tree().process_frame
@@ -82,9 +82,9 @@ var scene: PackedScene = load("res://scenes/play3d.tscn")  # 余包里的场景�
 ```
 
 - **不要直接 `get_interface` 一个可能不存在的名字**（没分包时会打错误日志）：先在游戏的 JS 接口里判断全局对象是否存在（Star Tap 的 `DemoWx.hasClickGate()`）。
-- **采集包判断**：训练等待门会发布 `GameGlobal.__WX15_TRAINING12_GATE_DIAGNOSTIC__`，游戏 JS 接口据此返回“是采集包”（Star Tap 的 `DemoWx.isTraining()`）。这样正式包和采集包用同一个 PCK，配置里不用写 `trainingPck`。
+- **采集包判断**：训练等待门会发布 `GameGlobal.__WXSLIM_COLLECT_GATE__`，游戏 JS 接口据此返回“是采集包”（Star Tap 的 `DemoWx.isTraining()`）。这样正式包和采集包用同一个 PCK，配置里不用写 `trainingPck`。
 - 点击之后、READY 之前执行的代码（输入处理、等待门轮询、UI）都必须被采集到首包里，采集时要原样走这一段。
-- **加载计时汇总**（convert 和 split 产物都自带，日志前缀 `[WX15_TIMING]`）：游戏用 `print('[STARTUP_3D_FLOW] {"event":...}')` 打这几个事件就行（`console.info('[STARTUP_3D_FLOW]', json)`、字段名 `stage` 也认）：
+- **加载计时汇总**（convert 和 split 产物都自带，日志前缀 `[WXSLIM_TIMING]`）：游戏用 `print('[STARTUP_3D_FLOW] {"event":...}')` 打这几个事件就行（`console.info('[STARTUP_3D_FLOW]', json)`、字段名 `stage` 也认）：
   - `two_d_first_frame`：第一个可交互画面（标题）出现 → 输出“首包进场景：总计 | 插件加载器 | 首包 WASM 下载编译 | callMain …”
   - `click`（带 `scene`）：点了进某个场景；`scene_first_frame`（带 `scene`）：那个场景第一帧 → 输出“点击进X：总计 | 下载剩余WASM | 编译实例化 | 场景加载到首帧”，再次进入、不需要下载的场景也各有一行
   - `game_3d_first_frame`（等同 `scene_first_frame` + `3d`）、`transition_failed`（带 `scene`、`status`）

@@ -20,14 +20,15 @@ export function projectInfo(dir) {
 /** Swap the Godot PCK inside the compressed data package (keeps the leading notice file), update all metadata. */
 export function installPck(dir, pckPath, label, engineMode) {
   const pck = fs.readFileSync(pckPath), cfgFile = path.join(dir, 'wx-game-kit/config.json'), cfg = readJson(cfgFile);
-  const infoFile = path.join(dir, 'godot-data/package-info.js'), info = fs.readFileSync(infoFile, 'utf8'), meta = JSON.parse(info.slice(info.indexOf('=') + 1).trim().replace(/;$/, ''));
+  const infoFile = path.join(dir, 'godot-data/package-info.js'), info = fs.readFileSync(infoFile, 'utf8'), meta = JSON.parse(info.slice(info.indexOf('{')).trim().replace(/;$/, ''));
   const old = zlib.brotliDecompressSync(fs.readFileSync(path.join(dir, 'data-package', cfg.launch.data.fileMD5 + '.data.bin')));
   check(sha(old) === meta.dataSha256, 'DATA_PACKAGE_META_MISMATCH');
   check(pck.subarray(0, 4).toString() === 'GDPC', 'NOT_A_GODOT_PCK');
   const data = Buffer.concat([old.subarray(0, meta.pck.start), pck]), br = zlib.brotliCompressSync(data, {params: {[zlib.constants.BROTLI_PARAM_QUALITY]: 11}}), md5 = crypto.createHash('md5').update(data).digest('hex').slice(0, 16);
   const out = path.join(dir, 'data-package', md5 + '.data.bin'); if (!fs.existsSync(out)) fs.writeFileSync(out, br);
   Object.assign(meta, {remotePackageName: label + '.data', size: data.length, pckBytes: pck.length, pckSha256: sha(pck), dataSha256: sha(data), engineMode}); meta.pck.end = data.length; meta.files.find(f => f.filename === meta.pck.filename).end = data.length;
-  fs.writeFileSync(infoFile, 'GameGlobal.__WX15_PACKAGE_META__=' + JSON.stringify(meta) + ';\n');
+  // 新旧两个全局名都写：2026-10-17 前 convert 的工程里，胶水读的是 __WX15_PACKAGE_META__
+  fs.writeFileSync(infoFile, 'GameGlobal.__WXSLIM_PACKAGE_META__=GameGlobal.__WX15_PACKAGE_META__=' + JSON.stringify(meta) + ';\n');
   writeJson(path.join(dir, 'godot-data/package.metadata.json'), {files: meta.files, remote_package_size: data.length});
   cfg.launch.data.fileMD5 = md5; cfg.launch.data.fileSize = data.length; cfg.launch.data.optFileSize = data.length; fs.writeFileSync(cfgFile, JSON.stringify(cfg, null, 4) + '\n');
   for (const f of fs.readdirSync(path.join(dir, 'data-package'))) if (f.endsWith('.data.bin') && f !== md5 + '.data.bin') fs.unlinkSync(path.join(dir, 'data-package', f));
@@ -47,18 +48,21 @@ export function packagingFixes(dir, projectName) {
 /** Timing + whitelisted cloud log relay. keep = regex source for uploaded lines (errors always kept). */
 export function installTelemetry(dir, {label, cloud, keep, mode = 'onclick'}) {
   const info = projectInfo(dir); fs.mkdirSync(path.join(dir, 'godot-data'), {recursive: true});
-  fs.writeFileSync(path.join(dir, 'godot-data/wx15-sizes.js'), 'GameGlobal.__WX15_SIZES__=' + JSON.stringify({primaryBr: info.primaryBr, code1Br: info.code1Br, mode}) + ';\n');
-  fs.writeFileSync(path.join(dir, 'godot-data/wx15-timing.js'), asset('wx15-timing.js'));
+  fs.writeFileSync(path.join(dir, 'godot-data/wxslim-sizes.js'), 'GameGlobal.__WXSLIM_SIZES__=' + JSON.stringify({primaryBr: info.primaryBr, code1Br: info.code1Br, mode}) + ';\n');
+  fs.writeFileSync(path.join(dir, 'godot-data/wxslim-timing.js'), asset('wxslim-timing.js'));
   fs.writeFileSync(path.join(dir, 'phone-log.js'), asset('phone-log.js'));
   fs.writeFileSync(path.join(dir, 'phone-log-bootstrap.js'), replaceOnce(asset('phone-log-bootstrap.base.js'), 'const relay=', `effective=Object.assign({},effective,{keep:function(level,text){return level==='error'||/${keep}/.test(text);}});\n const relay=`, 'bootstrap'));
   fs.writeFileSync(path.join(dir, 'phone-log-config.js'), 'module.exports = ' + JSON.stringify({enabled: !!cloud?.env, env: cloud?.env || '', build: label, functionName: cloud?.functionName || 'phoneLogIngest'}, null, 2) + ';\n');
+  // 老工程（2026-10-17 前 convert 的）里有 wx15-* 计时文件和 import：换成新的，避免装两份计时
+  for (const old of ['wx15-sizes.js', 'wx15-timing.js']) fs.rmSync(path.join(dir, 'godot-data', old), {force: true});
   editText(path.join(dir, 'game.js'), s => {
-    // convert 已经装了计时（wx15-sizes/wx15-timing 在最前面）时，只在它们后面补云日志引导；文件内容在上面已覆盖为分包后的版本。
-    if (!s.includes("import './godot-data/wx15-timing';")) s = "import './godot-data/wx15-sizes';\nimport './godot-data/wx15-timing';\nimport './phone-log-bootstrap';\n" + s;
-    else if (!s.includes("import './phone-log-bootstrap';")) s = s.replace("import './godot-data/wx15-timing';\n", "import './godot-data/wx15-timing';\nimport './phone-log-bootstrap';\n");
+    s = s.split("import './godot-data/wx15-sizes';\n").join('').split("import './godot-data/wx15-timing';\n").join('').split("GameGlobal.__WX15_TIMING__.mark('loader_start_ok');").join("GameGlobal.__WXSLIM_TIMING__.mark('loader_start_ok');");
+    // convert 已经装了计时（wxslim-sizes/wxslim-timing 在最前面）时，只在它们后面补云日志引导；文件内容在上面已覆盖为分包后的版本。
+    if (!s.includes("import './godot-data/wxslim-timing';")) s = "import './godot-data/wxslim-sizes';\nimport './godot-data/wxslim-timing';\nimport './phone-log-bootstrap';\n" + s;
+    else if (!s.includes("import './phone-log-bootstrap';")) s = s.replace("import './godot-data/wxslim-timing';\n", "import './godot-data/wxslim-timing';\nimport './phone-log-bootstrap';\n");
     // Optional mark: only when the template's loader success line exists (otherwise the summary shows 插件加载器就绪 未知).
     if (s.includes("mark('loader_start_ok')") || s.split("console.log('start success');").length !== 2) return s + '\n';
-    return s.replace("console.log('start success');", "GameGlobal.__WX15_TIMING__.mark('loader_start_ok');\n    console.log('start success');");
+    return s.replace("console.log('start success');", "GameGlobal.__WXSLIM_TIMING__.mark('loader_start_ok');\n    console.log('start success');");
   });
 }
 

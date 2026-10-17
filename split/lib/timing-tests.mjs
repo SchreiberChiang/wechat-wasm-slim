@@ -1,4 +1,4 @@
-// 计时模块（assets/wx15-timing.js）契约测试：按游戏实际的打印方式回放日志，确认汇总行真的会输出。
+// 计时模块（assets/wxslim-timing.js）契约测试：按游戏实际的打印方式回放日志，确认汇总行真的会输出。
 // 覆盖两种写法：Star Tap（Godot print → console.log 一整行，字段 event）和打砖块（console.info 两个参数，字段 stage）。
 import fs from 'node:fs';import vm from 'node:vm';
 
@@ -6,10 +6,10 @@ function sandbox(sizes) {
   let now = 1000; const out = [], timers = [];
   const con = {log: () => {}, info: (...a) => out.push(a.map(String).join(' ')), error: () => {}, warn: () => {}};
   const g = {console: con, Date: {now: () => now}, JSON, Math, setTimeout: (f, ms) => timers.push({f, at: now + (ms || 0)}), setInterval: () => 0,
-    wx: {getSystemInfoSync: () => ({platform: 'ios', model: 'test', version: '8', SDKVersion: '3'}), setStorageSync: () => {}}, __WX15_SIZES__: sizes};
+    wx: {getSystemInfoSync: () => ({platform: 'ios', model: 'test', version: '8', SDKVersion: '3'}), setStorageSync: () => {}}, __WXSLIM_SIZES__: sizes};
   g.GameGlobal = g; g.globalThis = g;
   const tick = ms => { now += ms; for (const t of timers.splice(0)) if (t.at <= now) t.f(); else timers.push(t); };
-  return {g, out, tick, mark: (n, v) => g.__WX15_TIMING__.mark(n, v)};
+  return {g, out, tick, mark: (n, v) => g.__WXSLIM_TIMING__.mark(n, v)};
 }
 const load = (src, sizes) => { const s = sandbox(sizes); vm.runInNewContext(src, s.g); return s; };
 const has = (out, re) => out.some(l => re.test(l));
@@ -20,7 +20,7 @@ export function runTimingTests(src) {
   const cases = [
     ['Star Tap 写法：未分包工程（convert 默认装）也输出首包进场景，callMain 取自原生计时', () => {
       const s = load(src, {primaryBr: 6e6, code1Br: null, mode: 'nosplit'});
-      s.g.console.log('[WX15_BOOT]', 'WASM_INSTANTIATED'); s.tick(500); nativeStartup(s); s.tick(300);
+      s.g.console.log('[WXSLIM_BOOT]', 'WASM_INSTANTIATED'); s.tick(500); nativeStartup(s); s.tick(300);
       godotPrint(s, {event: 'two_d_first_frame', scene: 'title'});
       if (!has(s.out, /首包进场景：总计 \d+ms.*callMain 1200ms.*未分包/)) throw Error('没有首包进场景汇总：' + s.out.join(' / '));
       godotPrint(s, {event: 'click', scene: '2d'}); s.tick(150); godotPrint(s, {event: 'scene_first_frame', scene: '2d'});
@@ -58,6 +58,6 @@ export function runTimingTests(src) {
 }
 
 if (process.argv[1] && process.argv[1].endsWith('timing-tests.mjs')) {
-  const src = fs.readFileSync(new URL('../assets/wx15-timing.js', import.meta.url), 'utf8');
+  const src = fs.readFileSync(new URL('../assets/wxslim-timing.js', import.meta.url), 'utf8');
   for (const r of runTimingTests(src)) console.log(r.ok ? 'PASS' : 'FAIL', r.name, r.ok ? '' : r.error);
 }

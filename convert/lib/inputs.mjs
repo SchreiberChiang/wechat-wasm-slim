@@ -40,7 +40,7 @@ export function checkInputs(inp) {
   if (missing.length) problems.push('引擎不是 citizenll/godot 微信分支编译的（JS 缺少微信运行时约定：' + missing.join('、') + '）。官方 Godot 模板不能直接用，要用微信分支自编译的 Web 模板。');
   facts.needsNowPolyfill = /=\s*nowPolyfill\b/.test(js); // 新版微信分支引擎依赖全局 nowPolyfill，启动桥会补上
   if (/\bPThread\b/.test(js)) problems.push('引擎是多线程版（含 PThread）。小游戏只能用 threads=no 的单线程模板。');
-  if (js.includes('WXGameKit') || js.includes('__WX15_GODOT_BRIDGE__')) problems.push('JS 已经被转换或接过启动桥了。请用 Godot 原始导出的 JS。');
+  if (js.includes('WXGameKit') || js.includes('__WXSLIM_GODOT_BRIDGE__')) problems.push('JS 已经被转换或接过启动桥了。请用 Godot 原始导出的 JS。');
   const wasm = fs.readFileSync(inp.wasm);
   facts.wasmBytes = wasm.length; facts.wasmMd5 = md5(wasm); facts.wasmSha256 = sha(wasm);
   if (wasm.readUInt32LE(0) !== 0x6d736100 || wasm.readUInt32LE(4) !== 1) problems.push('.wasm 文件头不对（不是 WebAssembly 1.0）。');

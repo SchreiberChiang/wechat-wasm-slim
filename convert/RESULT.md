@@ -22,7 +22,7 @@
 
 开发者工具里的数字只是模拟器上的一次运行，不是性能对比。
 
-启动过程（两份引擎相同）：插件请求两次工厂，第二次复用同一个 Module（单入口生效）；`[WX15_BOOT]` 依次为 FACTORY_START → WASM_INSTANTIATED → GODOT_RUNTIME_READY → FS_READY → PACK_READY_WAITING_LOADER_MAIN → CALL_MAIN → MAIN_RETURNED。
+启动过程（两份引擎相同）：插件请求两次工厂，第二次复用同一个 Module（单入口生效）；`[WXSLIM_BOOT]` 依次为 FACTORY_START → WASM_INSTANTIATED → GODOT_RUNTIME_READY → FS_READY → PACK_READY_WAITING_LOADER_MAIN → CALL_MAIN → MAIN_RETURNED。
 
 ## 与手工版（`wxgamekit-15/out-bridge-03/minigame`）对比
 

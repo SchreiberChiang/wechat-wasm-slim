@@ -126,6 +126,21 @@ node trim/trim.mjs apply --engine D:/wasm-build/build-1/artifacts --minigame <�
 - `examples/breakout3d/`、`examples/breakout-split/`：打砖块的裁剪和分包配置。
 - `docs/`：已知问题与处理结论（[KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md)）、历史踩坑（PLAYBOOK.md）。
 
+## 命名变更（2026-10-17）
+
+早期实验留下的 `WX15_`、`training12` 这些编号式名字统一改成了 `WXSLIM_`。**旧名字仍然兼容**：运行时同时挂新旧两个全局名，读云日志时新旧前缀都认，所以按旧名字写的游戏代码不用改。新游戏请用新名字。
+
+| 用途 | 新名字 | 旧名字（仍然可用） |
+|---|---|---|
+| 点击门（游戏调用） | `__WXSLIM_CLICK_GATE__` | `__WX15_RELEASE_CLICK_GATE__` |
+| 采集包标志（游戏判断） | `__WXSLIM_COLLECT_GATE__` | `__WX15_TRAINING12_GATE_DIAGNOSTIC__` |
+| 计时汇总日志 | `[WXSLIM_TIMING]` | `[WX15_TIMING]` |
+| 启动阶段日志 | `[WXSLIM_BOOT]`、`[WXSLIM_RESOURCE]` | `[WX15_BOOT]`、`[WX15_RESOURCE]` |
+| 点击门状态、兜底、缺函数日志 | `[WXSLIM_CLICK]`、`[WXSLIM_FALLBACK]`、`[WXSLIM_PRIMARY_MISS]` | `[WX15_RELEASE_CLICK]`、`[WX15_FALLBACK]`、`[WX15_PRIMARY_MISS]` |
+| 计时文件 | `godot-data/wxslim-timing.js`、`wxslim-sizes.js` | `wx15-timing.js`、`wx15-sizes.js`（组装时自动换掉） |
+
+没改的：游戏打印的 `[STARTUP_3D_FLOW]` 事件（游戏侧约定）；引擎补丁里的 `WX_LAB_*` 宏和 `[WX_NATIVE_*]` 日志（属于引擎，改了要重编）；配置文件里的键名（例如 `trainingPck`、`trainingGateHost`）。
+
 ## 示例配置与隐私
 
 包内配置已去敏，`REPLACE_WITH_…` 和 `./input/…` 均需换成使用者自己的值；未附引擎、私钥、登录状态或原始运行日志。工具链位置在 `trim/trim.toolchain.json` 和 `convert/convert.toolchain.json` 中填写；本机实际配置请另存为 `*.private.json`，私钥保存在仓库之外。
