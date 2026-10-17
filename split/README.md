@@ -12,7 +12,7 @@
 | 安全性 | 确定：去掉的东西编译期就不存在，用到会编译或导出失败 | 依赖采集覆盖面：没采到的路径会缺函数 |
 | 代价 | 重新编译引擎（几十分钟），md5 变化，要重新采集 | 要在真机上采集 |
 | 已有结果 | 只保留 2D 的版本：8.69 → 5.08 MB（-41.5%）；保留 3D 的配置已写好，未编译 | 首包 3.54 MB（完整 WASM 8.52 MB） |
-| 本工具 | 独立入口 [trim/trim.mjs](../trim/trim.mjs) | `assemble` 的两种模式 |
+| 本工具 | 独立入口 [trim/trim.mjs](../trim/trim.mjs)（编出的引擎用 [convert](../convert/README.md) 重新转换） | `assemble` 的两种模式 |
 
 推荐顺序：**先编译期裁剪，再按实测分包**。裁剪后 md5 会变，分包采集必须在裁剪之后做。
 
@@ -46,12 +46,13 @@ node kit.mjs lookup <槽位编号...>                           # 兜底/缺函�
 
 ## 新游戏完整流程
 
-1. 导出微信小游戏（WXGameKit 通用适配），用官方 CLI `init` 上传 WASM 和符号，进入 Profile0。这一步只做一次，md5 变化时才需要重做。
-2. 游戏代码接入点击门（见下文）。准备两个 PCK：正式 PCK，以及训练 PCK（点击后走完等待门，但不进入重场景）。
-3. `collect-pack` → 上传为体验版 → **安卓和 iOS 真机**各玩一遍：2D 全部操作，点击进入按钮若干次。
-4. `split getinfo` / `showfuncname` 检查采集到的新增函数 → `split release`。
-5. `assemble` → `verify` → `ide open` 本地检查 → `upload`（新版本号、新标记）→ 真机测试 → `logs` 读结果。
-6. 日志里出现“首包缺函数”时，用 `lookup` 查函数名，再 `split profile` 补采一轮。
+1. 用 [convert](../convert/README.md) 把 Godot Web 导出转成 WXGameKit 通用适配工程（`convert` → `verify` → 开发者工具人工玩一遍）。产物 `<out>/minigame` 就是配置里的 `workProject`，`<out>/webgl/symbols.json` 就是 `symbols`。要裁剪的话先裁剪、用新引擎重新 convert，再往下走。
+2. （问用户）用官方 CLI `init` 上传 WASM 和符号，进入 Profile0。这一步只做一次，md5 变化时才需要重做。
+3. 游戏代码接入点击门（见下文）。准备两个 PCK：正式 PCK，以及训练 PCK（点击后走完等待门，但不进入重场景）。
+4. `collect-pack` → 上传为体验版 → **安卓和 iOS 真机**各玩一遍：2D 全部操作，点击进入按钮若干次。
+5. `split getinfo` / `showfuncname` 检查采集到的新增函数 → `split release`。
+6. `assemble` → `verify` → `ide open` 本地检查 → `upload`（新版本号、新标记）→ 真机测试 → `logs` 读结果。
+7. 日志里出现“首包缺函数”时，用 `lookup` 查函数名，再 `split profile` 补采一轮。
 
 ## 游戏接入约定（点击门）
 
@@ -86,6 +87,5 @@ if status != "READY": # 显示失败并返回
 
 ## 计划中
 
-- 把独立的 `trim/trim.mjs` 与分包流程进一步衔接；目前的使用入口见 [工具包 README](../README.md)。
 - 合并正式 PCK 和训练 PCK（运行时采集开关）。
 - 三层分包（首场景 / 重场景 / 从未用到）需要自研拆分（binaryen wasm-split），官方 V2 只支持两层。

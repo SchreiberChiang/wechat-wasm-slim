@@ -1,0 +1,139 @@
+#!/usr/bin/env node
+// Godot 4 Web 导出 → 微信小游戏通用适配（WXGameKit）工程。用法见 ../README.md 的“转换（convert）”。
+import fs from 'node:fs';import path from 'node:path';import zlib from 'node:zlib';import {spawnSync} from 'node:child_process';
+import {sha, md5, MODULE_TAIL, locateInputs, checkInputs} from './lib/inputs.mjs';
+import {verifyProject, PLACEHOLDER_APPID} from './lib/verify.mjs';
+
+const home = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+const argv = process.argv.slice(2), cmd = argv[0];
+const opt = k => { const i = argv.indexOf('--' + k); return i > 0 ? argv[i + 1] : undefined; };
+const need = k => { const v = opt(k); if (!v) throw Error('缺少参数 --' + k); return path.resolve(v); };
+const readJson = p => JSON.parse(fs.readFileSync(p, 'utf8'));
+const writeJson = (p, v) => fs.writeFileSync(p, JSON.stringify(v, null, 2) + '\n');
+const asset = n => fs.readFileSync(path.join(home, 'assets', n), 'utf8');
+const mb = n => (n / 1e6).toFixed(2) + ' MB';
+const toolchain = () => { const f = path.resolve(opt('toolchain') || path.join(home, 'convert.toolchain.json')); const t = readJson(f); t.transformer = path.resolve(path.dirname(f), t.transformer); return t; };
+const inputs = () => locateInputs({exportDir: opt('export') && path.resolve(opt('export')), js: opt('js'), wasm: opt('wasm'), pck: opt('pck'), symbols: opt('symbols')});
+function replaceOnce(s, a, b, label) { const n = s.split(a).length - 1; if (n !== 1) throw Error(`补丁锚点${n ? '不唯一' : '找不到'}：${label}（转换器版本变了？需要重新核对）`); return s.replace(a, () => b); }
+
+function checkTransformer(tc) {
+  if (!fs.existsSync(tc.transformer)) throw Error('找不到官方 wx-transformer：' + tc.transformer + '（在 convert.toolchain.json 里改路径，或用 --toolchain 指定）');
+  if (sha(fs.readFileSync(tc.transformer)) !== tc.transformerSha256) throw Error('wx-transformer 的 sha256 与 convert.toolchain.json 里的 pin 不一致：换了版本要先核对补丁锚点');
+}
+function report(r) {
+  for (const p of r.problems) console.log('  ✗ ' + p);
+  for (const w of r.warnings) console.log('  ! ' + w);
+}
+// AppID 只从参数或已有工程读取，不打印。
+function resolveAppid() {
+  const from = opt('appid-from');
+  if (from) { const f = fs.statSync(from).isDirectory() ? path.join(from, 'project.config.json') : from; const a = readJson(f).appid; if (!/^wx[0-9a-f]{16}$/.test(a || '')) throw Error('--appid-from 指向的工程里没有有效 AppID'); return {appid: a, source: 'appid-from'}; }
+  const a = opt('appid'); if (a) { if (!/^wx[0-9a-f]{16}$/.test(a)) throw Error('--appid 格式不对'); return {appid: a, source: 'appid'}; }
+  return {appid: PLACEHOLDER_APPID, source: 'placeholder'};
+}
+
+const commands = {
+  // 检查输入是否是合规的 Godot Web 导出（微信分支引擎、单线程、有 PCK），以及官方转换器是否就位。
+  async check() {
+    const inp = inputs(), r = checkInputs(inp);
+    console.log('输入：\n' + ['js', 'wasm', 'pck', 'symbols'].map(k => `  ${k.padEnd(8)}${inp[k] || '（无）'}`).join('\n'));
+    console.log(`引擎 JS ${mb(r.facts.jsBytes)}，WASM ${mb(r.facts.wasmBytes)}，PCK ${mb(r.facts.pckBytes)}（Godot ${r.facts.godotVersion ?? '?'}），符号表 ${r.facts.symbols ? '有' : '无'}，微信运行时约定 ${r.facts.wechatRuntime ? '有' : '无'}`);
+    report(r);
+    try { checkTransformer(toolchain()); console.log('官方 wx-transformer 已就位，版本与 pin 一致。'); } catch (e) { r.ok = false; console.log('  ✗ ' + e.message); }
+    console.log(r.ok ? '检查通过，可以 convert。' : '检查没通过，先处理上面标 ✗ 的问题。');
+    if (!r.ok) process.exitCode = 1;
+  },
+
+  // 生成新的通用适配工程：<out>/minigame（小游戏工程）、<out>/webgl/symbols.json（符号表）、<out>/convert-work（中间文件和转换器日志）。
+  async convert() {
+    const tc = toolchain(), inp = inputs(), out = need('out');
+    if (fs.existsSync(out)) throw Error('输出目录已存在，不覆盖：' + out);
+    const r = checkInputs(inp); report(r); if (!r.ok) throw Error('输入检查没通过（见上面 ✗）');
+    checkTransformer(tc);
+    const orientation = opt('orientation') || 'portrait'; if (!['portrait', 'landscape'].includes(orientation)) throw Error('--orientation 只能是 portrait 或 landscape');
+    const locale = opt('locale') || 'en', name = opt('name') || path.basename(inp.pck, '.pck');
+    const interfaces = opt('interfaces') && path.resolve(opt('interfaces'));
+    if (interfaces && !fs.existsSync(interfaces)) throw Error('找不到 --interfaces 文件：' + interfaces);
+    const {appid, source: appidSource} = resolveAppid();
+
+    // 1. 在 Godot 引擎 JS 的模块定义末尾接上启动桥（原始导出文件不改）。
+    const work = path.join(out, 'convert-work'); fs.mkdirSync(work, {recursive: true});
+    const js = fs.readFileSync(inp.js, 'utf8'), at = js.lastIndexOf(MODULE_TAIL);
+    const bridged = path.join(work, 'godot-bridged.js');
+    fs.writeFileSync(bridged, js.slice(0, at) + '\n' + replaceOnce(asset('godot-bridge.js'), '__WX15_LOCALE__', JSON.stringify(locale), 'locale'));
+
+    // 2. 官方转换器：复制 WXGameKit 模板、改写 JS 胶水为 framework.js、brotli 压缩 WASM、转换符号表。AppID 用占位符，转换后再填。
+    const tcfg = {jsFile: bridged, wasmFile: inp.wasm, ...(inp.symbols ? {symbolsFile: inp.symbols} : {}), outputDir: path.join(work, 'transformer-out'), cdnUrl: 'http://127.0.0.1:65535/', appID: PLACEHOLDER_APPID, appName: name, engineName: 'Custom', engineVersion: r.facts.godotVersion, webglVersion: 2, alphaChannel: false, deviceOrientation: orientation, loadFromSubpackage: true, compressData: true, forceSingleThread: false, enableGLX: false, enableMetal: false, preloadList: []};
+    writeJson(path.join(work, 'transformer.config.json'), tcfg);
+    console.log('运行官方 wx-transformer（压缩 WASM 约 0.5–1 分钟）...');
+    const t0 = Date.now(), run = spawnSync(tc.transformer, ['--config', path.join(work, 'transformer.config.json')], {cwd: work, windowsHide: true, timeout: 600000, encoding: 'utf8', maxBuffer: 64 * 1024 ** 2, env: {...process.env, NODE_TLS_REJECT_UNAUTHORIZED: '1'}});
+    fs.writeFileSync(path.join(work, 'transformer.stdout.txt'), run.stdout || ''); fs.writeFileSync(path.join(work, 'transformer.stderr.txt'), run.stderr || '');
+    if (run.status !== 0 || !fs.existsSync(path.join(tcfg.outputDir, 'minigame/framework.js'))) throw Error(`wx-transformer 失败（退出码 ${run.status}${run.error ? '，' + run.error.code : ''}），日志在 ${work}`);
+    const mini = path.join(out, 'minigame'); fs.renameSync(path.join(tcfg.outputDir, 'minigame'), mini);
+    if (fs.existsSync(path.join(tcfg.outputDir, 'webgl'))) fs.renameSync(path.join(tcfg.outputDir, 'webgl'), path.join(out, 'webgl'));
+    fs.rmSync(tcfg.outputDir, {recursive: true});
+    const f = rel => path.join(mini, rel);
+
+    // 3. framework.js：转换器加的资源依赖改由“数据校验通过才释放”的门控制。
+    let fw = fs.readFileSync(f('framework.js'), 'utf8');
+    replaceOnce(fw, '__WX15_GODOT_BRIDGE__.start(Godot,Module,', '', '启动桥');
+    fw = replaceOnce(fw, "addRunDependency('wasm-preloadAssets');", "Module.__WX15_ADD_ASSET_GATE__('converter');", 'wasm-preloadAssets');
+    fw = replaceOnce(fw, 'async function createWasm(){', asset('asset-gate.js') + 'async function createWasm(){', 'createWasm');
+    fs.writeFileSync(f('framework.js'), fw);
+
+    // 4. WASM 文件名改为 15 位 md5（官方 switch-md5 只认 15 位），并确认压缩包能还原出原 WASM。
+    const cfgFile = f('wx-game-kit/config.json'), cfg = readJson(cfgFile), wasm = fs.readFileSync(inp.wasm), id = md5(wasm).slice(0, 15);
+    const brOld = f(`wasmcode/${cfg.launch.code.fileMD5}.wasm.br`), brNew = f(`wasmcode/${id}.wasm.br`);
+    if (!zlib.brotliDecompressSync(fs.readFileSync(brOld)).equals(wasm)) throw Error('转换器压缩出的 WASM 解压后与输入不一致');
+    fs.renameSync(brOld, brNew); cfg.launch.code.fileMD5 = id; cfg.launch.code.useWasmCodeSplit = false;
+
+    // 5. 首包数据：说明文件 + PCK（Emscripten file_packager 布局，PCK 必须在最后，split 的 PCK 替换依赖这一点）。
+    const pck = fs.readFileSync(inp.pck), notice = Buffer.from('wechat-wasm-slim convert: this data package carries the Godot PCK (last file). No network assets.\n');
+    const pckPath = '/' + path.basename(inp.pck).replace(/[^\w.-]/g, '_');
+    const data = Buffer.concat([notice, pck]), dataId = md5(data).slice(0, 16);
+    const files = [{filename: '/WX15-NOTICE.txt', start: 0, end: notice.length}, {filename: pckPath, start: notice.length, end: data.length}];
+    for (const x of fs.readdirSync(f('data-package'))) if (x.endsWith('.data.bin')) fs.unlinkSync(f('data-package/' + x));
+    fs.writeFileSync(f(`data-package/${dataId}.data.bin`), zlib.brotliCompressSync(data, {params: {[zlib.constants.BROTLI_PARAM_QUALITY]: 11}}));
+    Object.assign(cfg.launch.data, {loadFromSubpackage: true, fileMD5: dataId, fileSize: data.length, optFileSize: data.length, isCompressed: true, subPrefix: ''});
+    const meta = {remotePackageName: name + '.data', size: data.length, pck: files[1], pckBytes: pck.length, pckSha256: sha(pck), files, dataSha256: sha(data), engineMode: 'full_engine_not_split'};
+
+    // 6. 胶水文件和入口。
+    fs.mkdirSync(f('godot-data'));
+    fs.writeFileSync(f('godot-data/package-info.js'), 'GameGlobal.__WX15_PACKAGE_META__=' + JSON.stringify(meta) + ';\n');
+    writeJson(f('godot-data/package.metadata.json'), {files, remote_package_size: data.length});
+    for (const n of ['custom-package.js', 'single-entry.js']) fs.writeFileSync(f('godot-data/' + n), asset(n));
+    fs.writeFileSync(f('godot-data/local-interfaces.js'), interfaces ? fs.readFileSync(interfaces) : asset('local-interfaces.js'));
+    let entry = fs.readFileSync(f('game.js'), 'utf8');
+    entry = "import './godot-data/package-info';\n" + entry;
+    entry = replaceOnce(entry, 'import commFrameWork from', "import './godot-data/custom-package';\nimport './godot-data/single-entry';\nimport './godot-data/local-interfaces';\nimport commFrameWork from", 'game.js import');
+    entry = replaceOnce(entry, 'WXGameKit.loader.setModuleFunctionHandler(commFrameWork);', 'WXGameKit.loader.setModuleFunctionHandler(GameGlobal.__WX15_CREATE_SINGLE_ENTRY__(commFrameWork));', 'setModuleFunctionHandler');
+    fs.writeFileSync(f('game.js'), entry);
+
+    // 7. 配置：AppID、项目名；关掉开发期性能弹窗和默认 Unity 图标。
+    cfg.project.app.appID = appid; cfg.project.app.name = name;
+    Object.assign(cfg.develop.monitor, {enable: false, showSuggestModal: false, showResultAfterLaunch: false}); cfg.develop.hideTimeLogModal = true; cfg.loadingPage.iconConfig.visible = false;
+    writeJson(cfgFile, cfg);
+    const pc = readJson(f('project.config.json')); pc.appid = appid; pc.projectname = name; pc.compileType = 'game'; writeJson(f('project.config.json'), pc);
+
+    const result = {schema: 'wechat-wasm-slim-convert-v1', at: new Date().toISOString(), out, minigame: mini, symbols: fs.existsSync(path.join(out, 'webgl/symbols.json')) ? path.join(out, 'webgl/symbols.json') : null,
+      inputs: Object.fromEntries(Object.entries(inp).filter(([, v]) => v).map(([k, v]) => [k, {path: v, sha256: sha(fs.readFileSync(v))}])),
+      transformer: {version: tc.transformerVersion, sha256: tc.transformerSha256, ms: Date.now() - t0}, plugin: tc.plugin,
+      appidSource, orientation, locale, interfaces: interfaces || 'stub', codeMd5: id, dataMd5: dataId, pckPath, godotVersion: r.facts.godotVersion,
+      sizes: {wasmBr: fs.statSync(brNew).size, dataBr: fs.statSync(f(`data-package/${dataId}.data.bin`)).size, pck: pck.length}};
+    writeJson(path.join(out, 'CONVERT_REPORT.json'), result);
+    console.log(`已生成 ${mini}\n  WASM 压缩后 ${mb(result.sizes.wasmBr)}（wasmcode/${id}.wasm.br），PCK ${mb(pck.length)} 放在 data-package/${dataId}.data.bin，挂载为 ${pckPath}`);
+    console.log('  AppID：' + {placeholder: '占位符（打开开发者工具前要换成真实 AppID，可重新 convert 加 --appid-from）', appid: '来自 --appid', 'appid-from': '来自 --appid-from'}[appidSource]);
+    console.log(`下一步：node convert/convert.mjs verify --project ${mini}`);
+  },
+
+  // 离线检查工程结构（不联网、不改文件）。
+  async verify() {
+    const dir = need('project'), lines = verifyProject(dir, toolchain().plugin);
+    for (const [k, m] of lines) console.log(`${k === 'PASS' ? '通过' : k === 'WARN' ? '注意' : '失败'}  ${m}`);
+    const n = k => lines.filter(l => l[0] === k).length;
+    console.log(`结果：通过 ${n('PASS')}，注意 ${n('WARN')}，失败 ${n('FAIL')}`);
+    if (n('FAIL')) process.exitCode = 1;
+  },
+};
+try { if (!commands[cmd]) throw Error('用法：node convert.mjs <check|convert|verify> ...（见 ../README.md）'); await commands[cmd](); }
+catch (e) { console.error('错误：', e.message); process.exitCode = 1; }

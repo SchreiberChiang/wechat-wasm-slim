@@ -1,0 +1,11 @@
+{
+  "说明": "转换工具位置，相对于本配置文件（换成自己的路径）。transformer 是微信官方 wx-transformer 便携版（Emscripten → 小游戏通用适配），下载地址见 README；只认下面 sha256 的 1.0.35 版，换版本要重新核对补丁锚点后改 pin。",
+  "transformer": "./input/wx-transformer-v1.0.35-win.exe",
+  "transformerVersion": "1.0.35",
+  "transformerSha256": "f5b2d4ebbe2d077821309a455f60e397bb559ef342e51dd1b8f9a040a85e586e",
+  "plugin": {
+    "name": "WXGameKit",
+    "provider": "wxe5a48f1ed5f544b7",
+    "version": "1.3.15"
+  }
+}

@@ -55,7 +55,8 @@ const commands = {
       const before = fs.statSync(path.join(mini, 'engine/godot.wasm.br')).size, after = fs.statSync(path.join(out, 'engine/godot.wasm.br')).size;
       console.log(`已生成 ${out}：engine/godot.wasm.br ${mb(before)} → ${mb(after)}（${((1 - after / before) * 100).toFixed(1)}%）。用微信开发者工具打开，把游戏完整玩一遍确认没被裁坏。`);
     } else if (fs.existsSync(path.join(mini, 'wx-game-kit/config.json'))) {
-      console.log('这是通用适配（WXGameKit）工程：请用你自己的导出流程，把 artifacts 里的 godot.wasm、godot.js、godot.js.symbols 作为新的引擎输入重新导出。');
+      console.log('这是通用适配（WXGameKit）工程：用 artifacts 里的引擎重新转换到新目录：');
+      console.log(`  node convert/convert.mjs convert --export ${art} --pck <游戏.pck> --appid-from ${mini} --out <新目录>`);
       console.log('引擎变了以后 md5 会变，要重新做官方 init 和分包采集（split 工具）。');
     } else throw Error('认不出工程类型：既没有 engine/godot.wasm.br，也没有 wx-game-kit/config.json');
   },
