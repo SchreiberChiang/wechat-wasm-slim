@@ -3,7 +3,11 @@
 // Every anchor must match exactly once, otherwise the patch fails loudly (runtime template changed).
 import crypto from 'node:crypto';
 export const OFFICIAL_RUNTIME_SHA256 = ['53322659add07a2ad67daf93fefc3792ff7b70803d10c70ba414c3d08b6e2e29'];
+// 模板身份按“函数表大小归一化”后的 sha 核对：官方运行时第 2 行 `const tableSize = N` 随游戏 WASM 变化，
+// 其余内容与已核对模板逐字节相同才放行（Star Tap 实测：只有这一行不同）。
+export const OFFICIAL_RUNTIME_NORMALIZED_SHA256 = ['e259ae35bac8c397'];
 const sha = s => crypto.createHash('sha256').update(s).digest('hex');
+export const normalizeRuntime = s => s.replace(/const tableSize = \d+/,'const tableSize = N');
 const T = 'GameGlobal.__WX15_TIMING__&&GameGlobal.__WX15_TIMING__.mark';
 
 function patcher(src) {
@@ -82,12 +86,26 @@ export function measuredMode(p) {
   p.one("if(state==='IDLE'){attempt={phase:'FALLBACK'", "if(state==='IDLE'||state==='PRIMARY_ONLY'){attempt={phase:'FALLBACK'", 'measured_fallback_attempt');
 }
 
+/**
+ * 采集包：不能同步等待余包的设备（canAwaitLoad=false，例如 iPhone 高性能模式、开发者工具）先把 wasmcode1
+ * 下载、实例化好，再进入 main。官方运行时在这类设备上如果有 wx.createSignal 或 H5 渲染器，会直接进 main，
+ * 指望缺函数时用 signal 同步等；第一轮采集首包很小，启动阶段就会调用余包函数，iPhone 上抛 unhandledRejection、
+ * 卡在“编译中”（Star Tap 实测）。这里改成走官方自己的“无 signal”分支，并用异步等待（D(!1) + 轮询），不阻塞线程。
+ * 能同步等待的设备（新版安卓）保持官方原路径。只用于采集包，正式包不受影响。
+ */
+function collectionPreload(p) {
+  p.one('GameGlobal.canUseH5Renderer||c.canAwaitLoad||null!=G(!0)){let e="android&wasm3"', 'c.canAwaitLoad){let e="android&wasm3"', 'collect_preload_code1_when_cannot_await');
+  p.one('else r("no signal api, start instantiate sub wasm"),D(!0),_(()=>a(n.instance,n.module))',
+    'else console.log("[WX15_COLLECT] preload code1 before main (canAwaitLoad=false)"),r("no signal api, start instantiate sub wasm"),D(!1),_(()=>(console.log("[WX15_COLLECT] code1 ready, enter main"),a(n.instance,n.module)))', 'collect_async_wait_code1_before_main');
+}
+
 /** Release runtime: click gate + marks + fallback + waiter fix (+ measured mode). Profile runtime: callMain mark only. */
 export function patchRuntime(src, { mode, core, measured = false, allowUnknownTemplate = false }) {
   const before = sha(src);
-  if (!allowUnknownTemplate && !OFFICIAL_RUNTIME_SHA256.includes(before)) throw Error('UNKNOWN_OFFICIAL_RUNTIME_TEMPLATE:' + before + ' (re-verify anchors, then pass --allow-unknown-runtime)');
+  const normalized = sha(normalizeRuntime(src));
+  if (!allowUnknownTemplate && !OFFICIAL_RUNTIME_SHA256.includes(before) && !OFFICIAL_RUNTIME_NORMALIZED_SHA256.some(x => normalized.startsWith(x))) throw Error('UNKNOWN_OFFICIAL_RUNTIME_TEMPLATE:' + before + ' (re-verify anchors, then pass --allow-unknown-runtime)');
   const p = patcher(src);
   if (mode === 'release') { clickGate(p, core); timingMarks(p); fallbackAndWaiterFix(p); missLogging(p); if (measured) measuredMode(p); }
-  else p.one('r("CallMain区间耗时",a.data.costTimeMs)', `(${T}("callmain_ms",a.data.costTimeMs),r("CallMain区间耗时",a.data.costTimeMs))`, 'mark_callmain');
+  else { p.one('r("CallMain区间耗时",a.data.costTimeMs)', `(${T}("callmain_ms",a.data.costTimeMs),r("CallMain区间耗时",a.data.costTimeMs))`, 'mark_callmain'); collectionPreload(p); }
   return { text: p.text, applied: p.applied, beforeSha256: before, afterSha256: sha(p.text) };
 }

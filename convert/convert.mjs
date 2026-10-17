@@ -7,6 +7,7 @@ import {verifyProject, PLACEHOLDER_APPID} from './lib/verify.mjs';
 const home = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
 const argv = process.argv.slice(2), cmd = argv[0];
 const opt = k => { const i = argv.indexOf('--' + k); return i > 0 ? argv[i + 1] : undefined; };
+const flag = k => argv.includes('--' + k);
 const need = k => { const v = opt(k); if (!v) throw Error('缺少参数 --' + k); return path.resolve(v); };
 const readJson = p => JSON.parse(fs.readFileSync(p, 'utf8'));
 const writeJson = (p, v) => fs.writeFileSync(p, JSON.stringify(v, null, 2) + '\n');
@@ -54,6 +55,7 @@ const commands = {
     const locale = opt('locale') || 'en', name = opt('name') || path.basename(inp.pck, '.pck');
     const interfaces = opt('interfaces') && path.resolve(opt('interfaces'));
     if (interfaces && !fs.existsSync(interfaces)) throw Error('找不到 --interfaces 文件：' + interfaces);
+    const compat = !flag('no-compat');
     const {appid, source: appidSource} = resolveAppid();
 
     // 1. 在 Godot 引擎 JS 的模块定义末尾接上启动桥（原始导出文件不改）。
@@ -102,10 +104,12 @@ const commands = {
     fs.writeFileSync(f('godot-data/package-info.js'), 'GameGlobal.__WX15_PACKAGE_META__=' + JSON.stringify(meta) + ';\n');
     writeJson(f('godot-data/package.metadata.json'), {files, remote_package_size: data.length});
     for (const n of ['custom-package.js', 'single-entry.js']) fs.writeFileSync(f('godot-data/' + n), asset(n));
+    // wx-compat.js 补通用适配运行时缺的浏览器对象（HTTP、WebSocket、键盘、震动），必须在游戏接口之前加载。
+    if (compat) fs.writeFileSync(f('godot-data/wx-compat.js'), asset('wx-compat.js'));
     fs.writeFileSync(f('godot-data/local-interfaces.js'), interfaces ? fs.readFileSync(interfaces) : asset('local-interfaces.js'));
     let entry = fs.readFileSync(f('game.js'), 'utf8');
     entry = "import './godot-data/package-info';\n" + entry;
-    entry = replaceOnce(entry, 'import commFrameWork from', "import './godot-data/custom-package';\nimport './godot-data/single-entry';\nimport './godot-data/local-interfaces';\nimport commFrameWork from", 'game.js import');
+    entry = replaceOnce(entry, 'import commFrameWork from', "import './godot-data/custom-package';\nimport './godot-data/single-entry';\n" + (compat ? "import './godot-data/wx-compat';\n" : '') + "import './godot-data/local-interfaces';\nimport commFrameWork from", 'game.js import');
     entry = replaceOnce(entry, 'WXGameKit.loader.setModuleFunctionHandler(commFrameWork);', 'WXGameKit.loader.setModuleFunctionHandler(GameGlobal.__WX15_CREATE_SINGLE_ENTRY__(commFrameWork));', 'setModuleFunctionHandler');
     fs.writeFileSync(f('game.js'), entry);
 
@@ -113,15 +117,24 @@ const commands = {
     cfg.project.app.appID = appid; cfg.project.app.name = name;
     Object.assign(cfg.develop.monitor, {enable: false, showSuggestModal: false, showResultAfterLaunch: false}); cfg.develop.hideTimeLogModal = true; cfg.loadingPage.iconConfig.visible = false;
     writeJson(cfgFile, cfg);
-    const pc = readJson(f('project.config.json')); pc.appid = appid; pc.projectname = name; pc.compileType = 'game'; writeJson(f('project.config.json'), pc);
+    const pc = readJson(f('project.config.json')); pc.appid = appid; pc.projectname = name; pc.compileType = 'game';
+    // 官方分包 CLI（wasmsplit-v2-ci init）只在工程目录里找符号表（默认 game.symbols.json）。放一份进工程，并从小游戏包里排除。
+    const sym = path.join(out, 'webgl/symbols.json');
+    if (fs.existsSync(sym)) {
+      fs.copyFileSync(sym, f('game.symbols.json'));
+      pc.packOptions ??= {}; pc.packOptions.ignore ??= [];
+      if (!pc.packOptions.ignore.some(x => x.value === 'game.symbols.json')) pc.packOptions.ignore.push({type: 'file', value: 'game.symbols.json'});
+    }
+    writeJson(f('project.config.json'), pc);
 
     const result = {schema: 'wechat-wasm-slim-convert-v1', at: new Date().toISOString(), out, minigame: mini, symbols: fs.existsSync(path.join(out, 'webgl/symbols.json')) ? path.join(out, 'webgl/symbols.json') : null,
       inputs: Object.fromEntries(Object.entries(inp).filter(([, v]) => v).map(([k, v]) => [k, {path: v, sha256: sha(fs.readFileSync(v))}])),
       transformer: {version: tc.transformerVersion, sha256: tc.transformerSha256, ms: Date.now() - t0}, plugin: tc.plugin,
-      appidSource, orientation, locale, interfaces: interfaces || 'stub', codeMd5: id, dataMd5: dataId, pckPath, godotVersion: r.facts.godotVersion,
+      appidSource, orientation, locale, compat, interfaces: interfaces || 'stub', codeMd5: id, dataMd5: dataId, pckPath, godotVersion: r.facts.godotVersion,
       sizes: {wasmBr: fs.statSync(brNew).size, dataBr: fs.statSync(f(`data-package/${dataId}.data.bin`)).size, pck: pck.length}};
     writeJson(path.join(out, 'CONVERT_REPORT.json'), result);
     console.log(`已生成 ${mini}\n  WASM 压缩后 ${mb(result.sizes.wasmBr)}（wasmcode/${id}.wasm.br），PCK ${mb(pck.length)} 放在 data-package/${dataId}.data.bin，挂载为 ${pckPath}`);
+    console.log('  浏览器兼容层：' + (compat ? 'godot-data/wx-compat.js（HTTP、WebSocket、键盘、震动）' : '未生成（--no-compat），游戏要自己在 --interfaces 里补'));
     console.log('  AppID：' + {placeholder: '占位符（打开开发者工具前要换成真实 AppID，可重新 convert 加 --appid-from）', appid: '来自 --appid', 'appid-from': '来自 --appid-from'}[appidSource]);
     console.log(`下一步：node convert/convert.mjs verify --project ${mini}`);
   },

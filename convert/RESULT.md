@@ -40,3 +40,17 @@
 - **官方 init / 分包**：未做（会上传 WASM，需要授权）。convert 产物满足 SETUP 第 3 节第 1 条（工程结构）和第 4 条（符号表）；第 2 条（init）和第 3 条（init 后的官方运行时）要等 init 之后才有；能否被 init 接受未实测。
 - 其他游戏（非打砖块）、横屏、大 PCK、带音频的游戏：未测。
 - 官方 Godot 模板只做了反例检查（`check` 会拒绝），没有尝试转换。
+
+## 浏览器兼容层并入默认产物（Star Tap，2026-10-17）
+
+把 `demo-login-01/wx/demo-interfaces.js` 第 1–5 项（输入法、文本编解码、Blob、WebSocket 常量、震动、wx.request 补丁）整理成 `assets/wx-compat.js`，convert 默认生成 `godot-data/wx-compat.js`，在 `game.js` 里放在 `local-interfaces` 之前加载；`--no-compat` 关掉。每一项补什么、怎么发现的见 README “wx-compat.js 补了什么”。
+
+| 产物 | 输入 | 结果 |
+|---|---|---|
+| `demo-login-01/wx-out-compat-01` | 完整引擎（同上）+ `demo-login-01/build/startap-05.pck` + `--interfaces demo-login-01/wx/demowx-only-qa.js`（只有 DemoWx 登录接口，`qa=true` 自动玩一局，**没有任何兼容代码**）+ `--appid-from` | verify 通过 19、注意 1（未 init）、失败 0。开发者工具：`[WX_COMPAT] globalAdapter,Blob,WebSocket-consts,vibrate,request` → 启动到 MAIN_RETURNED → `wx.login state=ok` → `POST /api/wxlogin code=503`（服务器未配 AppSecret）→ 游客 `POST /api/guest code=200` → `LOGIN_OK` → `ws open` → `WS_WELCOME`（认证成功）→ 一局 `ROUND_DONE score=365` → `POST /api/score code=200` → `SCORE_OK`。与 qa-08 的流程一致（qa-08 的控制台原文没有留存，按 demo README 的记录对照）。截图 `demo-login-01/shot-compat-01.jpg`（对局中，online 2）、`shot-compat-02.jpg`（结算、前 5 名）。控制台唯一的 error 是插件的开发阶段提示（建议用 ReportGameStart），与游戏无关 |
+| `--no-compat` 产物（放在会话临时目录，不保留） | 同上，占位 AppID，不带 --interfaces | game.js 没有 wx-compat 一行、godot-data 没有 wx-compat.js；verify 失败 0，多一条“注意：没有 wx-compat.js”。未在开发者工具打开 |
+| 旧产物 `demo-login-01/wx-out-qa-08` | 兼容层在游戏接口文件里 | 新 verify：失败 0，多一条同样的“注意”（不会误判为失败） |
+
+开发者工具里 `TextEncoder`/`TextDecoder` 已存在，所以汇总里没有这两项。
+
+未测：手机（安卓、iPhone，上面的哪些对象在真机上已存在、补丁是否必要）；震动（开发者工具不震动）；LineEdit 弹键盘（Star Tap 没有输入框）；完全没有 WebSocket 时的 `wx.connectSocket` 实现分支；HTTPS/WSS 正式域名。

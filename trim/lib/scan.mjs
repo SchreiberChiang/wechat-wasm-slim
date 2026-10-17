@@ -16,10 +16,11 @@ export const MODULES = {
   tinyexr: {cn: 'EXR 图像', keepIf: p => p.ext.exr > 0},
   dds: {cn: 'DDS 纹理', keepIf: p => p.ext.dds > 0},
   ktx: {cn: 'KTX 纹理', keepIf: p => p.ext.ktx > 0 || p.ext.ktx2 > 0},
-  basis_universal: {cn: 'Basis 通用纹理压缩', keepIf: p => p.ext.basis > 0 || p.ext.ktx2 > 0 || p.text.includes('compress/mode=2')},
+  // 只看纹理导入器的 compress/mode（4 = Basis Universal，2 = VRAM 压缩）。音频导入（importer="wav"）也有 compress/mode，不能混为一谈。
+  basis_universal: {cn: 'Basis 通用纹理压缩', keepIf: p => p.ext.basis > 0 || p.ext.ktx2 > 0 || p.textureCompressModes.has(4)},
   astcenc: {cn: 'ASTC 纹理压缩器', keepIf: () => false, note: '运行时用不到的压缩编码器'},
   etcpak: {cn: 'ETC 纹理压缩器', keepIf: () => false, note: '运行时用不到的压缩编码器'},
-  bcdec: {cn: 'BC 纹理解码（WebGL 不支持 S3TC 时的软件解码）', keepIf: p => p.text.includes('vram_texture'), note: '只有用了 VRAM 压缩纹理才需要'},
+  bcdec: {cn: 'BC 纹理解码（WebGL 不支持 S3TC 时的软件解码）', keepIf: p => p.textureCompressModes.has(2), note: '只有纹理导入设成 VRAM 压缩才需要（导出预设里的 vram_texture 选项不算）'},
   ogg: {cn: 'Ogg 容器', keepIf: p => p.ext.ogg > 0 || p.ext.ogv > 0},
   vorbis: {cn: 'Ogg Vorbis 音频', keepIf: p => p.ext.ogg > 0},
   mp3: {cn: 'MP3 音频', keepIf: p => p.ext.mp3 > 0},
@@ -60,6 +61,12 @@ export const SWITCHES = {
   disable_advanced_gui: {cn: '高级 GUI（RichTextLabel、Tree、TextEdit、GraphEdit 等）', block: 'ADVANCED_GUI_DISABLED'},
 };
 
+// 引擎内部依赖：项目直接用到这些类时，对应开关不能关（类本身注册在开关外，但内部会创建开关里的类）。
+// LineEdit 的右键/长按菜单无条件创建 PopupMenu（scene/gui/line_edit.cpp _generate_context_menu、ADD_CLASS_DEPENDENCY("PopupMenu")）。
+export const INTERNAL_DEPS = {
+  disable_advanced_gui: {classes: ['LineEdit', 'SpinBox', 'OptionButton', 'MenuButton', 'MenuBar', 'ColorPickerButton', 'CodeEdit'], why: '这些控件内部会创建 PopupMenu 等高级 GUI 类'},
+};
+
 /** Classes registered inside `#ifndef X_DISABLED` blocks (tracks nesting). */
 function classesByBlock(file) {
   const out = {}, stack = [];
@@ -90,16 +97,17 @@ export function engineMap(src) {
 }
 
 export function scanProject(dir, allClasses) {
-  const ext = {}, used = new Map(); let text = '', imageAssets = 0, files = 0;
+  const ext = {}, used = new Map(), textureCompressModes = new Set(); let text = '', imageAssets = 0, files = 0;
   const walk = d => { for (const e of fs.readdirSync(d, {withFileTypes: true})) {
     if (e.name.startsWith('.') && e.name !== '.') continue; const p = path.join(d, e.name);
     if (e.isDirectory()) { if (!['addons_disabled', 'node_modules'].includes(e.name)) walk(p); continue; }
     files++; const x = path.extname(e.name).slice(1).toLowerCase(); ext[x] = (ext[x] || 0) + 1;
     if (['png', 'jpg', 'jpeg', 'webp', 'svg', 'tga', 'bmp'].includes(x)) imageAssets++;
     if (['gd', 'tscn', 'tres', 'godot', 'cfg', 'import', 'gdshader'].includes(x)) { const s = fs.readFileSync(p, 'utf8'); text += s + '\n';
+      if (x === 'import' && /importer="texture/.test(s)) { const m = s.match(/^compress\/mode=(\d+)/m); if (m) textureCompressModes.add(Number(m[1])); }
       for (const m of s.matchAll(/\b([A-Z][A-Za-z0-9_]{2,})\b/g)) if (allClasses.has(m[1])) { const r = path.relative(dir, p); if (!used.has(m[1])) used.set(m[1], new Set()); used.get(m[1]).add(r); } } } };
   walk(dir);
-  return {ext: new Proxy(ext, {get: (o, k) => o[k] || 0}), used, text, imageAssets, files, runtimeImageLoad: /Image\.load|load_(png|jpg|webp|tga|bmp)_from_buffer|Image\.new\(\)\.load/.test(text)};
+  return {ext: new Proxy(ext, {get: (o, k) => o[k] || 0}), used, text, imageAssets, files, textureCompressModes, runtimeImageLoad: /Image\.load|load_(png|jpg|webp|tga|bmp)_from_buffer|Image\.new\(\)\.load/.test(text)};
 }
 
 /** Build the editable config: every switch/module with 建议值、原因、风险，三档预设。 */
@@ -107,8 +115,9 @@ export function proposeConfig({source, project, map, scan}) {
   const usedIn = set => [...set].filter(c => scan.used.has(c)).sort();
   const switches = {}, modules = {};
   for (const [k, s] of Object.entries(SWITCHES)) {
-    const u = usedIn(map.blocks[s.block] || new Set());
-    switches[k] = {说明: s.cn, 项目用到的相关类: u.slice(0, 20), 建议: {conservative: false, balanced: u.length === 0, minimal: u.length === 0}, 风险: u.length ? '项目用到了，不能关' : '扫描没发现用到；动态创建的类（字符串/ClassDB.instantiate）扫描不到，关掉前请确认'};
+    const dep = INTERNAL_DEPS[k], viaDep = dep ? dep.classes.filter(c => scan.used.has(c)) : [];
+    const u = [...new Set([...usedIn(map.blocks[s.block] || new Set()), ...viaDep])].sort();
+    switches[k] = {说明: s.cn, 项目用到的相关类: u.slice(0, 20), 建议: {conservative: false, balanced: u.length === 0, minimal: u.length === 0}, 风险: viaDep.length ? `项目用到 ${viaDep.join('、')}，${dep.why}，不能关` : u.length ? '项目用到了，不能关' : '扫描没发现用到；动态创建的类（字符串/ClassDB.instantiate）扫描不到，关掉前请确认'};
   }
   // disable_3d implies physics/navigation 3D and XR off.
   for (const lvl of ['balanced', 'minimal']) if (switches.disable_3d.建议[lvl]) for (const k of ['disable_physics_3d', 'disable_navigation_3d', 'disable_xr']) switches[k].建议[lvl] = true;
@@ -128,16 +137,33 @@ export function proposeConfig({source, project, map, scan}) {
   }
   return {
     格式: 'wechat-wasm-slim/trim-config-v1', 生成时间: new Date().toISOString(), 引擎源码: source, 项目: project,
-    使用说明: '把 当前档位 改成 conservative/balanced/minimal；要单独调整某一项，在 手动覆盖 里写 "disable_xxx": true/false 或 "module_xxx": true(保留)/false(去掉)。改完运行 trim profile 生成 .gdbuild。',
+    使用说明: '把 当前档位 改成 conservative/balanced/minimal；要单独调整某一项，在 手动覆盖 里写 "disable_xxx": true(关掉)/false(保留) 或 "module_xxx_enabled": true(保留)/false(去掉)（写 module_xxx 也认）。写错的键会直接报错。改完运行 trim profile 查看最终生效的配置。',
     当前档位: 'balanced', 手动覆盖: {},
     档位说明: {conservative: '只去掉明确用不到的编解码器和工具，最安全，收益小', balanced: '再关掉扫描确认没用到的大功能（如物理、导航、XR、高级GUI、没用到时的整套3D）和对应模块，推荐', minimal: '在 balanced 基础上把高级文字排版换成精简版等，收益最大，需要更仔细测试'},
     项目用到的引擎类数: scan.used.size, 开关: switches, 模块: modules,
   };
 }
 
+export const LEVELS = ['conservative', 'balanced', 'minimal'];
+/** 校验配置：档位合法；手动覆盖只认已知开关和模块、值必须是 true/false。module_xxx 自动规范成 module_xxx_enabled。写错直接报错，不静默忽略。 */
+export function normalizeOverrides(cfg) {
+  if (!LEVELS.includes(cfg.当前档位)) throw Error(`当前档位 必须是 ${LEVELS.join(' / ')}，现在是 ${JSON.stringify(cfg.当前档位)}`);
+  const out = {}, bad = [];
+  for (const [k0, v] of Object.entries(cfg.手动覆盖 || {})) {
+    let k = k0;
+    if (/^module_\w+$/.test(k) && !k.endsWith('_enabled')) k += '_enabled';
+    const known = k in (cfg.开关 || {}) || (/^module_(\w+)_enabled$/.test(k) && k.replace(/^module_|_enabled$/g, '') in (cfg.模块 || {}));
+    if (!known) bad.push(`${k0}（未知的开关或模块）`);
+    else if (typeof v !== 'boolean') bad.push(`${k0}（值必须是 true 或 false）`);
+    else out[k] = v;
+  }
+  if (bad.length) throw Error('手动覆盖 有错误：' + bad.join('；'));
+  return out;
+}
+
 /** Resolve config (level + overrides) into a Godot .gdbuild. */
 export function toBuildProfile(cfg) {
-  const lvl = cfg.当前档位, o = cfg.手动覆盖 || {}, opts = {};
+  const lvl = cfg.当前档位, o = normalizeOverrides(cfg), opts = {};
   for (const [k, s] of Object.entries(cfg.开关)) { const v = k in o ? !!o[k] : !!s.建议[lvl]; if (v) opts[k] = true; }
   const kept = [];
   for (const [m, d] of Object.entries(cfg.模块)) { const key = `module_${m}_enabled`; const keep = key in o ? !!o[key] : !!d.建议[lvl]; if (!keep) opts[key] = false; else kept.push(m); }

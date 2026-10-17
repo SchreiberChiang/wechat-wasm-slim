@@ -1,0 +1,28 @@
+config_version=5
+
+[application]
+config/name="Star Tap Login Demo"
+run/main_scene="res://scenes/title.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[display]
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/size/window_width_override=450
+window/size/window_height_override=800
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.02, 0.02, 0.06, 1)
+
+[autoload]
+
+Game="*res://scripts/game.gd"
+
+[startup]
+
+gles3/skip_default_3d_prewarm=true

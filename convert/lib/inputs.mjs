@@ -56,6 +56,10 @@ export function checkInputs(inp) {
     const head = fs.readFileSync(inp.symbols, 'utf8').slice(0, 200);
     if (!/^\d+:\S/.test(head)) problems.push('符号表格式不对（应为 Emscripten --emit-symbol-map 的 “编号:函数名” 行）。');
     facts.symbols = true;
+    // 覆盖完整 ≠ 名称可读：名称是纯数字时分包照样能做，只是缺函数时查不出 C++ 函数名。只警告，不要求重编。
+    const names = fs.readFileSync(inp.symbols, 'utf8').split('\n').filter(Boolean).map(l => l.slice(l.indexOf(':') + 1));
+    facts.symbolCount = names.length; facts.readableSymbolRatio = names.length ? names.filter(n => /[A-Za-z_]/.test(n)).length / names.length : 0;
+    if (facts.readableSymbolRatio < 0.5) warnings.push(`符号表覆盖 ${names.length} 个函数，但只有 ${(facts.readableSymbolRatio * 100).toFixed(0)}% 的名称可读（其余是编号）。分包不受影响；缺函数时查不出 C++ 名称。这不是重编的理由。`);
   } else { facts.symbols = false; warnings.push('没有符号表（.js.symbols）。可以转换和运行，但 split 分包的 init/lookup 需要它：编译引擎模板时加 linkflags=--emit-symbol-map（trim build 默认会带）。'); }
   return {ok: problems.length === 0, facts, problems, warnings};
 }

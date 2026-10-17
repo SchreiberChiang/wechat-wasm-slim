@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // 微信 Godot 引擎编译期裁剪：扫描项目 → 可手动开关的配置 → .gdbuild → 编译 → 替换进小游戏工程。用法见 ../README.md。
 import fs from 'node:fs';import path from 'node:path';import zlib from 'node:zlib';
-import {engineMap, scanProject, proposeConfig, toBuildProfile} from './lib/scan.mjs';
+import {engineMap, scanProject, proposeConfig, toBuildProfile, normalizeOverrides} from './lib/scan.mjs';
 import {checkToolchain, buildEngine} from './lib/build.mjs';
 
 const argv = process.argv.slice(2), cmd = argv[0];
@@ -29,6 +29,7 @@ const commands = {
   // 根据配置生成 .gdbuild，并列出最终会去掉什么。
   async profile() {
     const cfg = readJson(need('config')), out = need('out'), {profile, keptModules} = toBuildProfile(cfg);
+    const ov = normalizeOverrides(cfg); if (Object.keys(ov).length) console.log('手动覆盖（已校验）：' + JSON.stringify(ov));
     fs.writeFileSync(out, JSON.stringify(profile, null, 2) + '\n');
     const o = profile.disabled_build_options;
     console.log(`档位 ${cfg.当前档位}；关掉：${Object.keys(o).filter(k => k.startsWith('disable_')).join(', ') || '（无）'}`);
@@ -41,7 +42,7 @@ const commands = {
     const tc = toolchain(), work = need('work'); let profileFile = opt('profile') && path.resolve(opt('profile'));
     if (!profileFile) { const cfg = readJson(need('config')); fs.mkdirSync(work, {recursive: true}); profileFile = path.join(work, 'from-config.gdbuild'); fs.writeFileSync(profileFile, JSON.stringify(toBuildProfile(cfg).profile, null, 2) + '\n'); }
     await checkToolchain(tc);
-    const r = await buildEngine({tc, profileFile, workDir: work, symbols: !argv.includes('--no-symbols'), jobs: Number(opt('jobs') || 8), retries: Number(opt('retries') || 2), onLog: s => console.log(s)});
+    const r = await buildEngine({tc, profileFile, workDir: work, symbols: !argv.includes('--no-symbols'), jobs: Number(opt('jobs') || 8), retries: Number(opt('retries') || 2), lto: opt('lto') || tc.lto || 'full', ltoJobs: Number(opt('lto-jobs') || 4), maxMinutes: Number(opt('max-minutes') || 120), onLog: s => console.log(s)});
     console.log(`完成：用时 ${r.buildMinutes} 分钟；godot.wasm ${mb(r.wasmBytes)}，压缩后 godot.wasm.br ${mb(r.wasmBrBytes)}；保留模块 ${r.enabledModules.length} 个。产物在 ${path.join(work, 'artifacts')}`);
   },
 

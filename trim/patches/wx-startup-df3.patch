@@ -1,0 +1,1387 @@
+diff --git a/drivers/gles3/rasterizer_scene_gles3.cpp b/drivers/gles3/rasterizer_scene_gles3.cpp
+index bf41012..ca91dd6 100644
+--- a/drivers/gles3/rasterizer_scene_gles3.cpp
++++ b/drivers/gles3/rasterizer_scene_gles3.cpp
+@@ -29,6 +29,13 @@
+ /**************************************************************************/
+ 
+ #include "rasterizer_scene_gles3.h"
++#if defined(WX_LAB_RUNTIME_PREWARM_POLICY) && (!defined(WEB_ENABLED) || !defined(GLES3_ENABLED) || !defined(WX_LAB_STARTUP_TRACE) || defined(THREADS_ENABLED) || defined(_3D_DISABLED) || defined(WX_LAB_SKIP_3D_PREWARM))
++#error "Runtime prewarm policy requires full-3D GLES3 Web, trace, threads=no and no compile-time skip"
++#endif
++#if defined(WX_LAB_STARTUP_TRACE) && defined(WEB_ENABLED)
++#include "platform/web/wx_lab_startup_trace.h"
++#endif
++
+ 
+ #ifdef GLES3_ENABLED
+ 
+@@ -4526,7 +4533,19 @@ void RasterizerSceneGLES3::material_set_use_debanding(bool p_enable) {
+ 	// Material debanding not yet implemented.
+ }
+ 
++#if defined(WX_LAB_RUNTIME_PREWARM_POLICY)
++bool RasterizerSceneGLES3::wx_lab_prewarm_default_3d_shader() {
++	if (scene_globals.wx_lab_prewarm_attempted) return scene_globals.wx_lab_prewarm_success;
++	scene_globals.wx_lab_prewarm_attempted = true;
++	scene_globals.wx_lab_prewarm_success = GLES3::MaterialStorage::get_singleton()->shaders.scene_shader.version_bind_shader(scene_globals.shader_default_version, SceneShaderGLES3::MODE_COLOR);
++	return scene_globals.wx_lab_prewarm_success;
++}
++#endif
++
+ RasterizerSceneGLES3::RasterizerSceneGLES3() {
++#if defined(WX_LAB_STARTUP_TRACE) && defined(WEB_ENABLED)
++	WxLabStartupTrace::Scope wx_lab_scene_ctor_scope("gles3_scene_ctor");
++#endif
+ 	singleton = this;
+ 
+ 	GLES3::MaterialStorage *material_storage = GLES3::MaterialStorage::get_singleton();
+@@ -4615,7 +4634,18 @@ RasterizerSceneGLES3::RasterizerSceneGLES3() {
+ 		}
+ 		material_storage->shaders.scene_shader.initialize(global_defines);
+ 		scene_globals.shader_default_version = material_storage->shaders.scene_shader.version_create();
++		{
++#if defined(WX_LAB_STARTUP_TRACE) && defined(WEB_ENABLED)
++			WxLabStartupTrace::Scope wx_lab_default_prewarm_scope("gles3_scene_default3d_prewarm");
++#endif
++#if defined(WX_LAB_RUNTIME_PREWARM_POLICY)
++			const bool skip_default_3d_prewarm = bool(GLOBAL_GET("startup/gles3/skip_default_3d_prewarm"));
++			WxLabStartupTrace::set_runtime_prewarm_policy(skip_default_3d_prewarm);
++			if (!skip_default_3d_prewarm) wx_lab_prewarm_default_3d_shader();
++#else
+ 		material_storage->shaders.scene_shader.version_bind_shader(scene_globals.shader_default_version, SceneShaderGLES3::MODE_COLOR);
++#endif
++		}
+ 	}
+ 
+ 	{
+diff --git a/drivers/gles3/rasterizer_scene_gles3.h b/drivers/gles3/rasterizer_scene_gles3.h
+index bfe558d..81e490a 100644
+--- a/drivers/gles3/rasterizer_scene_gles3.h
++++ b/drivers/gles3/rasterizer_scene_gles3.h
+@@ -166,6 +166,10 @@ private:
+ 
+ 	struct SceneGlobals {
+ 		RID shader_default_version;
++#if defined(WX_LAB_RUNTIME_PREWARM_POLICY)
++		bool wx_lab_prewarm_attempted = false;
++		bool wx_lab_prewarm_success = false;
++#endif
+ 		RID default_material;
+ 		RID default_shader;
+ 		RID overdraw_material;
+@@ -864,6 +868,11 @@ protected:
+ 
+ public:
+ 	static RasterizerSceneGLES3 *get_singleton() { return singleton; }
++#if defined(WX_LAB_RUNTIME_PREWARM_POLICY)
++	bool wx_lab_prewarm_default_3d_shader();
++	bool wx_lab_default_3d_prewarm_attempted() const { return scene_globals.wx_lab_prewarm_attempted; }
++	bool wx_lab_default_3d_prewarm_succeeded() const { return scene_globals.wx_lab_prewarm_success; }
++#endif
+ 
+ 	RasterizerCanvasGLES3 *canvas = nullptr;
+ 
+diff --git a/drivers/gles3/shader_gles3.cpp b/drivers/gles3/shader_gles3.cpp
+index 4fe333e..fde3c2e 100644
+--- a/drivers/gles3/shader_gles3.cpp
++++ b/drivers/gles3/shader_gles3.cpp
+@@ -33,6 +33,10 @@
+ #ifdef GLES3_ENABLED
+ 
+ #include "core/io/dir_access.h"
++#ifdef WX_LAB_SHADER_TRACE
++#include "core/os/os.h"
++#include <cstdio>
++#endif
+ #include "core/string/string_builder.h"
+ #include "drivers/gles3/rasterizer_util_gles3.h"
+ #include "drivers/gles3/storage/config.h"
+@@ -41,6 +45,56 @@
+ #include "core/io/file_access.h"
+ #endif
+ 
++// Opt-in lab timings measure host wall time of GL API calls. Status queries
++// can include driver synchronization; these are not GPU timer-query results.
++class WxShaderCompileTrace {
++public:
++	enum Phase { BUILD_SOURCE, SHADER_SOURCE, COMPILE_SUBMIT, COMPILE_STATUS, FEEDBACK_SETUP, LINK_SUBMIT, LINK_STATUS, UNIFORMS, PHASE_MAX };
++#ifdef WX_LAB_SHADER_TRACE
++private:
++	CharString shader_name;
++	uint32_t variant;
++	uint64_t specialization;
++	const bool &ok;
++	uint64_t started;
++	uint64_t elapsed[PHASE_MAX] = {};
++	uint32_t calls[PHASE_MAX] = {};
++	static uint32_t records;
++	static uint64_t attempts;
++public:
++	WxShaderCompileTrace(const String &p_name, uint32_t p_variant, uint64_t p_specialization, const bool &p_ok) : shader_name(p_name.utf8()), variant(p_variant), specialization(p_specialization), ok(p_ok), started(OS::get_singleton()->get_ticks_usec()) {}
++	template <class F> void measure(Phase p_phase, F p_call) {
++		const uint64_t begin = OS::get_singleton()->get_ticks_usec();
++		p_call();
++		elapsed[p_phase] += OS::get_singleton()->get_ticks_usec() - begin;
++		calls[p_phase]++;
++	}
++	~WxShaderCompileTrace() {
++		const uint64_t total = OS::get_singleton()->get_ticks_usec() - started;
++		attempts++;
++		if (records++ >= 256) {
++			return;
++		}
++		std::printf("[WX_SHADER_COMPILE] {\"shader\":\"%s\",\"variant\":%u,\"specialization\":%llu,\"attempt\":%llu,\"ok\":%s,\"total_us\":%llu,\"phase_us\":[", shader_name.get_data(), variant, (unsigned long long)specialization, (unsigned long long)attempts, ok ? "true" : "false", (unsigned long long)total);
++		for (int i = 0; i < PHASE_MAX; i++) {
++			std::printf("%s%llu", i ? "," : "", (unsigned long long)elapsed[i]);
++		}
++		std::printf("],\"phase_calls\":[");
++		for (int i = 0; i < PHASE_MAX; i++) {
++			std::printf("%s%u", i ? "," : "", calls[i]);
++		}
++		std::printf("]}\n");
++	}
++#else
++	WxShaderCompileTrace(const String &, uint32_t, uint64_t, const bool &) {}
++	template <class F> void measure(Phase, F p_call) { p_call(); }
++#endif
++};
++#ifdef WX_LAB_SHADER_TRACE
++uint32_t WxShaderCompileTrace::records = 0;
++uint64_t WxShaderCompileTrace::attempts = 0;
++#endif
++
+ static String _mkid(const String &p_id) {
+ 	String id = "m_" + p_id.replace("__", "_dus_");
+ 	return id.replace("__", "_dus_"); //doubleunderscore is reserved in glsl
+@@ -307,30 +361,32 @@ void ShaderGLES3::_get_uniform_locations(Version::Specialization &spec, Version
+ void ShaderGLES3::_compile_specialization(Version::Specialization &spec, uint32_t p_variant, Version *p_version, uint64_t p_specialization) {
+ 	spec.id = glCreateProgram();
+ 	spec.ok = false;
++#ifdef WX_LAB_SHADER_TRACE
++	spec.compiled_specialization = p_specialization;
++#endif
++	WxShaderCompileTrace trace(name, p_variant, p_specialization, spec.ok);
+ 	GLint status;
+ 
+ 	//vertex stage
+ 	{
+ 		StringBuilder builder;
+-		_build_variant_code(builder, p_variant, p_version, STAGE_TYPE_VERTEX, p_specialization);
++		trace.measure(WxShaderCompileTrace::BUILD_SOURCE, [&]() { _build_variant_code(builder, p_variant, p_version, STAGE_TYPE_VERTEX, p_specialization); });
+ 
+ 		spec.vert_id = glCreateShader(GL_VERTEX_SHADER);
+ 		String builder_string = builder.as_string();
+ 		CharString cs = builder_string.utf8();
+ 		const char *cstr = cs.ptr();
+ 		GLint cstr_len = cs.length();
+-		glShaderSource(spec.vert_id, 1, &cstr, &cstr_len);
+-		glCompileShader(spec.vert_id);
++		trace.measure(WxShaderCompileTrace::SHADER_SOURCE, [&]() { glShaderSource(spec.vert_id, 1, &cstr, &cstr_len); });
++		trace.measure(WxShaderCompileTrace::COMPILE_SUBMIT, [&]() { glCompileShader(spec.vert_id); });
+ 
+-		glGetShaderiv(spec.vert_id, GL_COMPILE_STATUS, &status);
++		trace.measure(WxShaderCompileTrace::COMPILE_STATUS, [&]() { glGetShaderiv(spec.vert_id, GL_COMPILE_STATUS, &status); });
+ 		if (status == GL_FALSE) {
+ 			GLsizei iloglen;
+ 			glGetShaderiv(spec.vert_id, GL_INFO_LOG_LENGTH, &iloglen);
+ 
+ 			if (iloglen < 0) {
+-				glDeleteShader(spec.vert_id);
+-				glDeleteProgram(spec.id);
+-				spec.id = 0;
++				_free_specialization(spec);
+ 
+ 				ERR_PRINT("No OpenGL vertex shader compiler log.");
+ 			} else {
+@@ -348,9 +404,7 @@ void ShaderGLES3::_compile_specialization(Version::Specialization &spec, uint32_
+ 				_display_error_with_code(err_string, builder_string);
+ 
+ 				Memory::free_static(ilogmem);
+-				glDeleteShader(spec.vert_id);
+-				glDeleteProgram(spec.id);
+-				spec.id = 0;
++				_free_specialization(spec);
+ 			}
+ 
+ 			ERR_FAIL();
+@@ -360,25 +414,23 @@ void ShaderGLES3::_compile_specialization(Version::Specialization &spec, uint32_
+ 	//fragment stage
+ 	{
+ 		StringBuilder builder;
+-		_build_variant_code(builder, p_variant, p_version, STAGE_TYPE_FRAGMENT, p_specialization);
++		trace.measure(WxShaderCompileTrace::BUILD_SOURCE, [&]() { _build_variant_code(builder, p_variant, p_version, STAGE_TYPE_FRAGMENT, p_specialization); });
+ 
+ 		spec.frag_id = glCreateShader(GL_FRAGMENT_SHADER);
+ 		String builder_string = builder.as_string();
+ 		CharString cs = builder_string.utf8();
+ 		const char *cstr = cs.ptr();
+ 		GLint cstr_len = cs.length();
+-		glShaderSource(spec.frag_id, 1, &cstr, &cstr_len);
+-		glCompileShader(spec.frag_id);
++		trace.measure(WxShaderCompileTrace::SHADER_SOURCE, [&]() { glShaderSource(spec.frag_id, 1, &cstr, &cstr_len); });
++		trace.measure(WxShaderCompileTrace::COMPILE_SUBMIT, [&]() { glCompileShader(spec.frag_id); });
+ 
+-		glGetShaderiv(spec.frag_id, GL_COMPILE_STATUS, &status);
++		trace.measure(WxShaderCompileTrace::COMPILE_STATUS, [&]() { glGetShaderiv(spec.frag_id, GL_COMPILE_STATUS, &status); });
+ 		if (status == GL_FALSE) {
+ 			GLsizei iloglen;
+ 			glGetShaderiv(spec.frag_id, GL_INFO_LOG_LENGTH, &iloglen);
+ 
+ 			if (iloglen < 0) {
+-				glDeleteShader(spec.frag_id);
+-				glDeleteProgram(spec.id);
+-				spec.id = 0;
++				_free_specialization(spec);
+ 
+ 				ERR_PRINT("No OpenGL fragment shader compiler log.");
+ 			} else {
+@@ -396,9 +448,7 @@ void ShaderGLES3::_compile_specialization(Version::Specialization &spec, uint32_
+ 				_display_error_with_code(err_string, builder_string);
+ 
+ 				Memory::free_static(ilogmem);
+-				glDeleteShader(spec.frag_id);
+-				glDeleteProgram(spec.id);
+-				spec.id = 0;
++				_free_specialization(spec);
+ 			}
+ 
+ 			ERR_FAIL();
+@@ -420,22 +470,19 @@ void ShaderGLES3::_compile_specialization(Version::Specialization &spec, uint32_
+ 		}
+ 
+ 		if (feedback.size()) {
+-			glTransformFeedbackVaryings(spec.id, feedback.size(), feedback.ptr(), GL_INTERLEAVED_ATTRIBS);
++			trace.measure(WxShaderCompileTrace::FEEDBACK_SETUP, [&]() { glTransformFeedbackVaryings(spec.id, feedback.size(), feedback.ptr(), GL_INTERLEAVED_ATTRIBS); });
+ 		}
+ 	}
+ 
+-	glLinkProgram(spec.id);
++	trace.measure(WxShaderCompileTrace::LINK_SUBMIT, [&]() { glLinkProgram(spec.id); });
+ 
+-	glGetProgramiv(spec.id, GL_LINK_STATUS, &status);
++	trace.measure(WxShaderCompileTrace::LINK_STATUS, [&]() { glGetProgramiv(spec.id, GL_LINK_STATUS, &status); });
+ 	if (status == GL_FALSE) {
+ 		GLsizei iloglen;
+ 		glGetProgramiv(spec.id, GL_INFO_LOG_LENGTH, &iloglen);
+ 
+ 		if (iloglen < 0) {
+-			glDeleteShader(spec.frag_id);
+-			glDeleteShader(spec.vert_id);
+-			glDeleteProgram(spec.id);
+-			spec.id = 0;
++			_free_specialization(spec);
+ 
+ 			ERR_PRINT("No OpenGL program link log. Something is wrong.");
+ 			ERR_FAIL();
+@@ -456,15 +503,12 @@ void ShaderGLES3::_compile_specialization(Version::Specialization &spec, uint32_
+ 		_display_error_with_code(err_string, String());
+ 
+ 		Memory::free_static(ilogmem);
+-		glDeleteShader(spec.frag_id);
+-		glDeleteShader(spec.vert_id);
+-		glDeleteProgram(spec.id);
+-		spec.id = 0;
++		_free_specialization(spec);
+ 
+ 		ERR_FAIL();
+ 	}
+ 
+-	_get_uniform_locations(spec, p_version);
++	trace.measure(WxShaderCompileTrace::UNIFORMS, [&]() { _get_uniform_locations(spec, p_version); });
+ 
+ 	spec.ok = true;
+ }
+@@ -592,6 +636,9 @@ bool ShaderGLES3::_load_from_cache(Version *p_version) {
+ 			ERR_FAIL_COND_V(br != variant_size, false);
+ 
+ 			Version::Specialization specialization;
++#ifdef WX_LAB_SHADER_TRACE
++			specialization.compiled_specialization = specialization_key;
++#endif
+ 
+ 			specialization.id = glCreateProgram();
+ 			if (feedback_count) {
+@@ -681,6 +728,46 @@ void ShaderGLES3::_save_to_cache(Version *p_version) {
+ #endif // WEB_ENABLED
+ }
+ 
++void ShaderGLES3::_free_specialization(Version::Specialization &spec) {
++	if (spec.vert_id != 0) {
++		glDeleteShader(spec.vert_id);
++	}
++	if (spec.frag_id != 0) {
++		glDeleteShader(spec.frag_id);
++	}
++	if (spec.id != 0) {
++		glDeleteProgram(spec.id);
++	}
++	spec.vert_id = 0;
++	spec.frag_id = 0;
++	spec.id = 0;
++	spec.ok = false;
++	spec.build_queued = false;
++#ifdef WX_LAB_SHADER_TRACE
++	spec.first_bind_reported = false;
++	spec.compiled_specialization = 0;
++#endif
++	spec.uniform_location.clear();
++	spec.texture_uniform_locations.clear();
++}
++
++void ShaderGLES3::_bind_program(Version::Specialization &spec, int p_variant, uint64_t p_specialization) {
++#ifdef WX_LAB_SHADER_TRACE
++	const uint64_t begin = OS::get_singleton()->get_ticks_usec();
++	glUseProgram(spec.id);
++	const uint64_t elapsed = OS::get_singleton()->get_ticks_usec() - begin;
++	wx_lab_bind_count++;
++	if ((!spec.first_bind_reported || elapsed >= 1000) && wx_lab_bind_records < 64) {
++		const CharString shader_name = name.utf8();
++		std::printf("[WX_SHADER_BIND] {\"shader\":\"%s\",\"variant\":%d,\"requested_specialization\":%llu,\"compiled_specialization\":%llu,\"bind_count\":%llu,\"first\":%s,\"use_program_us\":%llu}\n", shader_name.get_data(), p_variant, (unsigned long long)p_specialization, (unsigned long long)spec.compiled_specialization, (unsigned long long)wx_lab_bind_count, spec.first_bind_reported ? "false" : "true", (unsigned long long)elapsed);
++		wx_lab_bind_records++;
++	}
++	spec.first_bind_reported = true;
++#else
++	glUseProgram(spec.id);
++#endif
++}
++
+ void ShaderGLES3::_clear_version(Version *p_version) {
+ 	// Variants not compiled yet, just return
+ 	if (p_version->variants.is_empty()) {
+@@ -689,11 +776,10 @@ void ShaderGLES3::_clear_version(Version *p_version) {
+ 
+ 	for (int i = 0; i < variant_count; i++) {
+ 		for (KeyValue<uint64_t, Version::Specialization> &kv : p_version->variants[i]) {
+-			if (kv.value.id != 0) {
+-				glDeleteShader(kv.value.vert_id);
+-				glDeleteShader(kv.value.frag_id);
+-				glDeleteProgram(kv.value.id);
++			if (current_shader == &kv.value) {
++				current_shader = nullptr;
+ 			}
++			_free_specialization(kv.value);
+ 		}
+ 	}
+ 
+@@ -702,6 +788,17 @@ void ShaderGLES3::_clear_version(Version *p_version) {
+ 
+ void ShaderGLES3::_initialize_version(Version *p_version) {
+ 	ERR_FAIL_COND(p_version->variants.size() > 0);
++#if defined(WEB_ENABLED) && defined(WX_LAB_SCENE_LAZY_VARIANTS)
++	// Keep every variant and specialization available. Compile only the exact
++	// requested pair in _version_bind_shader; preserve all non-scene policies.
++	if (name == "SceneShaderGLES3") {
++		p_version->variants.reserve(variant_count);
++		for (int i = 0; i < variant_count; i++) {
++			p_version->variants.push_back(AHashMap<uint64_t, Version::Specialization>());
++		}
++		return;
++	}
++#endif
+ 	bool use_cache = shader_cache_dir_valid && !(feedback_count > 0 && GLES3::Config::get_singleton()->disable_transform_feedback_shader_cache);
+ 	if (use_cache && _load_from_cache(p_version)) {
+ 		return;
+diff --git a/drivers/gles3/shader_gles3.h b/drivers/gles3/shader_gles3.h
+index 4ff35c1..e92ea3b 100644
+--- a/drivers/gles3/shader_gles3.h
++++ b/drivers/gles3/shader_gles3.h
+@@ -30,6 +30,12 @@
+ 
+ #pragma once
+ 
++// This isolated full-Web engine explicitly enables the shader lab for all consumers.
++#ifdef WEB_ENABLED
++#define WX_LAB_SCENE_LAZY_VARIANTS
++#define WX_LAB_SHADER_TRACE
++#endif
++
+ #ifdef GLES3_ENABLED
+ 
+ #include "core/templates/a_hash_map.h"
+@@ -76,7 +82,7 @@ private:
+ 
+ 	// A version is a high-level construct which is a combination of built-in and user-defined shader code, Each user-created Shader makes one version
+ 	// Variants use #ifdefs to toggle behavior on and off to change behavior of the shader
+-	// All variants are compiled each time a new version is created
++	// All variants are compiled on first initialization, except the opt-in Web scene lab policy.
+ 	// Specializations use #ifdefs to toggle behavior on and off for performance, on supporting hardware, they will compile a version with everything enabled, and then compile more copies to improve performance
+ 	// Use specializations to enable and disabled advanced features, use variants to toggle behavior when different data may be used (e.g. using a samplerArray vs a sampler, or doing a depth prepass vs a color pass)
+ 	struct Version {
+@@ -95,6 +101,10 @@ private:
+ 			LocalVector<GLint> texture_uniform_locations;
+ 			bool build_queued = false;
+ 			bool ok = false;
++#ifdef WX_LAB_SHADER_TRACE
++			bool first_bind_reported = false;
++			uint64_t compiled_specialization = 0;
++#endif
+ 			Specialization() {
+ 				id = 0;
+ 				vert_id = 0;
+@@ -108,6 +118,8 @@ private:
+ 	void _get_uniform_locations(Version::Specialization &spec, Version *p_version);
+ 	void _compile_specialization(Version::Specialization &spec, uint32_t p_variant, Version *p_version, uint64_t p_specialization);
+ 
++	void _free_specialization(Version::Specialization &spec);
++	void _bind_program(Version::Specialization &spec, int p_variant, uint64_t p_specialization);
+ 	void _clear_version(Version *p_version);
+ 	void _initialize_version(Version *p_version);
+ 
+@@ -175,6 +187,10 @@ private:
+ 
+ 	int base_texture_index = 0;
+ 	Version::Specialization *current_shader = nullptr;
++#ifdef WX_LAB_SHADER_TRACE
++	uint64_t wx_lab_bind_count = 0;
++	uint32_t wx_lab_bind_records = 0;
++#endif
+ 
+ protected:
+ 	ShaderGLES3();
+@@ -207,8 +223,15 @@ protected:
+ 				}
+ 			}
+ 		} else if (spec->build_queued) {
+-			// Still queued, wait
++			// Still queued: retain the existing default-program fallback. The lazy lab
++			// policy must create that default if it has never been requested.
+ 			spec = version->variants[p_variant].getptr(specialization_default_mask);
++			if (!spec) {
++				Version::Specialization fallback;
++				_compile_specialization(fallback, p_variant, version, specialization_default_mask);
++				version->variants[p_variant].insert(specialization_default_mask, fallback);
++				spec = version->variants[p_variant].getptr(specialization_default_mask);
++			}
+ 		}
+ 
+ 		if (!spec || !spec->ok) {
+@@ -216,7 +239,7 @@ protected:
+ 			return false;
+ 		}
+ 
+-		glUseProgram(spec->id);
++		_bind_program(*spec, p_variant, p_specialization);
+ 		current_shader = spec;
+ 		return true;
+ 	}
+diff --git a/main/main.cpp b/main/main.cpp
+index b8a7c6c..eb8b2d8 100644
+--- a/main/main.cpp
++++ b/main/main.cpp
+@@ -29,6 +29,26 @@
+ /**************************************************************************/
+ 
+ #include "main.h"
++#if defined(WX_LAB_RUNTIME_PREWARM_POLICY)
++#include "platform/web/wx_lab_startup_control.h"
++#endif
++#if defined(WX_LAB_STARTUP_TRACE) && defined(WEB_ENABLED)
++#include "platform/web/wx_lab_startup_trace.h"
++#include "platform/web/wx_lab_setup_detail.h"
++#define WX_LAB_NATIVE_SCOPE(label) WxLabStartupTrace::Scope wx_lab_native_scope(label)
++#define WX_LAB_SETUP_SCOPE(label) WxLabSetupDetail::Scope wx_lab_setup_scope(label)
++#define WX_LAB_SETUP_NAMED_SCOPE(name, label) WxLabSetupDetail::Scope name(label)
++#define WX_LAB_SETUP_DEFERRED_SCOPE(name) WxLabSetupDetail::Scope name
++#define WX_LAB_SETUP_START(name, label) name.start(label)
++#define WX_LAB_SETUP_STOP(name) name.stop()
++#else
++#define WX_LAB_NATIVE_SCOPE(label) do {} while (0)
++#define WX_LAB_SETUP_SCOPE(label) do {} while (0)
++#define WX_LAB_SETUP_NAMED_SCOPE(name, label) do {} while (0)
++#define WX_LAB_SETUP_DEFERRED_SCOPE(name) do {} while (0)
++#define WX_LAB_SETUP_START(name, label) do {} while (0)
++#define WX_LAB_SETUP_STOP(name) do {} while (0)
++#endif
+ 
+ #include "core/config/engine.h"
+ #include "core/config/project_settings.h"
+@@ -1028,11 +1048,15 @@ int Main::test_entrypoint(int argc, char *argv[], bool &tests_need_run) {
+  */
+ 
+ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_phase) {
++	WX_LAB_SETUP_NAMED_SCOPE(wx_lab_setup_phase1, "setup_phase1");
+ 	GodotProfileZone("setup");
+ 	Thread::make_main_thread();
+ 	set_current_thread_safe_for_nodes(true);
+ 
+-	OS::get_singleton()->initialize();
++	{
++		WX_LAB_SETUP_SCOPE("os_initialize");
++		OS::get_singleton()->initialize();
++	}
+ 
+ 	CoreGlobals::print_ready = true;
+ 
+@@ -1059,8 +1083,11 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
+ 
+ 	MAIN_PRINT("Main: Initialize CORE");
+ 
+-	register_core_types();
+-	register_core_driver_types();
++	{
++		WX_LAB_SETUP_SCOPE("core_type_registration");
++		register_core_types();
++		register_core_driver_types();
++	}
+ 
+ 	MAIN_PRINT("Main: Initialize Globals");
+ 
+@@ -1068,6 +1095,10 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
+ 	globals = memnew(ProjectSettings);
+ 
+ 	register_core_settings(); //here globals are present
++#if defined(WX_LAB_RUNTIME_PREWARM_POLICY)
++	GLOBAL_DEF_RST("startup/gles3/skip_default_3d_prewarm", false);
++	GDREGISTER_CLASS(WxLabStartupControl);
++#endif
+ 
+ 	translation_server = memnew(TranslationServer);
+ 	performance = memnew(Performance);
+@@ -2099,7 +2130,10 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
+ #endif // defined(DEBUG_ENABLED) || defined (TOOLS_ENABLED)
+ 
+ 	OS::get_singleton()->_in_editor = editor;
+-	if (globals->setup(project_path, main_pack, false, editor) == OK) {
++	if ([&]() {
++			WX_LAB_SETUP_SCOPE("project_pack_setup");
++			return globals->setup(project_path, main_pack, false, editor);
++		}() == OK) {
+ #ifdef TOOLS_ENABLED
+ 		found_project = true;
+ #endif
+@@ -2272,15 +2306,21 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
+ 		OS::get_singleton()->_verbose_stdout = GLOBAL_GET("debug/settings/stdout/verbose_stdout");
+ 	}
+ 
+-	register_early_core_singletons();
+-	initialize_modules(MODULE_INITIALIZATION_LEVEL_CORE);
+-	register_core_extensions(); // core extensions must be registered after globals setup and before display
++	{
++		WX_LAB_SETUP_SCOPE("core_modules_extensions");
++		register_early_core_singletons();
++		initialize_modules(MODULE_INITIALIZATION_LEVEL_CORE);
++		register_core_extensions(); // core extensions must be registered after globals setup and before display
++	}
+ 
+-	if (!editor) {
+-		ResourceUID::get_singleton()->enable_reverse_cache();
++	{
++		WX_LAB_SETUP_SCOPE("uid_autoload_cache");
++		if (!editor) {
++			ResourceUID::get_singleton()->enable_reverse_cache();
++		}
++		ResourceUID::get_singleton()->load_from_cache(true); // Load UUIDs from cache.
++		ProjectSettings::get_singleton()->fix_autoload_paths(); // Handles autoloads saved as UID.
+ 	}
+-	ResourceUID::get_singleton()->load_from_cache(true); // Load UUIDs from cache.
+-	ProjectSettings::get_singleton()->fix_autoload_paths(); // Handles autoloads saved as UID.
+ 
+ 	if (ProjectSettings::get_singleton()->has_custom_feature("dedicated_server")) {
+ 		audio_driver = NULL_AUDIO_DRIVER;
+@@ -2930,6 +2970,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
+ 
+ 	OS::get_singleton()->benchmark_end_measure("Startup", "Main::Setup");
+ 
++	WX_LAB_SETUP_STOP(wx_lab_setup_phase1);
+ 	if (p_second_phase) {
+ 		exit_err = setup2();
+ 		if (exit_err != OK) {
+@@ -3027,6 +3068,8 @@ Error _parse_resource_dummy(void *p_data, VariantParser::Stream *p_stream, Ref<R
+ }
+ 
+ Error Main::setup2(bool p_show_boot_logo) {
++	WX_LAB_SETUP_NAMED_SCOPE(wx_lab_setup_phase2, "setup_phase2");
++	WX_LAB_SETUP_DEFERRED_SCOPE(wx_lab_finalize_setup);
+ 	GodotProfileZone("setup2");
+ 	OS::get_singleton()->benchmark_begin_measure("Startup", "Main::Setup2");
+ 
+@@ -3194,35 +3237,38 @@ Error Main::setup2(bool p_show_boot_logo) {
+ 
+ 	OS::get_singleton()->benchmark_begin_measure("Startup", "Servers");
+ 
+-	tsman = memnew(TextServerManager);
+-	if (tsman) {
+-		Ref<TextServerDummy> ts;
+-		ts.instantiate();
+-		tsman->add_interface(ts);
+-	}
++	{
++		WX_LAB_SETUP_SCOPE("server_types_modules");
++		tsman = memnew(TextServerManager);
++		if (tsman) {
++			Ref<TextServerDummy> ts;
++			ts.instantiate();
++			tsman->add_interface(ts);
++		}
+ 
+ #ifndef PHYSICS_3D_DISABLED
+-	physics_server_3d_manager = memnew(PhysicsServer3DManager);
++		physics_server_3d_manager = memnew(PhysicsServer3DManager);
+ #endif // PHYSICS_3D_DISABLED
+ #ifndef PHYSICS_2D_DISABLED
+-	physics_server_2d_manager = memnew(PhysicsServer2DManager);
++		physics_server_2d_manager = memnew(PhysicsServer2DManager);
+ #endif // PHYSICS_2D_DISABLED
+ 
+ #ifndef NAVIGATION_2D_DISABLED
+-	NavigationServer2DManager::initialize_server_manager();
++		NavigationServer2DManager::initialize_server_manager();
+ #endif // NAVIGATION_2D_DISABLED
+ #ifndef NAVIGATION_3D_DISABLED
+-	NavigationServer3DManager::initialize_server_manager();
++		NavigationServer3DManager::initialize_server_manager();
+ #endif // NAVIGATION_3D_DISABLED
+ 
+-	register_server_types();
+-	{
+-		OS::get_singleton()->benchmark_begin_measure("Servers", "Modules and Extensions");
++		register_server_types();
++		{
++			OS::get_singleton()->benchmark_begin_measure("Servers", "Modules and Extensions");
+ 
+-		initialize_modules(MODULE_INITIALIZATION_LEVEL_SERVERS);
+-		GDExtensionManager::get_singleton()->initialize_extensions(GDExtension::INITIALIZATION_LEVEL_SERVERS);
++			initialize_modules(MODULE_INITIALIZATION_LEVEL_SERVERS);
++			GDExtensionManager::get_singleton()->initialize_extensions(GDExtension::INITIALIZATION_LEVEL_SERVERS);
+ 
+-		OS::get_singleton()->benchmark_end_measure("Servers", "Modules and Extensions");
++			OS::get_singleton()->benchmark_end_measure("Servers", "Modules and Extensions");
++		}
+ 	}
+ 
+ 	/* Initialize Input */
+@@ -3361,7 +3407,10 @@ Error Main::setup2(bool p_show_boot_logo) {
+ 		accessibility_server->set_mode(accessibility_mode);
+ 
+ 		String rendering_driver = OS::get_singleton()->get_current_rendering_driver_name();
+-		display_server = DisplayServer::create(display_driver_idx, rendering_driver, window_mode, window_vsync_mode, window_flags, window_position, window_size, init_screen, context, init_embed_parent_window_id, err);
++		display_server = [&]() {
++			WX_LAB_NATIVE_SCOPE("display_server_create");
++			return DisplayServer::create(display_driver_idx, rendering_driver, window_mode, window_vsync_mode, window_flags, window_position, window_size, init_screen, context, init_embed_parent_window_id, err);
++		}();
+ 		if (err != OK || display_server == nullptr) {
+ 			String last_name = DisplayServer::get_create_function_name(display_driver_idx);
+ 
+@@ -3556,6 +3605,7 @@ Error Main::setup2(bool p_show_boot_logo) {
+ 	/* Initialize Rendering Server */
+ 
+ 	{
++		WX_LAB_NATIVE_SCOPE("rendering_server_init");
+ 		OS::get_singleton()->benchmark_begin_measure("Servers", "Rendering");
+ 
+ 		rendering_server = memnew(RenderingServerDefault(OS::get_singleton()->is_separate_thread_rendering_enabled()));
+@@ -3581,6 +3631,7 @@ Error Main::setup2(bool p_show_boot_logo) {
+ 	/* Initialize Audio Driver */
+ 
+ 	{
++		WX_LAB_SETUP_SCOPE("audio_driver_server");
+ 		OS::get_singleton()->benchmark_begin_measure("Servers", "Audio");
+ 
+ 		AudioDriverManager::initialize(audio_driver_idx);
+@@ -3678,6 +3729,7 @@ Error Main::setup2(bool p_show_boot_logo) {
+ 	/* Setup translations and remaps */
+ 
+ 	{
++		WX_LAB_SETUP_SCOPE("translations_remaps");
+ 		OS::get_singleton()->benchmark_begin_measure("Startup", "Translations and Remaps");
+ 
+ 		translation_server->setup(); //register translations, load them, etc.
+@@ -3695,6 +3747,7 @@ Error Main::setup2(bool p_show_boot_logo) {
+ 	/* Setup Text Server */
+ 
+ 	{
++		WX_LAB_SETUP_SCOPE("text_server_setup");
+ 		OS::get_singleton()->benchmark_begin_measure("Startup", "Text Server");
+ 
+ 		/* Enum text drivers */
+@@ -3762,33 +3815,38 @@ Error Main::setup2(bool p_show_boot_logo) {
+ 
+ 	OS::get_singleton()->benchmark_begin_measure("Startup", "Scene");
+ 
+-	// Initialize ThemeDB early so that scene types can register their theme items.
+-	// Default theme will be initialized later, after modules and ScriptServer are ready.
+-	initialize_theme_db();
++	{
++		WX_LAB_SETUP_SCOPE("scene_type_registration");
++		// Initialize ThemeDB early so that scene types can register their theme items.
++		// Default theme will be initialized later, after modules and ScriptServer are ready.
++		initialize_theme_db();
+ 
+ #if !defined(NAVIGATION_2D_DISABLED) || !defined(NAVIGATION_3D_DISABLED)
+-	MAIN_PRINT("Main: Load Navigation");
++		MAIN_PRINT("Main: Load Navigation");
+ #endif // !defined(NAVIGATION_2D_DISABLED) || !defined(NAVIGATION_3D_DISABLED)
+ 
+ #ifndef NAVIGATION_3D_DISABLED
+-	NavigationServer3DManager::initialize_server();
++		NavigationServer3DManager::initialize_server();
+ #endif // NAVIGATION_3D_DISABLED
+ #ifndef NAVIGATION_2D_DISABLED
+-	NavigationServer2DManager::initialize_server();
++		NavigationServer2DManager::initialize_server();
+ #endif // NAVIGATION_2D_DISABLED
+ 
+-	register_scene_types();
+-	register_driver_types();
++		register_scene_types();
++		register_driver_types();
+ 
+-	register_scene_singletons();
++		register_scene_singletons();
++	}
+ 
+ 	{
++		WX_LAB_SETUP_NAMED_SCOPE(wx_lab_scene_modules, "scene_modules_extensions");
+ 		OS::get_singleton()->benchmark_begin_measure("Scene", "Modules and Extensions");
+ 
+ 		initialize_modules(MODULE_INITIALIZATION_LEVEL_SCENE);
+ 		GDExtensionManager::get_singleton()->initialize_extensions(GDExtension::INITIALIZATION_LEVEL_SCENE);
+ 
+ 		OS::get_singleton()->benchmark_end_measure("Scene", "Modules and Extensions");
++		WX_LAB_SETUP_STOP(wx_lab_scene_modules);
+ 
+ 		// We need to initialize the movie writer here in case
+ 		// one of the user-provided GDExtensions subclasses MovieWriter.
+@@ -3849,6 +3907,7 @@ Error Main::setup2(bool p_show_boot_logo) {
+ 		}
+ 	}
+ 
++	WX_LAB_SETUP_START(wx_lab_finalize_setup, "finalize_setup");
+ 	OS::get_singleton()->benchmark_begin_measure("Startup", "Finalize Setup");
+ 
+ 	camera_server = CameraServer::create();
+@@ -3873,7 +3932,10 @@ Error Main::setup2(bool p_show_boot_logo) {
+ 
+ #endif
+ 
+-	theme_db->initialize_theme();
++	{
++		WX_LAB_NATIVE_SCOPE("theme_and_default_font");
++		theme_db->initialize_theme();
++	}
+ 	audio_server->load_default_bus_layout();
+ 
+ #if defined(MODULE_MONO_ENABLED) && defined(TOOLS_ENABLED)
+@@ -3900,6 +3962,7 @@ Error Main::setup2(bool p_show_boot_logo) {
+ 	}
+ 
+ 	OS::get_singleton()->benchmark_end_measure("Startup", "Finalize Setup");
++	WX_LAB_SETUP_STOP(wx_lab_finalize_setup);
+ 
+ 	_start_success = true;
+ 
+@@ -4755,13 +4818,22 @@ int Main::start() {
+ 
+ 			if (!game_path.is_empty()) {
+ 				Node *scene = nullptr;
+-				Ref<PackedScene> scenedata = ResourceLoader::load(local_game_path);
++				Ref<PackedScene> scenedata = [&]() {
++					WX_LAB_NATIVE_SCOPE("main_scene_load");
++					return ResourceLoader::load(local_game_path);
++				}();
+ 				if (scenedata.is_valid()) {
+-					scene = scenedata->instantiate();
++					scene = [&]() {
++						WX_LAB_NATIVE_SCOPE("main_scene_instantiate");
++						return scenedata->instantiate();
++					}();
+ 				}
+ 
+ 				ERR_FAIL_NULL_V_MSG(scene, EXIT_FAILURE, "Failed loading scene: " + local_game_path + ".");
+-				sml->add_current_scene(scene);
++				{
++					WX_LAB_NATIVE_SCOPE("main_scene_add");
++					sml->add_current_scene(scene);
++				}
+ 
+ #ifdef MACOS_ENABLED
+ #ifndef TOOLS_ENABLED
+@@ -5082,11 +5154,17 @@ bool Main::iteration() {
+ 		wants_present |= force_redraw_requested;
+ 		if ((!force_redraw_requested) && OS::get_singleton()->is_in_low_processor_usage_mode()) {
+ 			if (RenderingServer::get_singleton()->has_changed()) {
+-				RenderingServer::get_singleton()->draw(wants_present, scaled_step); // flush visual commands
++				{
++					WX_LAB_NATIVE_SCOPE("first_rendering_draw");
++					RenderingServer::get_singleton()->draw(wants_present, scaled_step); // flush visual commands
++				}
+ 				Engine::get_singleton()->increment_frames_drawn();
+ 			}
+ 		} else {
+-			RenderingServer::get_singleton()->draw(wants_present, scaled_step); // flush visual commands
++			{
++				WX_LAB_NATIVE_SCOPE("first_rendering_draw");
++				RenderingServer::get_singleton()->draw(wants_present, scaled_step); // flush visual commands
++			}
+ 			Engine::get_singleton()->increment_frames_drawn();
+ 			force_redraw_requested = false;
+ 		}
+diff --git a/platform/web/SCsub b/platform/web/SCsub
+index 163f4f4..024b9ef 100644
+--- a/platform/web/SCsub
++++ b/platform/web/SCsub
+@@ -27,6 +27,7 @@ web_files = [
+     "http_client_web.cpp",
+     "javascript_bridge_singleton.cpp",
+     "web_main.cpp",
++    "wx_lab_startup_control.cpp",
+     "os_web.cpp",
+ ]
+ 
+diff --git a/platform/web/web_main.cpp b/platform/web/web_main.cpp
+index 0ca3bc0..a8e7708 100644
+--- a/platform/web/web_main.cpp
++++ b/platform/web/web_main.cpp
+@@ -38,6 +38,13 @@
+ #include "core/os/os.h"
+ #include "core/profiling/profiling.h"
+ #include "main/main.h"
++#if defined(WX_LAB_STARTUP_TRACE) && defined(WEB_ENABLED)
++#include "platform/web/wx_lab_startup_trace.h"
++#include "platform/web/wx_lab_setup_detail.h"
++#define WX_LAB_NATIVE_SCOPE(label) WxLabStartupTrace::Scope wx_lab_native_scope(label)
++#else
++#define WX_LAB_NATIVE_SCOPE(label) do {} while (0)
++#endif
+ 
+ #ifdef TOOLS_ENABLED
+ #include "core/io/file_access.h"
+@@ -132,6 +139,15 @@ void print_web_header() {
+ 
+ /// When calling main, it is assumed FS is setup and synced.
+ extern EMSCRIPTEN_KEEPALIVE int godot_web_main(int argc, char *argv[]) {
++#if defined(WX_LAB_STARTUP_TRACE) && defined(WEB_ENABLED)
++	WxLabStartupTrace::initialize();
++	WxLabStartupTrace::start();
++	int64_t wx_lab_origin_us = 0;
++	const bool wx_lab_origin_valid = WxLabStartupTrace::get_origin_us(wx_lab_origin_us);
++	WxLabSetupDetail::initialize(wx_lab_origin_valid, wx_lab_origin_us);
++	WxLabSetupDetail::FinishAfterNative wx_lab_detail_finish;
++	WxLabStartupTrace::FinishOnReturn wx_lab_trace_finish;
++#endif
+ 	godot_init_profiler();
+ 
+ 	os = new OS_Web();
+@@ -143,7 +159,14 @@ extern EMSCRIPTEN_KEEPALIVE int godot_web_main(int argc, char *argv[]) {
+ 	// We must override main when testing is enabled
+ 	TEST_MAIN_OVERRIDE
+ 
+-	Error err = Main::setup(argv[0], argc - 1, &argv[1]);
++	Error err = [&]() {
++		WX_LAB_NATIVE_SCOPE("main_setup");
++		return Main::setup(argv[0], argc - 1, &argv[1]);
++	}();
++
++#if defined(WX_LAB_STARTUP_TRACE) && defined(WEB_ENABLED)
++	WxLabSetupDetail::set_setup_success(err == OK);
++#endif
+ 
+ 	// Proper shutdown in case of setup failure.
+ 	if (err != OK) {
+@@ -163,9 +186,15 @@ extern EMSCRIPTEN_KEEPALIVE int godot_web_main(int argc, char *argv[]) {
+ 	// Ease up compatibility.
+ 	ResourceLoader::set_abort_on_missing_resources(false);
+ 
+-	int ret = Main::start();
++	int ret = [&]() {
++		WX_LAB_NATIVE_SCOPE("main_start");
++		return Main::start();
++	}();
+ 	os->set_exit_code(ret);
+-	os->get_main_loop()->initialize();
++	{
++		WX_LAB_NATIVE_SCOPE("scene_tree_initialize");
++		os->get_main_loop()->initialize();
++	}
+ #ifdef TOOLS_ENABLED
+ 	if (Engine::get_singleton()->is_project_manager_hint() && FileAccess::exists("/tmp/preload.zip")) {
+ 		PackedStringArray ps;
+@@ -176,7 +205,14 @@ extern EMSCRIPTEN_KEEPALIVE int godot_web_main(int argc, char *argv[]) {
+ 	emscripten_set_main_loop(main_loop_callback, -1, false);
+ 	// Immediately run the first iteration.
+ 	// We are inside an animation frame, we want to immediately draw on the newly setup canvas.
+-	main_loop_callback();
++	{
++		WX_LAB_NATIVE_SCOPE("first_main_loop_callback");
++		main_loop_callback();
++	}
++#if defined(WX_LAB_STARTUP_TRACE) && defined(WEB_ENABLED)
++	WxLabStartupTrace::set_main_success(ret == EXIT_SUCCESS && os->get_exit_code() == EXIT_SUCCESS);
++	WxLabSetupDetail::set_main_success(ret == EXIT_SUCCESS && os->get_exit_code() == EXIT_SUCCESS);
++#endif
+ 
+ 	return os->get_exit_code();
+ }
+diff --git a/platform/web/wx_lab_setup_detail.h b/platform/web/wx_lab_setup_detail.h
+new file mode 100644
+--- /dev/null
++++ b/platform/web/wx_lab_setup_detail.h
+@@ -0,0 +1,170 @@
++#ifndef WX_LAB_SETUP_DETAIL_H
++#define WX_LAB_SETUP_DETAIL_H
++
++#if !defined(WX_LAB_STARTUP_TRACE) || !defined(WEB_ENABLED)
++#error WxLabSetupDetail is opt-in and Web-only
++#endif
++#ifdef THREADS_ENABLED
++#error WxLabSetupDetail requires the reviewed single-thread experiment
++#endif
++
++#include <cstdint>
++#include <cstdio>
++#include <cstring>
++#include <ctime>
++#include <climits>
++
++// Fixed storage and two monotonic reads per scope. Emit only after native finish.
++class WxLabSetupDetail {
++public:
++	using Clock = bool (*)(int64_t &);
++	using Emit = void (*)(const char *);
++	static constexpr int CAPACITY = 16;
++	static constexpr int JSON_CAPACITY = 4096;
++	static constexpr int64_t MAX_JSON_INTEGER = 9007199254740991LL;
++
++private:
++	struct Record {
++		const char *label;
++		int parent;
++		int64_t start, end;
++		bool start_valid, end_valid, closed;
++	};
++	inline static Record rows_[CAPACITY] = {};
++	inline static int stack_[CAPACITY] = {};
++	inline static int count_ = 0, depth_ = 0, dropped_ = 0, clock_errors_ = 0;
++	inline static int64_t origin_ = 0, previous_ = 0;
++	inline static bool origin_valid_ = false, active_ = false, emitted_ = false;
++	inline static bool balanced_ = true, labels_valid_ = true, order_valid_ = true;
++	inline static bool setup_success_ = false, main_success_ = false;
++	inline static Clock clock_ = nullptr;
++	inline static Emit emit_ = nullptr;
++	inline static constexpr const char *labels_[14] = {
++		"setup_phase1", "os_initialize", "core_type_registration", "project_pack_setup",
++		"core_modules_extensions", "uid_autoload_cache", "setup_phase2", "server_types_modules",
++		"audio_driver_server", "translations_remaps", "text_server_setup", "scene_type_registration",
++		"scene_modules_extensions", "finalize_setup"
++	};
++	static void increment(int &counter) { if (counter < INT_MAX) ++counter; }
++	static bool default_clock(int64_t &out) {
++		timespec ts = {};
++		if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0 || ts.tv_sec < 0 ||
++				ts.tv_nsec < 0 || ts.tv_nsec >= 1000000000 ||
++				static_cast<uint64_t>(ts.tv_sec) > static_cast<uint64_t>((INT64_MAX - ts.tv_nsec / 1000) / 1000000)) return false;
++		out = static_cast<int64_t>(ts.tv_sec) * 1000000 + ts.tv_nsec / 1000;
++		return true;
++	}
++	static void default_emit(const char *json) { std::printf("[WX_NATIVE_SETUP_DETAIL] %s\n", json); }
++	static const char *allowed_label(const char *label) {
++		if (label) for (const char *known : labels_) if (std::strcmp(label, known) == 0) return known;
++		labels_valid_ = false;
++		return "unknown_scope"; // Never emit arbitrary caller text.
++	}
++	static bool sample(int64_t &out) {
++		int64_t now = 0;
++		if (!clock_ || !clock_(now) || !origin_valid_ || now < previous_ || now < origin_ ||
++				now - origin_ > MAX_JSON_INTEGER) {
++			increment(clock_errors_);
++			return false;
++		}
++		previous_ = now;
++		out = now - origin_;
++		return true;
++	}
++	static int enter(const char *label) {
++		if (!active_) return -1;
++		if (count_ >= CAPACITY || depth_ >= CAPACITY) { increment(dropped_); return -1; }
++		const int index = count_++;
++		Record &r = rows_[index];
++		r.label = allowed_label(label);
++		r.parent = depth_ ? stack_[depth_ - 1] + 1 : 0;
++		const int expected_parent = index == 0 || index == 6 ? 0 : (index < 6 ? 1 : 7);
++		if (index >= 14 || r.label != labels_[index] || r.parent != expected_parent) order_valid_ = false;
++		r.start_valid = sample(r.start);
++		stack_[depth_++] = index;
++		return index;
++	}
++	static bool leave(int index) {
++		if (!active_ || index < 0 || index >= count_ || rows_[index].closed) return true;
++		if (!depth_ || stack_[depth_ - 1] != index) { balanced_ = false; return false; }
++		--depth_;
++		Record &r = rows_[index];
++		r.end_valid = sample(r.end);
++		r.closed = true;
++		return true;
++	}
++	static bool serialize(char *json, int capacity, bool overflow_only) {
++		const bool clock_valid = origin_valid_ && clock_errors_ == 0;
++		const bool complete = !overflow_only && main_success_ && setup_success_ && clock_valid &&
++				balanced_ && labels_valid_ && order_valid_ && count_ == 14 && dropped_ == 0;
++		char origin[32];
++		if (origin_valid_) std::snprintf(origin, sizeof(origin), "%lld", static_cast<long long>(origin_));
++		else std::strcpy(origin, "null");
++		int used = std::snprintf(json, capacity,
++				"{\"schema\":\"wx-native-setup-detail-v1\",\"source_pin\":\"df3cdd9bc9941a20cb5575d781cde6f937637bcb\","
++				"\"main_success\":%s,\"setup_success\":%s,\"complete\":%s,\"clock\":\"%s\",\"unit\":\"us\","
++				"\"origin\":\"wx-native-startup-v1\",\"origin_us\":%s,\"clock_valid\":%s,\"clock_errors\":%d,"
++				"\"balanced\":%s,\"labels_valid\":%s,\"order_valid\":%s,\"dropped\":%d,\"serialization_overflow\":%s,\"records\":[",
++				main_success_ ? "true" : "false", setup_success_ ? "true" : "false", complete ? "true" : "false",
++				clock_ == default_clock ? "clock_gettime(CLOCK_MONOTONIC)" : "injected_fake_clock", origin,
++				clock_valid ? "true" : "false", clock_errors_, balanced_ ? "true" : "false",
++				labels_valid_ ? "true" : "false", order_valid_ ? "true" : "false", dropped_, overflow_only ? "true" : "false");
++		if (used < 0 || used >= capacity) return false;
++		for (int i = 0; i < count_ && !overflow_only; ++i) {
++			const Record &r = rows_[i];
++			const bool valid = r.start_valid && r.end_valid && r.closed && r.end >= r.start;
++			char start[32], duration[32];
++			if (r.start_valid) std::snprintf(start, sizeof(start), "%lld", static_cast<long long>(r.start));
++			else std::strcpy(start, "null");
++			if (valid) std::snprintf(duration, sizeof(duration), "%lld", static_cast<long long>(r.end - r.start));
++			else std::strcpy(duration, "null");
++			const int wrote = std::snprintf(json + used, capacity - used,
++					"%s{\"id\":%d,\"parent\":%d,\"label\":\"%s\",\"start_us\":%s,\"duration_us\":%s,\"complete\":%s}",
++					i ? "," : "", i + 1, r.parent, r.label, start, duration, valid ? "true" : "false");
++			if (wrote < 0 || wrote >= capacity - used) return false;
++			used += wrote;
++		}
++		const int wrote = std::snprintf(json + used, capacity - used, "]}");
++		return wrote >= 0 && wrote < capacity - used;
++	}
++
++public:
++	static void initialize(bool origin_valid, int64_t origin, Clock clock = nullptr, Emit emit = nullptr) {
++		count_ = depth_ = dropped_ = clock_errors_ = 0;
++		origin_valid_ = origin_valid && origin >= 0 && origin <= MAX_JSON_INTEGER;
++		origin_ = previous_ = origin_valid_ ? origin : 0;
++		active_ = true; emitted_ = setup_success_ = main_success_ = false;
++		balanced_ = labels_valid_ = order_valid_ = true;
++		clock_ = clock ? clock : default_clock; emit_ = emit ? emit : default_emit;
++		for (Record &r : rows_) r = {};
++	}
++	static void set_setup_success(bool success) { setup_success_ = success; }
++	static void set_main_success(bool success) { main_success_ = success; }
++	static void finish() {
++		if (!active_ || emitted_) return;
++		if (depth_) balanced_ = false;
++		while (depth_) leave(stack_[depth_ - 1]);
++		active_ = false; emitted_ = true;
++		char json[JSON_CAPACITY] = {};
++		if (!serialize(json, sizeof(json), false)) serialize(json, sizeof(json), true);
++		emit_(json);
++	}
++	class Scope {
++		int index_;
++	public:
++		Scope() : index_(-1) {}
++		explicit Scope(const char *label) : index_(enter(label)) {}
++		Scope(const Scope &) = delete;
++		Scope &operator=(const Scope &) = delete;
++		void start(const char *label) { if (index_ < 0) index_ = enter(label); }
++		void stop() { if (leave(index_)) index_ = -1; }
++		~Scope() { stop(); }
++	};
++	class FinishAfterNative {
++	public:
++		~FinishAfterNative() { WxLabSetupDetail::finish(); }
++	};
++	// Friend exists only for the standalone adversarial fixture, without runtime API.
++	friend struct WxLabSetupDetailFixture;
++};
++#endif
+diff --git a/platform/web/wx_lab_startup_control.cpp b/platform/web/wx_lab_startup_control.cpp
+new file mode 100644
+--- /dev/null
++++ b/platform/web/wx_lab_startup_control.cpp
+@@ -0,0 +1,64 @@
++#include "wx_lab_startup_control.h"
++
++#if defined(WX_LAB_RUNTIME_PREWARM_POLICY)
++#include "core/object/class_db.h"
++#include "core/os/os.h"
++#include "drivers/gles3/rasterizer_scene_gles3.h"
++#include "servers/rendering/rendering_server.h"
++#include <cstdio>
++#include <limits>
++
++void WxLabStartupControl::_bind_methods() {
++    ClassDB::bind_method(D_METHOD("prewarm_default_3d_shader"), &WxLabStartupControl::prewarm_default_3d_shader);
++}
++
++Dictionary WxLabStartupControl::prewarm_default_3d_shader() {
++    OS *os = OS::get_singleton();
++    const uint64_t before = os ? os->get_ticks_usec() : 0;
++    RenderingServer *server = RenderingServer::get_singleton();
++    RasterizerSceneGLES3 *scene = RasterizerSceneGLES3::get_singleton();
++    const char *status = "unavailable";
++    const char *error_code = "";
++    bool available = false, performed = false;
++
++    if (!os) {
++        error_code = "NO_OS_TIMER";
++    } else if (!server) {
++        error_code = "NO_RENDER_SERVER";
++    } else if (!server->is_on_render_thread()) {
++        error_code = "WRONG_RENDER_THREAD"; // No GL access or asynchronous success claim.
++    } else if (!scene) {
++        error_code = "NO_GLES3_SCENE";
++    } else {
++        available = true;
++        if (scene->wx_lab_default_3d_prewarm_attempted()) {
++            status = scene->wx_lab_default_3d_prewarm_succeeded() ? "already_warm" : "error";
++            if (!scene->wx_lab_default_3d_prewarm_succeeded()) error_code = "PRIOR_DEFAULT_SHADER_BIND_FAILED";
++        } else {
++            performed = true;
++            const bool ok = scene->wx_lab_prewarm_default_3d_shader();
++            status = ok ? "prewarmed" : "error";
++            if (!ok) error_code = "DEFAULT_SHADER_BIND_FAILED";
++        }
++    }
++    const uint64_t after = os ? os->get_ticks_usec() : 0;
++    const bool timer_valid = os && after >= before && after - before <= static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
++    const uint64_t duration = timer_valid ? after - before : 0;
++    if (os && !timer_valid) { status = "error"; error_code = "INVALID_TIMER"; }
++
++    Dictionary result;
++    result["status"] = status;
++    result["duration_ms"] = timer_valid ? Variant(static_cast<double>(duration) / 1000.0) : Variant();
++    result["clock"] = "OS.get_ticks_usec";
++    result["performed"] = performed;
++    result["available"] = available;
++    result["error_code"] = error_code;
++    // Boot native14 trace has finished. This bounded, separate marker is not a Scope.
++    char elapsed[48] = {};
++    if (timer_valid) std::snprintf(elapsed, sizeof(elapsed), "%.3f", static_cast<double>(duration) / 1000.0);
++    else std::snprintf(elapsed, sizeof(elapsed), "null");
++    std::printf("[WX_RUNTIME_PREWARM] {\"schema\":\"wx-runtime-prewarm-v1\",\"scope\":\"default_scene_shader_only\",\"status\":\"%s\",\"duration_ms\":%s,\"clock\":\"OS.get_ticks_usec\",\"performed\":%s,\"available\":%s,\"error_code\":\"%s\"}\n",
++            status, elapsed, performed ? "true" : "false", available ? "true" : "false", error_code);
++    return result;
++}
++#endif
+diff --git a/platform/web/wx_lab_startup_control.h b/platform/web/wx_lab_startup_control.h
+new file mode 100644
+--- /dev/null
++++ b/platform/web/wx_lab_startup_control.h
+@@ -0,0 +1,21 @@
++#pragma once
++
++#if defined(WX_LAB_RUNTIME_PREWARM_POLICY)
++#if !defined(WEB_ENABLED) || !defined(GLES3_ENABLED) || !defined(WX_LAB_STARTUP_TRACE) || defined(THREADS_ENABLED) || defined(_3D_DISABLED) || defined(WX_LAB_SKIP_3D_PREWARM)
++#error "Runtime prewarm experiment requires full-3D GLES3 Web, trace, threads=no and no compile-time skip"
++#endif
++
++#include "core/object/ref_counted.h"
++#include "core/variant/dictionary.h"
++
++// Experiment-only interface. No network, input, shader source or user data.
++class WxLabStartupControl : public RefCounted {
++    GDCLASS(WxLabStartupControl, RefCounted);
++
++protected:
++    static void _bind_methods();
++
++public:
++    Dictionary prewarm_default_3d_shader();
++};
++#endif
+diff --git a/platform/web/wx_lab_startup_trace.h b/platform/web/wx_lab_startup_trace.h
+new file mode 100644
+--- /dev/null
++++ b/platform/web/wx_lab_startup_trace.h
+@@ -0,0 +1,197 @@
++#ifndef WX_LAB_STARTUP_TRACE_H
++#define WX_LAB_STARTUP_TRACE_H
++
++#if !defined(WX_LAB_STARTUP_TRACE) || !defined(WEB_ENABLED)
++#error WxLabStartupTrace is opt-in and Web-only
++#endif
++#ifdef THREADS_ENABLED
++#error WxLabStartupTrace requires the reviewed single-thread experiment
++#endif
++
++#include <cstdint>
++#include <cstdio>
++#include <cstring>
++#include <ctime>
++#include <limits>
++
++// Local, single-thread startup experiment. No allocation, shader text or GL calls.
++class WxLabStartupTrace {
++public:
++    using Clock = bool (*)(int64_t &);
++    using Emit = void (*)(const char *);
++    static constexpr int CAPACITY = 24;
++    static constexpr int JSON_CAPACITY = 2800;
++
++private:
++#ifdef WX_LAB_SKIP_3D_PREWARM
++    static constexpr bool SKIP_3D_PREWARM = true;
++#else
++    static constexpr bool SKIP_3D_PREWARM = false;
++#endif
++    struct Record {
++        const char *label;
++        int parent;
++        int64_t start;
++        int64_t end;
++        bool start_valid;
++        bool end_valid;
++        bool closed;
++    };
++    inline static Record rows_[CAPACITY] = {};
++    inline static int stack_[CAPACITY] = {};
++    inline static int count_ = 0, depth_ = 0, dropped_ = 0, clock_errors_ = 0;
++    inline static int64_t origin_ = 0, previous_ = 0;
++    inline static bool have_origin_ = false, active_ = false, emitted_ = false;
++    inline static bool balanced_ = true, labels_valid_ = true, main_success_ = false;
++    inline static bool runtime_policy_observed_ = false, runtime_policy_skipped_ = false;
++#ifdef WX_LAB_RUNTIME_PREWARM_POLICY
++    static constexpr const char *RUNTIME_POLICY_NAME = "project_setting_v1";
++#else
++    static constexpr const char *RUNTIME_POLICY_NAME = "not_enabled";
++#endif
++    inline static Clock clock_ = nullptr;
++    inline static Emit emit_ = nullptr;
++
++    static bool default_clock(int64_t &out) {
++        timespec ts = {};
++        if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0 || ts.tv_sec < 0 ||
++                ts.tv_nsec < 0 || ts.tv_nsec >= 1000000000 ||
++                static_cast<uint64_t>(ts.tv_sec) > static_cast<uint64_t>((INT64_MAX - ts.tv_nsec / 1000) / 1000000)) {
++            return false;
++        }
++        out = static_cast<int64_t>(ts.tv_sec) * 1000000 + ts.tv_nsec / 1000;
++        return true;
++    }
++    static void default_emit(const char *json) { std::printf("[WX_NATIVE_STARTUP] %s\n", json); }
++    static const char *allowed_label(const char *label) {
++        static const char *const labels[] = {
++            "webmain_total", "main_setup", "main_start", "scene_tree_initialize",
++            "first_main_loop_callback", "first_rendering_draw", "display_server_create", "rendering_server_init",
++            "theme_and_default_font", "main_scene_load", "main_scene_instantiate",
++            "main_scene_add", "gles3_scene_ctor", "gles3_scene_default3d_prewarm"
++        };
++        if (label) for (const char *known : labels) if (std::strcmp(label, known) == 0) return known;
++        labels_valid_ = false;
++        return "unknown_scope"; // Never serialize caller-provided text.
++    }
++    static bool sample(int64_t &out) {
++        int64_t now = 0;
++        if (!clock_ || !clock_(now) || now < 0 || (have_origin_ && now < previous_)) {
++            ++clock_errors_;
++            return false;
++        }
++        if (!have_origin_) { origin_ = now; have_origin_ = true; }
++        previous_ = now;
++        out = now - origin_;
++        return true;
++    }
++    static int enter(const char *label) {
++        if (!active_) return -1;
++        if (count_ >= CAPACITY || depth_ >= CAPACITY) { ++dropped_; return -1; }
++        const int index = count_++;
++        Record &r = rows_[index];
++        r.label = allowed_label(label);
++        r.parent = depth_ ? stack_[depth_ - 1] + 1 : 0;
++        r.start_valid = sample(r.start);
++        stack_[depth_++] = index;
++        return index;
++    }
++    static void leave(int index) {
++        if (!active_ || index < 0 || index >= count_ || rows_[index].closed) return;
++        if (!depth_ || stack_[depth_ - 1] != index) { balanced_ = false; return; }
++        --depth_;
++        Record &r = rows_[index];
++        r.end_valid = sample(r.end);
++        r.closed = true;
++    }
++
++public:
++    // Read-only shared clock origin; no new sample or change to the v1 payload.
++    static bool get_origin_us(int64_t &out) {
++        if (!have_origin_) return false;
++        out = origin_;
++        return true;
++    }
++    static void initialize(Clock clock = nullptr, Emit emit = nullptr) {
++        count_ = depth_ = dropped_ = clock_errors_ = 0;
++        origin_ = previous_ = 0;
++        have_origin_ = active_ = emitted_ = main_success_ = false;
++        balanced_ = labels_valid_ = true;
++        runtime_policy_observed_ = runtime_policy_skipped_ = false;
++        clock_ = clock ? clock : default_clock;
++        emit_ = emit ? emit : default_emit;
++        for (Record &r : rows_) r = {};
++    }
++    static void start() {
++        if (active_ || emitted_) return;
++        active_ = true;
++        enter("webmain_total");
++    }
++    static void set_main_success(bool success) { main_success_ = success; }
++    static void set_runtime_prewarm_policy(bool skip) {
++        if (!active_ || emitted_) return;
++        runtime_policy_observed_ = true; runtime_policy_skipped_ = skip;
++    }
++    static void finish() {
++        if (!active_ || emitted_) return;
++        if (depth_ != 1 || !count_ || stack_[0] != 0) balanced_ = false;
++        // Close remaining rows for failure evidence; balanced=false rejects the run.
++        while (depth_) leave(stack_[depth_ - 1]);
++        active_ = false;
++        emitted_ = true;
++        const bool clock_valid = have_origin_ && clock_errors_ == 0;
++        const bool complete = main_success_ && clock_valid && balanced_ && labels_valid_ && dropped_ == 0;
++        char json[JSON_CAPACITY] = {};
++        int used = std::snprintf(json, sizeof(json),
++                "{\"schema\":\"wx-native-startup-v1\",\"source_pin\":\"df3cdd9bc9941a20cb5575d781cde6f937637bcb\","
++                "\"skip_3d_prewarm\":%s,\"main_success\":%s,\"complete\":%s,\"clock\":\"%s\",\"unit\":\"us\","
++                "\"runtime_prewarm_policy\":\"%s\",\"runtime_default_3d_prewarm_policy_observed\":%s,\"runtime_default_3d_prewarm_skipped\":%s,"
++                "\"clock_valid\":%s,\"clock_errors\":%d,\"balanced\":%s,\"labels_valid\":%s,\"dropped\":%d,\"records\":[",
++                SKIP_3D_PREWARM ? "true" : "false", main_success_ ? "true" : "false", complete ? "true" : "false",
++                clock_ == default_clock ? "clock_gettime(CLOCK_MONOTONIC)" : "injected_fake_clock",
++                RUNTIME_POLICY_NAME, runtime_policy_observed_ ? "true" : "false", runtime_policy_skipped_ ? "true" : "false",
++                clock_valid ? "true" : "false", clock_errors_, balanced_ ? "true" : "false", labels_valid_ ? "true" : "false", dropped_);
++        bool overflow = used < 0 || used >= JSON_CAPACITY;
++        for (int i = 0; i < count_ && !overflow; ++i) {
++            const Record &r = rows_[i];
++            const bool valid = r.start_valid && r.end_valid && r.closed && r.end >= r.start;
++            char start[32], duration[32];
++            if (r.start_valid) std::snprintf(start, sizeof(start), "%lld", static_cast<long long>(r.start));
++            else std::strcpy(start, "null");
++            if (valid) std::snprintf(duration, sizeof(duration), "%lld", static_cast<long long>(r.end - r.start));
++            else std::strcpy(duration, "null");
++            const int wrote = std::snprintf(json + used, sizeof(json) - used,
++                    "%s{\"id\":%d,\"parent\":%d,\"label\":\"%s\",\"start_us\":%s,\"duration_us\":%s,\"complete\":%s}",
++                    i ? "," : "", i + 1, r.parent, r.label, start, duration, valid ? "true" : "false");
++            overflow = wrote < 0 || wrote >= JSON_CAPACITY - used;
++            if (!overflow) used += wrote;
++        }
++        if (!overflow) {
++            const int wrote = std::snprintf(json + used, sizeof(json) - used, "]}");
++            overflow = wrote < 0 || wrote >= JSON_CAPACITY - used;
++        }
++        if (overflow) {
++            std::snprintf(json, sizeof(json),
++                    "{\"schema\":\"wx-native-startup-v1\",\"skip_3d_prewarm\":%s,\"main_success\":%s,"
++                    "\"complete\":false,\"serialization_overflow\":true,\"runtime_prewarm_policy\":\"%s\",\"runtime_default_3d_prewarm_policy_observed\":%s,\"runtime_default_3d_prewarm_skipped\":%s,\"records\":[]}",
++                    SKIP_3D_PREWARM ? "true" : "false", main_success_ ? "true" : "false",
++                    RUNTIME_POLICY_NAME, runtime_policy_observed_ ? "true" : "false", runtime_policy_skipped_ ? "true" : "false");
++        }
++        emit_(json);
++    }
++    class Scope {
++        int index_;
++    public:
++        explicit Scope(const char *label) : index_(enter(label)) {}
++        Scope(const Scope &) = delete;
++        Scope &operator=(const Scope &) = delete;
++        void stop() { leave(index_); index_ = -1; }
++        void finish() { stop(); }
++        ~Scope() { stop(); }
++    };
++    class FinishOnReturn {
++    public:
++        ~FinishOnReturn() { WxLabStartupTrace::finish(); }
++    };
++};
++#endif

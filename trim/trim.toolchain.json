@@ -1,8 +1,12 @@
 {
-  "说明": "工具链路径示例，均相对于本配置文件；请替换为自己的现有工具链，engineSource 必须是 citizenll/godot 微信分支的 git 仓库。",
+  "说明": "工具链路径示例，均相对于本配置文件；请替换为自己的现有工具链。engineSource 必须是 citizenll/godot 微信分支的 git 仓库。patches 在每次新克隆的源码上依次 git apply；cppdefines 是附加编译宏；lto 可选 full / thin / none（命令行 --lto 优先）。默认带的 wx-startup-df3.patch + 两个宏：让项目设置 startup/gles3/skip_default_3d_prewarm 生效，并输出启动原生计时（[WX_NATIVE_*]）。",
   "engineSource": "./input/godot-source",
   "pin": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
   "emsdk": "./input/emsdk",
   "python": "./input/venv/Scripts/python.exe",
-  "patches": []
+  "patches": [
+    "patches/wx-startup-df3.patch"
+  ],
+  "cppdefines": "WX_LAB_STARTUP_TRACE WX_LAB_RUNTIME_PREWARM_POLICY",
+  "lto": "full"
 }

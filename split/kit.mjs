@@ -52,23 +52,29 @@ const commands = {
     // Training gate is appended to a script the game already loads (config.trainingGateHost, default godot-data/local-interfaces.js).
     const li = path.join(out, c.trainingGateHost || 'godot-data/local-interfaces.js'); if (c.releaseInterfaces) fs.copyFileSync(fromCfg(c, c.releaseInterfaces), li);
     check(fs.existsSync(li), 'TRAINING_GATE_HOST_MISSING:' + li);
-    editText(li, s => s.includes('WX15_TRAINING12_GATE') ? s + '\n' : s + '\n' + asset('training-gate.js'));
+    // 用训练门脚本自己的头注释判断是否已装（游戏接口里可能出现 __WX15_TRAINING12_GATE_DIAGNOSTIC__ 之类的名字）
+    editText(li, s => s.includes('WX15_TRAINING12_GATE: collection-only') ? s + '\n' : s + '\n' + asset('training-gate.js'));
     installTelemetry(out, {label, cloud: c.cloud, keep: KEEP_COLLECT});
     packagingFixes(out, c.projectName + ' ' + label);
     claimLabel(c, label);
     const result = {kind: 'collect', at: new Date().toISOString(), from, out, label, pck, ...projectInfo(out)};
     writeJson(path.join(path.dirname(out), path.basename(out) + '.ASSEMBLY.json'), result); console.log(JSON.stringify(result, null, 1));
   },
-  // 官方 CLI：dosplit profile|release / getinfo / showfuncname。一次一个台账，不自动重试。
+  // 官方 CLI：init / dosplit profile|release / getinfo / showfuncname。一次一个台账，不自动重试。
+  // init 会上传 WASM 和符号表（调用微信后台），同一个 WASM md5 只做一次；工程里要有 game.symbols.json（convert 会生成）。
   async split() {
-    const c = config(), mode = argv[1], project = fromCfg(c, c.workProject); check(['profile', 'release', 'getinfo', 'showfuncname'].includes(mode), 'MODE');
+    const c = config(), mode = argv[1], project = fromCfg(c, c.workProject); check(['init', 'profile', 'release', 'getinfo', 'showfuncname'].includes(mode), 'MODE init|profile|release|getinfo|showfuncname');
+    if (mode === 'init') {
+      check(fs.existsSync(path.join(project, 'game.symbols.json')), 'NO_GAME_SYMBOLS_JSON（用新版 convert 重新转换，或把 webgl/symbols.json 复制为工程里的 game.symbols.json 并在 packOptions 忽略）');
+      check(!fs.existsSync(path.join(project, '.plugincache/codesplitv2/config.json')) || flag('again'), 'ALREADY_INITIALIZED（同一个 md5 只需 init 一次；确实要重做加 --again）');
+    }
     const tag = opt('tag') || new Date().toISOString().replace(/[:.]/g, '-'), base = path.join(ledgerDir(c), 'ledgers', `split-${mode}-${tag}`);
     const before = projectInfo(project); writeJson(base + '.json', {mode, startedAt: new Date().toISOString(), before}, 'wx');
     const keyPath = keyPathOf(c);
-    const args = mode === 'profile' ? ['dosplit', '-p', project] : mode === 'release' ? ['dosplit', '-p', project, '--release'] : mode === 'getinfo' ? ['getinfo', '-p', project, '-o', base + '.gameinfo.private.txt'] : ['showfuncname', '-p', project, '-o', base + '-funcnames'];
+    const args = mode === 'init' ? ['init', '-p', project, '-d', opt('desc') || c.projectName || 'wechat-wasm-slim'] : mode === 'profile' ? ['dosplit', '-p', project] : mode === 'release' ? ['dosplit', '-p', project, '--release'] : mode === 'getinfo' ? ['getinfo', '-p', project, '-o', base + '.gameinfo.private.txt'] : ['showfuncname', '-p', project, '-o', base + '-funcnames'];
     const code = await officialCli({cli: fromCfg(c, c.officialCli), args, keyPath, logBase: base});
     const after = projectInfo(project); writeJson(base + '.json', {mode, finishedAt: new Date().toISOString(), exitCode: code, before, after});
-    const tail = fs.readFileSync(base + '.stdout.private.txt', 'utf8').split('\n').filter(l => /subVersion|FuncNum|完成|个\)|失败|错误/.test(l) && !/key|sig|token/i.test(l));
+    const tail = (fs.readFileSync(base + '.stdout.private.txt', 'utf8') + '\n' + fs.readFileSync(base + '.stderr.private.txt', 'utf8')).split('\n').filter(l => /subVersion|FuncNum|完成|个\)|失败|错误|状态/.test(l) && !/key|sig|token|AppID|wx[0-9a-f]{16}/i.test(l));
     console.log(JSON.stringify({mode, exitCode: code, subVersion: after.subVersion, isProfile: after.isProfile}), '\n' + tail.join('\n'));
     if (code !== 0) process.exitCode = 1;
   },
@@ -84,7 +90,16 @@ const commands = {
     check(map[action], 'IDE_ACTION'); const args = ['--project', project]; if (action === 'console') args.push('--command', opt('grep') || 'grep WX15_TIMING');
     if (action === 'screenshot') args.push('--path', abs(opt('path') || path.join(ledgerDir(c), 'shot.jpg')));
     const r = await wechatide(c.clientName || 'Claude', map[action], args, {cwd: path.dirname(project), evidenceDir: path.join(ledgerDir(c), 'ide-evidence')});
-    console.log(action === 'console' ? String(r.raw?.result ?? '').split('\n').map(l => l.replace(/","\{.*$/, '').slice(0, 300)).join('\n') : JSON.stringify(r.raw?.result ?? r.raw));
+    // 控制台行保留参数（缺函数日志的槽位号在第二个参数里），过滤 AppID，每行最多 600 字符。
+    console.log(action === 'console' ? String(r.raw?.result ?? '').split('\n').map(l => l.replace(/wx[0-9a-f]{16}/g, 'wx<APPID>').slice(0, 600)).join('\n') : JSON.stringify(r.raw?.result ?? r.raw));
+  },
+  // 推送手机预览（auto_preview）：只推到当前登录开发者工具的微信；其他手机在开发者工具里点“预览”扫码（需开发者/体验成员权限）。
+  async preview() {
+    const c = config(), project = abs(need('project'));
+    const r = await wechatide(c.clientName || 'Claude', 'auto_preview', ['--project', project], {cwd: path.dirname(project), timeout: 300000, evidenceDir: path.join(ledgerDir(c), 'ide-evidence')});
+    const pk = r.raw?.result?.info?.size?.packages || [];
+    console.log(JSON.stringify({ok: r.ok, message: r.raw?.message || null, packages: pk.map(x => `${x.name} ${(x.size / 1e6).toFixed(2)} MB`)}, null, 1));
+    if (!r.ok) process.exitCode = 1;
   },
   // 体验版上传（需在开发者工具里人工确认）。上传前不要关项目窗口，否则会 abort。
   async upload() {
@@ -119,5 +134,5 @@ const commands = {
 };
 function readLabel(project) { const m = fs.readFileSync(path.join(project, 'phone-log-config.js'), 'utf8').match(/"build":\s*"([^"]+)"/); check(m, 'NO_BUILD_LABEL'); return m[1]; }
 
-try { check(commands[cmd], '用法：node kit.mjs <assemble|collect-pack|split|verify|ide|upload|task|logs|lookup|info> ...（见 README.md）'); await commands[cmd](); }
+try { check(commands[cmd], '用法：node kit.mjs <assemble|collect-pack|split|verify|ide|preview|upload|task|logs|lookup|info> ...（见 README.md）'); await commands[cmd](); }
 catch (e) { console.error('ERROR', e.code || e.message); process.exitCode = 1; }

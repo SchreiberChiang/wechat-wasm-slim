@@ -10,5 +10,5 @@ export function lookupSlots(project, symbolsFile, ids) {
     if (id === 9) { const c = u(); for (let i = 0; i < c; i++) { const flags = u(); if (flags !== 0) throw Error('elem flags ' + flags); if (b[p++] !== 0x41) throw Error('elem offset op'); const off = sleb(); p++; const n = u(), fns = []; for (let j = 0; j < n; j++) fns.push(u()); elems.push({off, fns}); } }
     p = end; }
   const sym = JSON.parse(fs.readFileSync(symbolsFile, 'utf8')), name = f => String(sym[f] ?? '?').replace(/\\([0-9a-f]{2})/g, (_, h) => String.fromCharCode(parseInt(h, 16)));
-  return ids.map(id => { for (const e of elems) { const i = id - e.off; if (i >= 0 && i < e.fns.length) return `槽位 ${id} → 函数 ${e.fns[i]}：${name(e.fns[i])}`; } return `槽位 ${id}：不在函数表内`; });
+  return ids.map(id => { for (const e of elems) { const i = id - e.off; if (i >= 0 && i < e.fns.length) return `槽位 ${id} → 函数 ${e.fns[i]}：${name(e.fns[i])}`; } const max = Math.max(0, ...elems.map(e => e.off + e.fns.length)); return id >= max ? `槽位 ${id}：在原始函数表（1–${max - 1}）之后，是官方拆分新增的跳转槽位，本地没有对照表，查不出函数名。按“首包缺函数”处理：在出错的设备上补采一轮` : `槽位 ${id}：不在函数表内`; });
 }

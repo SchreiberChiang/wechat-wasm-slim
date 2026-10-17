@@ -79,6 +79,15 @@ export function verifyProject(dir, plugin) {
   if (!entry.includes('setModuleFunctionHandler(GameGlobal.__WX15_CREATE_SINGLE_ENTRY__(commFrameWork))')) fail('game.js 没有用单入口包装 Godot 工厂');
   if (entry.split("console.log('start success');").length !== 2) warn("game.js 没有模板的 console.log('start success') 行：split 计时里“插件加载器就绪”会显示未知");
   if (has('godot-data/local-interfaces.js') && !entry.includes("import './godot-data/local-interfaces'")) warn('godot-data/local-interfaces.js 存在但 game.js 没有加载它');
+  const compatAt = entry.indexOf("import './godot-data/wx-compat'"), ifaceAt = entry.indexOf("import './godot-data/local-interfaces'");
+  if (!has('godot-data/wx-compat.js')) warn('没有 godot-data/wx-compat.js（--no-compat 或旧产物）：Godot 的 HTTP、WebSocket 发送、LineEdit 键盘、震动在通用适配里不能用，除非游戏自己的接口文件补了');
+  else if (compatAt < 0) fail('godot-data/wx-compat.js 存在但 game.js 没有加载它');
+  else if (compatAt < idx[3] || (ifaceAt >= 0 && compatAt > ifaceAt) || compatAt > idx[4]) fail('game.js 里 wx-compat 的位置不对，应在 single-entry 之后、local-interfaces 和 framework 之前');
+  else {
+    const c = text('godot-data/wx-compat.js'), parts = [['__globalAdapter', '输入法'], ['TextDecoder', '文本编解码'], ["'Blob'", 'Blob'], ["'OPEN'", 'WebSocket 常量'], ['nav.vibrate', '震动'], ['enableChunked = false', 'wx.request 关分块'], ['res.statusCode', '头回调过滤']];
+    const lack = parts.filter(([k]) => !c.includes(k)).map(([, n]) => n);
+    lack.length ? fail('godot-data/wx-compat.js 不完整，缺少：' + lack.join('、')) : pass('godot-data/wx-compat.js 在 local-interfaces 之前加载，含输入法、文本编解码、Blob、WebSocket 常量、震动、wx.request 补丁');
+  }
 
   const fw = text('framework.js');
   const fwChecks = [[fw.split('__WX15_GODOT_BRIDGE__.start(Godot,Module,').length === 2, 'framework.js 含 Godot 启动桥（只调用一次）'],
@@ -93,6 +102,10 @@ export function verifyProject(dir, plugin) {
 
   const sym = path.join(path.dirname(dir), 'webgl', 'symbols.json');
   fs.existsSync(sym) ? pass('符号表 ../webgl/symbols.json 存在（split 配置里的 symbols 指向它）') : warn('没有 ../webgl/symbols.json：split 的 lookup 和问题排查需要符号表');
+  if (has('game.symbols.json')) {
+    const pc = JSON.parse(text('project.config.json') || '{}'), ign = pc.packOptions?.ignore || [];
+    ign.some(x => x.value === 'game.symbols.json') ? pass('工程里有 game.symbols.json（官方 init 要用），且已从小游戏包排除') : fail('game.symbols.json 没有在 project.config.json 的 packOptions.ignore 里，会被打进小游戏包');
+  } else warn('工程里没有 game.symbols.json：官方 init 会报找不到符号表（把 ../webgl/symbols.json 复制进来并在 packOptions 忽略）');
   has('.plugincache/codesplitv2') ? pass('已做过官方 init（.plugincache/codesplitv2 存在）') : warn('还没做官方 init（split/SETUP.md 第 3 节第 2 条）：下一步 wasmsplit-v2-ci init，会上传 WASM，必须先取得授权');
   return out;
 }
