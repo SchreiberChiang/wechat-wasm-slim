@@ -66,7 +66,7 @@ node convert/convert.mjs verify  --project <新目录>/minigame
 3. **资源依赖门补丁**（`assets/asset-gate.js`）：转换器在 `createWasm` 里加了 `wasm-preloadAssets` 依赖，改成“首包数据校验通过后才释放、只加一次只放一次”。
 4. **WASM 文件名**改为 WASM md5 的前 15 位（官方 `switch-md5` 只接受 15 位），并确认压缩包能还原出原 WASM。
 5. **首包数据**：`说明文件 + PCK` 按 Emscripten file_packager 布局拼成数据包（PCK 必须在最后，split 的 PCK 替换依赖这一点），brotli 压缩为 `data-package/<md5前16位>.data.bin`，更新 `launch.data`。
-6. **胶水文件**写进 `godot-data/`，`game.js` 按顺序加载：`package-info` → `wx-game-kit` → `custom-package` → `single-entry` → `wx-compat` → `local-interfaces` → `framework`。
+6. **胶水文件**写进 `godot-data/`，`game.js` 按顺序加载：`package-info` → `wx-game-kit` → `custom-package` → `single-entry` → `wx-compat` → `wx-split` → `local-interfaces` → `framework`。
 7. **配置**：AppID、项目名；关掉开发期性能弹窗和默认的 Unity 图标。
 
 ## 每个胶水文件的作用
@@ -80,6 +80,7 @@ node convert/convert.mjs verify  --project <新目录>/minigame
 | `godot-data/custom-package.js` | 注册 `setCustomProcessRawDataHandler`：校验解压后的数据大小和 GDPC 头，复制 PCK 字节交给启动桥，释放依赖门 | 通用 | `custom-resource-handler.js` |
 | `godot-data/single-entry.js` | 插件会对同一个 Module 请求两次工厂；保证 Godot 只启动一次 | 通用 | `single-godot-entry.js` |
 | `godot-data/wx-compat.js` | 浏览器对象兼容层：补 `__globalAdapter`、`TextEncoder`/`TextDecoder`、`Blob`、WebSocket 常量、`navigator.vibrate`，给 `wx.request` 打补丁。让 Godot 的 HTTPRequest、WebSocketPeer、LineEdit 键盘、`Input.vibrate_handheld` 能用（见下一节） | 通用（`--no-compat` 不生成） | Star Tap 的 `demo-login-01/wx/demo-interfaces.js` 第 1–5 项（2026-10-17 开发者工具实测） |
+| `godot-data/wx-split.js` | Godot 插件 wx_split 的 JS 侧（`godot-addon/addons/wx_split/wx_split.js` 原样复制）：点击门新旧名、采集包、自动测试开关的探测函数，配置读 `WxSplitConfig` | 通用（不用插件的游戏装上也没影响） | Star Tap 旧 `DemoWx.hasClickGate()` / `isTraining()` |
 | `godot-data/local-interfaces.js` | 游戏自己的 JS 接口；默认是空文件；split 的训练等待门默认追加在这里 | **游戏专用**（`--interfaces`） | 打砖块的 `__STARTUP_LAB_PROBE__`、QA 接口（实验用，不进通用模板） |
 | `godot-data/local-diagnostic-init.js` | 启动时清理实验诊断的本地存储 | 实验用，**不再生成** | `apply-native-dependency-exports.mjs` |
 | 本地存储诊断（`WXSLIM_*_DIAGNOSTIC`） | 把启动各阶段写进 `wx.setStorageSync` | 实验用，**已去掉**；状态改为只放内存：`GameGlobal.__WXSLIM_BOOT_STATE__`、`__WXSLIM_RESOURCE_STATE__`、`__WXSLIM_ENTRY_STATE__`、`Module.__WXSLIM_ASSET_DIAGNOSTIC__` | 多个补丁脚本 |

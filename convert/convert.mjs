@@ -113,6 +113,8 @@ const commands = {
     for (const n of ['custom-package.js', 'single-entry.js']) fs.writeFileSync(f('godot-data/' + n), asset(n));
     // wx-compat.js 补通用适配运行时缺的浏览器对象（HTTP、WebSocket、键盘、震动），必须在游戏接口之前加载。
     if (compat) fs.writeFileSync(f('godot-data/wx-compat.js'), asset('wx-compat.js'));
+    // wx-split.js 是 Godot 插件 addons/wx_split 的 JS 侧（点击门、采集包、自动测试开关的探测函数），和插件同一份源文件；不用插件的游戏装上也没有影响。
+    fs.writeFileSync(f('godot-data/wx-split.js'), fs.readFileSync(path.join(home, '../godot-addon/addons/wx_split/wx_split.js')));
     fs.writeFileSync(f('godot-data/local-interfaces.js'), interfaces ? fs.readFileSync(interfaces) : asset('local-interfaces.js'));
     let entry = fs.readFileSync(f('game.js'), 'utf8');
     entry = "import './godot-data/package-info';\n" + entry;
@@ -124,7 +126,7 @@ const commands = {
       entry = "import './godot-data/wxslim-sizes';\nimport './godot-data/wxslim-timing';\n" + entry;
       if (entry.split(GA.startOk).length === 2) entry = entry.replace(GA.startOk, "GameGlobal.__WXSLIM_TIMING__.mark('loader_start_ok');\n    " + GA.startOk);
     }
-    entry = replaceOnce(entry, GA.imports, "import './godot-data/custom-package';\nimport './godot-data/single-entry';\n" + (compat ? "import './godot-data/wx-compat';\n" : '') + "import './godot-data/local-interfaces';\n" + GA.imports, 'game.js import');
+    entry = replaceOnce(entry, GA.imports, "import './godot-data/custom-package';\nimport './godot-data/single-entry';\n" + (compat ? "import './godot-data/wx-compat';\n" : '') + "import './godot-data/wx-split';\nimport './godot-data/local-interfaces';\n" + GA.imports, 'game.js import');
     entry = replaceOnce(entry, GA.handler, 'WXGameKit.loader.setModuleFunctionHandler(GameGlobal.__WXSLIM_CREATE_SINGLE_ENTRY__(commFrameWork));', 'setModuleFunctionHandler');
     fs.writeFileSync(f('game.js'), entry);
 
@@ -149,6 +151,7 @@ const commands = {
       sizes: {wasmBr: fs.statSync(brNew).size, dataBr: fs.statSync(f(`data-package/${dataId}.data.bin`)).size, pck: pck.length}};
     writeJson(path.join(out, 'CONVERT_REPORT.json'), result);
     console.log(`已生成 ${mini}\n  WASM 压缩后 ${mb(result.sizes.wasmBr)}（wasmcode/${id}.wasm.br），PCK ${mb(pck.length)} 放在 data-package/${dataId}.data.bin，挂载为 ${pckPath}`);
+    console.log('  Godot 插件 wx_split 的 JS 侧：godot-data/wx-split.js（游戏配置写在 --interfaces 文件的 WxSplitConfig 里）');
     console.log('  浏览器兼容层：' + (compat ? 'godot-data/wx-compat.js（HTTP、WebSocket、键盘、震动）' : '未生成（--no-compat），游戏要自己在 --interfaces 里补'));
     console.log('  AppID：' + {placeholder: '占位符（打开开发者工具前要换成真实 AppID，可重新 convert 加 --appid-from）', appid: '来自 --appid', 'appid-from': '来自 --appid-from'}[appidSource]);
     console.log(`下一步：node convert/convert.mjs verify --project ${mini}${game && !argOpt('out') ? '（或 --config ' + game.file + '）' : ''}`);

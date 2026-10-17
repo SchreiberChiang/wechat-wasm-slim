@@ -1,0 +1,14 @@
+; 契约测试用的最小 Godot 项目：tests/run.mjs --godot <可执行文件> 会把它和 godot-addon/addons/wx_split 复制到临时目录再 headless 运行。
+config_version=5
+
+[application]
+config/name="wx_split contract"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[autoload]
+
+WxSplit="*res://addons/wx_split/wx_split.gd"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"

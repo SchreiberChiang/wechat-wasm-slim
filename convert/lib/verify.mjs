@@ -88,6 +88,13 @@ export function verifyProject(dir, plugin) {
     const lack = parts.filter(([k]) => !c.includes(k)).map(([, n]) => n);
     lack.length ? fail('godot-data/wx-compat.js 不完整，缺少：' + lack.join('、')) : pass('godot-data/wx-compat.js 在 local-interfaces 之前加载，含输入法、文本编解码、Blob、WebSocket 常量、震动、wx.request 补丁');
   }
+  // Godot 插件 wx_split 的 JS 侧：WxSplit 要在 local-interfaces 之前挂好（探测函数调用时才查点击门和采集门，和它们的加载顺序无关）
+  const splitAt = entry.indexOf("import './godot-data/wx-split'");
+  if (!has('godot-data/wx-split.js')) warn('没有 godot-data/wx-split.js（旧产物）：用了 Godot 插件 wx_split 的游戏要重新 convert，或把 godot-addon/addons/wx_split/wx_split.js 拼进接口文件');
+  else if (splitAt < 0) fail('godot-data/wx-split.js 存在但 game.js 没有加载它');
+  else if (splitAt < idx[3] || (ifaceAt >= 0 && splitAt > ifaceAt) || splitAt > idx[4]) fail('game.js 里 wx-split 的位置不对，应在 single-entry 之后、local-interfaces 和 framework 之前');
+  else if (!text('godot-data/wx-split.js').includes('WXSLIM_ADDON_JS')) fail('godot-data/wx-split.js 不是 wx_split 插件的 JS');
+  else pass('godot-data/wx-split.js（Godot 插件 wx_split 的 JS 侧）在 local-interfaces 之前加载');
 
   const fw = text('framework.js');
   const fwChecks = [[fw.split('__WXSLIM_GODOT_BRIDGE__.start(Godot,Module,').length === 2, 'framework.js 含 Godot 启动桥（只调用一次）'],

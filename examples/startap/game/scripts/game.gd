@@ -2,7 +2,8 @@ extends Node
 ## 全局（autoload "Game"）：网络、登录状态、音乐音效、震动、场景切换、掉线回标题。
 ## 场景：title（改名、点击登录、选模式）→ play2d / play3d。3D 场景只在点击时 load()，方便以后按场景分包。
 ## 自动测试参数（放在 `--` 之后）：--qa-play=2d|3d（自动登录并自动玩一局）  --qa-quit（结算后退出）  --qa-shot=路径
-## 小游戏里没有命令行：测试包在 JS 里设置 DemoWx.qa = "2d" 或 "3d"。
+## 小游戏里没有命令行：测试包在接口文件里设置 WxSplitConfig.qa = "2d" 或 "3d"（见 wx/demowx-qa3d.js）。
+## 点击门、采集包判断、计时事件、自动测试开关都用插件 addons/wx_split（autoload "WxSplit"）。
 
 const SAVE_PATH := "user://demo.cfg"
 const TITLE := "res://scenes/title.tscn"
@@ -13,7 +14,6 @@ var net := Net.new()
 var music := AudioStreamPlayer.new()
 var sfx: Array[AudioStreamPlayer] = []
 var snd := {}
-var qa := {}
 
 var logged_in := false
 var login_mode := ""
@@ -25,15 +25,6 @@ var title_message := ""
 
 
 func _ready() -> void:
-	for a in OS.get_cmdline_user_args():
-		var kv := a.trim_prefix("--").split("=", true, 1)
-		qa[kv[0]] = kv[1] if kv.size() > 1 else "1"
-	if OS.has_feature("web"):
-		var d: JavaScriptObject = JavaScriptBridge.get_interface("DemoWx")
-		if d != null and str(d.qa) in ["2d", "3d", "true"]:
-			qa["qa-play"] = "2d" if str(d.qa) == "true" else str(d.qa)
-	if qa.get("qa-play", "") == "1":
-		qa["qa-play"] = "2d"
 	add_child(net)
 	net.ws_message.connect(_on_ws_message)
 	net.ws_state.connect(_on_ws_state)
@@ -159,45 +150,12 @@ func _on_ws_message(msg: Dictionary) -> void:
 
 
 # ---------- 进入玩法场景 ----------
-## 分包版（wasmsplit onclick 模式）运行时会暴露点击门 __WXSLIM_CLICK_GATE__：request() 后轮询到 READY
-## （余包下载、编译完）才能用余包里的类和函数；没有分包时这个接口不存在，直接进。
-## 哪些场景要先过点击门由 JS 接口 DemoWx.gate2d 决定：
-##   方案一（标题+2D 首包，3D 余包）：gate2d=false，只有 3D 过门；
-##   方案二（标题首包，2D+3D 余包）：gate2d=true，2D、3D 都过门。
-## 分包采集包（训练等待门）里，过门之后就停，不加载场景，避免场景代码被采进首包。
-## 场景都用 load() 在这里才加载，不在标题里 preload。
+## 交给插件：分包版先过点击门，采集包过门就停（返回 TRAINING_DONE），然后才 load() 场景。
+## 3D 的代码总在余包，所以过门；2D 默认不过门（方案一：标题+2D 首包）。
+## 方案二（2D 也在余包）由接口文件里 WxSplitConfig.gate["2d"] = true 打开（wx/demowx-gate2d.js），正式包和采集包共用一个 PCK。
 func enter_2d() -> String:
-	var gated := false
-	if OS.has_feature("web"):
-		var d: JavaScriptObject = JavaScriptBridge.get_interface("DemoWx")
-		gated = d != null and bool(d.gate2d)
-	return await _enter_scene("2d", PLAY_2D, gated)
+	return await WxSplit.enter_scene(PLAY_2D, "2d", false)
 
 
 func enter_3d() -> String:
-	return await _enter_scene("3d", PLAY_3D, true)
-
-
-func _enter_scene(tag: String, path: String, gated: bool) -> String:
-	print("[STARTUP_3D_FLOW] {\"event\":\"click\",\"scene\":\"%s\"}" % tag)
-	if gated and OS.has_feature("web"):
-		var d: JavaScriptObject = JavaScriptBridge.get_interface("DemoWx")
-		var gate: JavaScriptObject = null
-		if d != null and bool(d.hasClickGate()):
-			gate = JavaScriptBridge.get_interface(str(d.clickGateName()))
-		if gate != null:
-			var status := str(gate.request())
-			while status == "PENDING":
-				await get_tree().process_frame
-				status = str(gate.status())
-			if status != "READY":
-				print("[STARTUP_3D_FLOW] {\"event\":\"transition_failed\",\"scene\":\"%s\",\"status\":\"%s\"}" % [tag, status])
-				return status
-			if d != null and bool(d.isTraining()):
-				print("[STARTUP_3D_FLOW] {\"event\":\"collection_gate_complete_3d_blocked\",\"scene\":\"%s\"}" % tag)
-				return "TRAINING_DONE"
-	var scene: PackedScene = load(path)
-	if scene == null or get_tree().change_scene_to_packed(scene) != OK:
-		print("[STARTUP_3D_FLOW] {\"event\":\"transition_failed\",\"scene\":\"%s\",\"status\":\"LOAD_FAILED\"}" % tag)
-		return "LOAD_FAILED"
-	return "READY"
+	return await WxSplit.enter_scene(PLAY_3D, "3d", true)

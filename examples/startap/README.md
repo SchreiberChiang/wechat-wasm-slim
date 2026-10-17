@@ -1,6 +1,6 @@
 # Star Tap 示例：怎么跑
 
-实测结果和做法要点见 [RESULT.md](RESULT.md)。整个流程只用一份配置 [wxslim.json](wxslim.json)（方案二，去敏示例路径）。
+实测结果和做法要点见 [RESULT.md](RESULT.md)。整个流程只用一份配置 [wxslim.json](wxslim.json)（方案二，去敏示例路径）。分包接入用的是 Godot 插件 `game/addons/wx_split`（`godot-addon/addons/wx_split` 的副本，改插件后要同步，`node ../../tests/run.mjs` 会检查）；方案一和方案二的区别只在接口文件里的 `WxSplitConfig.gate`。
 
 ```
 # 1. 生成音频（WAV，程序合成）
