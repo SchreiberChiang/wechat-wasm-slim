@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Godot 4 Web 导出 → 微信小游戏通用适配（WXGameKit）工程。用法见 ../README.md 的“转换（convert）”。
 import fs from 'node:fs';import path from 'node:path';import zlib from 'node:zlib';import {spawnSync} from 'node:child_process';
-import {sha, md5, MODULE_TAIL, locateInputs, checkInputs} from './lib/inputs.mjs';
+import {sha, md5, MODULE_TAIL, FRAMEWORK_ANCHORS as FA, GAMEJS_ANCHORS as GA, transformerConfig, locateInputs, checkInputs} from './lib/inputs.mjs';
 import {verifyProject, PLACEHOLDER_APPID} from './lib/verify.mjs';
 
 const home = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
@@ -66,7 +66,7 @@ const commands = {
     fs.writeFileSync(bridged, js.slice(0, at) + '\n' + replaceOnce(asset('godot-bridge.js'), '__WXSLIM_LOCALE__', JSON.stringify(locale), 'locale'));
 
     // 2. 官方转换器：复制 WXGameKit 模板、改写 JS 胶水为 framework.js、brotli 压缩 WASM、转换符号表。AppID 用占位符，转换后再填。
-    const tcfg = {jsFile: bridged, wasmFile: inp.wasm, ...(inp.symbols ? {symbolsFile: inp.symbols} : {}), outputDir: path.join(work, 'transformer-out'), cdnUrl: 'http://127.0.0.1:65535/', appID: PLACEHOLDER_APPID, appName: name, engineName: 'Custom', engineVersion: r.facts.godotVersion, webglVersion: 2, alphaChannel: false, deviceOrientation: orientation, loadFromSubpackage: true, compressData: true, forceSingleThread: false, enableGLX: false, enableMetal: false, preloadList: []};
+    const tcfg = transformerConfig({jsFile: bridged, wasmFile: inp.wasm, symbolsFile: inp.symbols, outputDir: path.join(work, 'transformer-out'), appID: PLACEHOLDER_APPID, appName: name, engineVersion: r.facts.godotVersion, orientation});
     writeJson(path.join(work, 'transformer.config.json'), tcfg);
     console.log('运行官方 wx-transformer（压缩 WASM 约 0.5–1 分钟）...');
     const t0 = Date.now(), run = spawnSync(tc.transformer, ['--config', path.join(work, 'transformer.config.json')], {cwd: work, windowsHide: true, timeout: 600000, encoding: 'utf8', maxBuffer: 64 * 1024 ** 2, env: {...process.env, NODE_TLS_REJECT_UNAUTHORIZED: '1'}});
@@ -79,9 +79,9 @@ const commands = {
 
     // 3. framework.js：转换器加的资源依赖改由“数据校验通过才释放”的门控制。
     let fw = fs.readFileSync(f('framework.js'), 'utf8');
-    replaceOnce(fw, '__WXSLIM_GODOT_BRIDGE__.start(Godot,Module,', '', '启动桥');
-    fw = replaceOnce(fw, "addRunDependency('wasm-preloadAssets');", "Module.__WXSLIM_ADD_ASSET_GATE__('converter');", 'wasm-preloadAssets');
-    fw = replaceOnce(fw, 'async function createWasm(){', asset('asset-gate.js') + 'async function createWasm(){', 'createWasm');
+    replaceOnce(fw, FA.bridge, '', '启动桥');
+    fw = replaceOnce(fw, FA.preloadAssets, "Module.__WXSLIM_ADD_ASSET_GATE__('converter');", 'wasm-preloadAssets');
+    fw = replaceOnce(fw, FA.createWasm, asset('asset-gate.js') + FA.createWasm, 'createWasm');
     fs.writeFileSync(f('framework.js'), fw);
 
     // 4. WASM 文件名改为 15 位 md5（官方 switch-md5 只认 15 位），并确认压缩包能还原出原 WASM。
@@ -116,10 +116,10 @@ const commands = {
       fs.writeFileSync(f('godot-data/wxslim-sizes.js'), 'GameGlobal.__WXSLIM_SIZES__=' + JSON.stringify({primaryBr: fs.statSync(brNew).size, code1Br: null, mode: 'nosplit'}) + ';\n');
       fs.writeFileSync(f('godot-data/wxslim-timing.js'), fs.readFileSync(path.join(home, '../split/assets/wxslim-timing.js')));
       entry = "import './godot-data/wxslim-sizes';\nimport './godot-data/wxslim-timing';\n" + entry;
-      if (entry.split("console.log('start success');").length === 2) entry = entry.replace("console.log('start success');", "GameGlobal.__WXSLIM_TIMING__.mark('loader_start_ok');\n    console.log('start success');");
+      if (entry.split(GA.startOk).length === 2) entry = entry.replace(GA.startOk, "GameGlobal.__WXSLIM_TIMING__.mark('loader_start_ok');\n    " + GA.startOk);
     }
-    entry = replaceOnce(entry, 'import commFrameWork from', "import './godot-data/custom-package';\nimport './godot-data/single-entry';\n" + (compat ? "import './godot-data/wx-compat';\n" : '') + "import './godot-data/local-interfaces';\nimport commFrameWork from", 'game.js import');
-    entry = replaceOnce(entry, 'WXGameKit.loader.setModuleFunctionHandler(commFrameWork);', 'WXGameKit.loader.setModuleFunctionHandler(GameGlobal.__WXSLIM_CREATE_SINGLE_ENTRY__(commFrameWork));', 'setModuleFunctionHandler');
+    entry = replaceOnce(entry, GA.imports, "import './godot-data/custom-package';\nimport './godot-data/single-entry';\n" + (compat ? "import './godot-data/wx-compat';\n" : '') + "import './godot-data/local-interfaces';\n" + GA.imports, 'game.js import');
+    entry = replaceOnce(entry, GA.handler, 'WXGameKit.loader.setModuleFunctionHandler(GameGlobal.__WXSLIM_CREATE_SINGLE_ENTRY__(commFrameWork));', 'setModuleFunctionHandler');
     fs.writeFileSync(f('game.js'), entry);
 
     // 7. 配置：AppID、项目名；关掉开发期性能弹窗和默认 Unity 图标。
