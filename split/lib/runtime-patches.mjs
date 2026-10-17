@@ -10,11 +10,22 @@ const sha = s => crypto.createHash('sha256').update(s).digest('hex');
 export const normalizeRuntime = s => s.replace(/const tableSize = \d+/,'const tableSize = N');
 const T = 'GameGlobal.__WXSLIM_TIMING__&&GameGlobal.__WXSLIM_TIMING__.mark';
 
-function patcher(src) {
-  let s = src; const applied = [];
-  const one = (old, next, label) => { const n = s.split(old).length - 1; if (n !== 1) throw Error(`ANCHOR_${n === 0 ? 'MISSING' : 'NOT_UNIQUE'}:${label}`); s = s.replace(old, next); applied.push(label); };
-  const range = (startText, endText, label) => { const a = s.indexOf(startText), b = s.indexOf(endText, a); if (a < 0 || b < a) throw Error('RANGE:' + label); return s.slice(a, b); };
-  return { one, range, get text() { return s; }, applied };
+// report 为数组时是“只检查”模式（doctor 用）：锚点对不上不抛错，记下结果继续往下查；不传时与原来完全一样，第一处失败就抛错。
+function patcher(src, report) {
+  let s = src; const applied = [], inserted = [];
+  // 锚点不在官方模板里、而是前面某处补丁插入的文本（本工具自己的代码）时，记下是哪一处。
+  const origin = a => a == null ? undefined : inserted.find(x => x.next.includes(a) && !x.old.includes(a))?.label;
+  const site =() => { for (const l of String(Error().stack).split('\n')) { const m = l.match(/at (\S+) .*runtime-patches\.mjs:(\d+):\d+/); const fn = m && m[1].split('.').pop(); if (m && !['one', 'range', 'fail', 'site'].includes(fn)) return {fn, line: Number(m[2])}; } return null; };
+  const fail = (code, label, info = {}) => { if (!report) throw Error(code + ':' + label); report.push({label, ok: false, code, ...info, from: origin(info.anchor), site: site()}); };
+  const one = (old, next, label) => {
+    if (report) inserted.push({label, old: old ?? '', next});
+    if (old == null) return fail('DEPENDS', label);
+    const n = s.split(old).length - 1;
+    if (n !== 1) { if (!report) throw Error(`ANCHOR_${n === 0 ? 'MISSING' : 'NOT_UNIQUE'}:${label}`); report.push({label, ok: false, code: n === 0 ? 'ANCHOR_MISSING' : 'ANCHOR_NOT_UNIQUE', count: n, anchor: old, text: s, from: origin(old), site: site()}); return; }
+    s = s.replace(old, next); applied.push(label); report?.push({label, ok: true});
+  };
+  const range = (startText, endText, label) => { const a = s.indexOf(startText), b = s.indexOf(endText, a); if (a < 0 || b < a) { fail('RANGE', label, {anchor: a < 0 ? startText : endText, text: s}); return null; } return s.slice(a, b); };
+  return { one, range, fail, get text() { return s; }, applied };
 }
 
 /** Click-to-download gate (code1 only after the game's request), no code2, explicit miss error. */
@@ -30,11 +41,12 @@ export function clickGate(p, core) {
   p.one('function A(){', 'function A(){throw Error("WXSLIM_CODE2_DISABLED_IN_ORDINARY_ROUTE");', 'code2_unreachable_assert');
   p.one('if(Object.entries(n.instance.exports)', 'Object.entries(n.instance.exports)', 'primary_receive_expression');
   p.one(p.range(',WXGameKit.lifeCycle.on(WXGameKit.lifeCycle.event.InstantiateWasm,', '}),{}},GameGlobal.compileSubWasm=', 'tail'), ',__WXSLIM_CLICK__.bind(),a(n.instance,n.module)', 'primary_immediate_receive_no_HP_private_or_preload');
-  const c0 = p.text.indexOf('GameGlobal.compileSubWasm=function()'); if (c0 < 0) throw Error('RANGE:compile');
-  p.one(p.text.slice(c0), 'GameGlobal.compileSubWasm=function(){return __WXSLIM_CLICK__.compile()};', 'compile_no_fake_ready');
+  const c0 = p.text.indexOf('GameGlobal.compileSubWasm=function()');
+  if (c0 < 0) p.fail('RANGE', 'compile', {anchor: 'GameGlobal.compileSubWasm=function()', text: p.text});
+  else p.one(p.text.slice(c0), 'GameGlobal.compileSubWasm=function(){return __WXSLIM_CLICK__.compile()};', 'compile_no_fake_ready');
   const m = p.text.match(/function publish\(\)\{try\{GameGlobal\.__WXSLIM_CLICK_DIAGNOSTIC__=\{[^}]*\};\}catch\(_\)\{\}\}/g);
-  if (m?.length !== 1) throw Error('ANCHOR:publish');
-  p.one(m[0], m[0].replace(';}catch', ';if(typeof wx.setStorageSync==="function")wx.setStorageSync("WXSLIM_CLICK_DIAGNOSTIC",GameGlobal.__WXSLIM_CLICK_DIAGNOSTIC__);console.log("[WXSLIM_CLICK]",JSON.stringify(GameGlobal.__WXSLIM_CLICK_DIAGNOSTIC__));}catch'), 'bounded_diagnostic');
+  if (m?.length !== 1) p.fail('ANCHOR', 'publish', {count: m?.length || 0, anchor: 'function publish(){try{GameGlobal.__WXSLIM_CLICK_DIAGNOSTIC__={', text: p.text});
+  else p.one(m[0], m[0].replace(';}catch', ';if(typeof wx.setStorageSync==="function")wx.setStorageSync("WXSLIM_CLICK_DIAGNOSTIC",GameGlobal.__WXSLIM_CLICK_DIAGNOSTIC__);console.log("[WXSLIM_CLICK]",JSON.stringify(GameGlobal.__WXSLIM_CLICK_DIAGNOSTIC__));}catch'), 'bounded_diagnostic');
 }
 
 /** Timing marks consumed by assets/wxslim-timing.js. */
@@ -99,13 +111,30 @@ function collectionPreload(p) {
     'else console.log("[WXSLIM_COLLECT] preload code1 before main (canAwaitLoad=false)"),r("no signal api, start instantiate sub wasm"),D(!1),_(()=>(console.log("[WXSLIM_COLLECT] code1 ready, enter main"),a(n.instance,n.module)))', 'collect_async_wait_code1_before_main');
 }
 
-/** Release runtime: click gate + marks + fallback + waiter fix (+ measured mode). Profile runtime: callMain mark only. */
-export function patchRuntime(src, { mode, core, measured = false, allowUnknownTemplate = false }) {
-  const before = sha(src);
-  const normalized = sha(normalizeRuntime(src));
-  if (!allowUnknownTemplate && !OFFICIAL_RUNTIME_SHA256.includes(before) && !OFFICIAL_RUNTIME_NORMALIZED_SHA256.some(x => normalized.startsWith(x))) throw Error('UNKNOWN_OFFICIAL_RUNTIME_TEMPLATE:' + before + ' (re-verify anchors, then pass --allow-unknown-runtime)');
-  const p = patcher(src);
+/** 运行时模板身份：原始 sha 或“函数表大小归一化”后的 sha 是否在已核对列表里。 */
+export function runtimeTemplate(src) {
+  const before = sha(src), normalized = sha(normalizeRuntime(src));
+  return {sha256: before, normalizedSha256: normalized, known: OFFICIAL_RUNTIME_SHA256.includes(before) || OFFICIAL_RUNTIME_NORMALIZED_SHA256.some(x => normalized.startsWith(x))};
+}
+
+function applyChain(p, {mode, core, measured}) {
   if (mode === 'release') { clickGate(p, core); timingMarks(p); fallbackAndWaiterFix(p); missLogging(p); if (measured) measuredMode(p); }
   else { p.one('r("CallMain区间耗时",a.data.costTimeMs)', `(${T}("callmain_ms",a.data.costTimeMs),r("CallMain区间耗时",a.data.costTimeMs))`, 'mark_callmain'); collectionPreload(p); }
-  return { text: p.text, applied: p.applied, beforeSha256: before, afterSha256: sha(p.text) };
+}
+
+/** Release runtime: click gate + marks + fallback + waiter fix (+ measured mode). Profile runtime: callMain mark only. */
+export function patchRuntime(src, { mode, core, measured = false, allowUnknownTemplate = false }) {
+  const t = runtimeTemplate(src);
+  if (!allowUnknownTemplate && !t.known) throw Error('UNKNOWN_OFFICIAL_RUNTIME_TEMPLATE:' + t.sha256 + ' (re-verify anchors, then pass --allow-unknown-runtime)');
+  const p = patcher(src);
+  applyChain(p, {mode, core, measured});
+  return { text: p.text, applied: p.applied, beforeSha256: t.sha256, afterSha256: sha(p.text) };
+}
+
+/** 只检查、不改文件（doctor 用）：按 patchRuntime 的顺序逐处核对锚点，失败不中断。
+ * 返回 {template, results[{label, ok, code, count, anchor, text, site:{fn,line}}], text}；全部通过时 text 与 patchRuntime 的结果相同。 */
+export function checkRuntimeAnchors(src, { mode, core, measured = false }) {
+  const results = [], p = patcher(src, results);
+  applyChain(p, {mode, core, measured});
+  return { template: runtimeTemplate(src), results, text: p.text };
 }

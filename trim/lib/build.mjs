@@ -6,10 +6,12 @@ const sha = b => crypto.createHash('sha256').update(b).digest('hex');
 export const COMMON_ARGS = ['platform=web', 'target=template_release', 'arch=wasm32', 'threads=no', 'wasm_simd=no', 'dlink_enabled=no', 'use_wx_glx=yes', 'javascript_eval=yes', 'opengl3=yes', 'optimize=size', 'debug_symbols=no', 'use_closure_compiler=no', 'initial_memory=32', 'stack_size=5120'];
 // 编译器偶发崩溃的特征（Windows 访问冲突等），只有这类失败才自动重试；配置错误、源码错误直接失败。
 const RETRYABLE = /0xC0000005|3221225477|Access violation|clang(\+\+)?: error: (unable to execute command|clang frontend command failed)|PLEASE submit a bug report|Stack dump:/i;
-const RUNTIME_TOKENS = ['callMain', 'WXMEMFS', 'GodotJSWrapper', 'godot_js_wrapper_interface_get', '__godotMinigameOriginalCommitFrame'];
-const SOURCE_TESTS = ['test_wechat_webgl_context_attributes.js', 'test_godot_process_commit_frame.js', 'test_wechat_glx_runtime.js'];
+export const RUNTIME_TOKENS = ['callMain', 'WXMEMFS', 'GodotJSWrapper', 'godot_js_wrapper_interface_get', '__godotMinigameOriginalCommitFrame'];
+export const SOURCE_TESTS = ['test_wechat_webgl_context_attributes.js', 'test_godot_process_commit_frame.js', 'test_wechat_glx_runtime.js'];
+// 引擎附带的 libemscriptenglx 只匹配这个 emscripten 版本（checkToolchain 里的判断与它一致，doctor 用它报告）。
+export const EMSCRIPTEN_VERSION = '4.0.10';
 // Windows 命令行长度限制：em++ 链接参数改用 response 文件（只改 LINK，llvm-ar 保持原样）。
-const DETECT_ANCHOR = '    env["ARCOM"] = "${TEMPFILE(\'$ARCOM_POSIX\',\'$ARCOMSTR\')}"\n';
+export const DETECT_ANCHOR = '    env["ARCOM"] = "${TEMPFILE(\'$ARCOM_POSIX\',\'$ARCOMSTR\')}"\n';
 const LINK_ADAPTER = '    # ENGINE_LAB_WINDOWS_LINK_RESPONSE_V2\n    import shlex\n    from SCons.Platform import TempFileMunge\n\n    class LinkTempFileMungeV2(TempFileMunge):\n        def __call__(self, target, source, env, for_signature):\n            if for_signature:\n                return self.cmd\n            link_env = env.Clone()\n            link_env["TEMPFILEARGESCFUNC"] = lambda arg: shlex.quote(str(arg))\n            link_env["TEMPFILEENCODING"] = "utf-8"\n            return super().__call__(target, source, link_env, for_signature)\n\n    env["LINKCOM_POSIX_V2"] = env["LINKCOM"].replace("$TARGET", "$TARGET.posix").replace("$SOURCES", "$SOURCES.posix")\n    env["LINK_TEMPFILE_V2"] = LinkTempFileMungeV2\n    env["LINKCOM"] = "${LINK_TEMPFILE_V2(\'$LINKCOM_POSIX_V2\',\'$LINKCOMSTR\')}"\n';
 
 function run(cmd, args, {cwd, env, log, timeoutMs = 3 * 3600e3}) {
@@ -20,7 +22,7 @@ function run(cmd, args, {cwd, env, log, timeoutMs = 3 * 3600e3}) {
     child.once('error', reject); child.once('close', code => { clearTimeout(t); if (log) fs.closeSync(out); code === 0 ? resolve() : reject(Error(`${path.basename(cmd)} exit ${code}${log ? '，日志：' + log : ''}`)); });
   });
 }
-const capture = (cmd, args, opt = {}) => new Promise((res, rej) => { let s = ''; const c = spawn(cmd, args, {...opt, windowsHide: true}); c.stdout.on('data', d => s += d); c.stderr.on('data', d => s += d); c.once('close', code => code === 0 ? res(s.trim()) : rej(Error(s.trim()))); });
+export const capture = (cmd, args, opt = {}) => new Promise((res, rej) => { let s = ''; const c = spawn(cmd, args, {...opt, windowsHide: true}); c.stdout.on('data', d => s += d); c.stderr.on('data', d => s += d); c.once('close', code => code === 0 ? res(s.trim()) : rej(Error(s.trim()))); });
 
 /** 检查工具链：Python+SCons、emscripten 4.0.10、git、源码固定提交。 */
 export async function checkToolchain(tc) {

@@ -124,7 +124,8 @@ node trim/trim.mjs apply --engine D:/wasm-build/build-1/artifacts --minigame <�
 - `skill/wechat-wasm-slim/`：给 AI 的 skill。
 - `examples/startap/`：完整流程示例（游戏源码、测试服务、接口文件、配置、实测结果）。
 - `examples/breakout3d/`、`examples/breakout-split/`：打砖块的裁剪和分包配置。
-- `docs/`：已知问题与处理结论（[KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md)）、历史踩坑（PLAYBOOK.md）。
+- `doctor.mjs`：换版本时的只读体检（见“其他 Godot 版本”）。
+- `docs/`：已知问题与处理结论（[KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md)）、版本适配指南（[UPGRADING.md](docs/UPGRADING.md)）、历史踩坑（PLAYBOOK.md）。
 
 ## 命名变更（2026-10-17）
 
@@ -159,6 +160,12 @@ node trim/trim.mjs apply --engine D:/wasm-build/build-1/artifacts --minigame <�
 | split | 基本不受 Godot 版本影响（作用于官方分包运行时），但新引擎要重新 init 和采集 |
 
 工具在锚点对不上时一定会明确报错，不会悄悄出错，所以**换版本可以交给 AI 按报错逐项适配**：思路和检查都在工具里，改的是补丁锚点和版本号。不承诺开箱即用。
+
+任何一个组件要换版本时，先跑只读体检，一次列出所有对不上的锚点、所在文件和行号、建议怎么改：
+```bash
+node doctor.mjs --engine <新引擎 artifacts> --runtime <官方 wasm-split.js> --run-transformer
+```
+每个组件的升级步骤、要改的 pin、验证顺序（doctor → convert/verify → 开发者工具 → 真机），以及换 Godot 版本时引擎侧要做什么，见 [docs/UPGRADING.md](docs/UPGRADING.md)。
 
 ## 做不到的
 

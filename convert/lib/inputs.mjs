@@ -26,11 +26,17 @@ export function locateInputs({exportDir, js, wasm, pck, symbols}) {
   return r;
 }
 
-/** 返回 {ok, facts, problems[], warnings[]}。problems 非空时不能转换。 */
-export function checkInputs(inp) {
-  const problems = [], warnings = [], facts = {};
-  const js = fs.readFileSync(inp.js, 'utf8');
-  facts.jsBytes = Buffer.byteLength(js);
+// convert 在官方 wx-transformer 产物上打补丁的锚点（每处必须唯一命中；doctor 用同一份核对新版转换器）。
+export const FRAMEWORK_ANCHORS = {bridge: '__WXSLIM_GODOT_BRIDGE__.start(Godot,Module,', preloadAssets: "addRunDependency('wasm-preloadAssets');", createWasm: 'async function createWasm(){'};
+export const GAMEJS_ANCHORS = {imports: 'import commFrameWork from', handler: 'WXGameKit.loader.setModuleFunctionHandler(commFrameWork);', startOk: "console.log('start success');"};
+
+/** 官方 wx-transformer 的配置（convert 和 doctor 共用）。AppID 用占位符，转换后再填。 */
+export function transformerConfig({jsFile, wasmFile, symbolsFile, outputDir, appID, appName, engineVersion, orientation}) {
+  return {jsFile, wasmFile, ...(symbolsFile ? {symbolsFile} : {}), outputDir, cdnUrl: 'http://127.0.0.1:65535/', appID, appName, engineName: 'Custom', engineVersion, webglVersion: 2, alphaChannel: false, deviceOrientation: orientation, loadFromSubpackage: true, compressData: true, forceSingleThread: false, enableGLX: false, enableMetal: false, preloadList: []};
+}
+
+/** 引擎 JS 本身的检查（不需要 PCK）：Emscripten 模块结构、Godot 接口、微信分支运行时约定。 */
+export function checkEngineJs(js, problems = [], facts = {}) {
   if (!js.includes('var Godot = ')) problems.push('JS 里找不到 “var Godot = ”：不是 Godot 4 Web 导出的引擎 JS。');
   const tail = js.lastIndexOf(MODULE_TAIL);
   if (tail < 0 || !js.slice(tail).includes('module.exports = Godot;')) problems.push('JS 末尾找不到 Emscripten 的 module.exports = Godot 段：可能被压缩或改过，无法接入启动桥。');
@@ -41,6 +47,15 @@ export function checkInputs(inp) {
   facts.needsNowPolyfill = /=\s*nowPolyfill\b/.test(js); // 新版微信分支引擎依赖全局 nowPolyfill，启动桥会补上
   if (/\bPThread\b/.test(js)) problems.push('引擎是多线程版（含 PThread）。小游戏只能用 threads=no 的单线程模板。');
   if (js.includes('WXGameKit') || js.includes('__WXSLIM_GODOT_BRIDGE__')) problems.push('JS 已经被转换或接过启动桥了。请用 Godot 原始导出的 JS。');
+  return {problems, facts};
+}
+
+/** 返回 {ok, facts, problems[], warnings[]}。problems 非空时不能转换。 */
+export function checkInputs(inp) {
+  const problems = [], warnings = [], facts = {};
+  const js = fs.readFileSync(inp.js, 'utf8');
+  facts.jsBytes = Buffer.byteLength(js);
+  checkEngineJs(js, problems, facts);
   const wasm = fs.readFileSync(inp.wasm);
   facts.wasmBytes = wasm.length; facts.wasmMd5 = md5(wasm); facts.wasmSha256 = sha(wasm);
   if (wasm.readUInt32LE(0) !== 0x6d736100 || wasm.readUInt32LE(4) !== 1) problems.push('.wasm 文件头不对（不是 WebAssembly 1.0）。');
