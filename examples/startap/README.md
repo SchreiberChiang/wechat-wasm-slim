@@ -1,6 +1,6 @@
 # Star Tap 示例：怎么跑
 
-实测结果和做法要点见 [RESULT.md](RESULT.md)。
+实测结果和做法要点见 [RESULT.md](RESULT.md)。分包接入用的是 Godot 插件 `game/addons/wx_split`（`godot-addon/addons/wx_split` 的副本，改插件后要同步，`node ../../tests/run.mjs` 会检查）。
 
 ```
 # 1. 生成音频（WAV，程序合成）
@@ -23,7 +23,7 @@ node ../../convert/convert.mjs convert --js <artifacts>/godot.js --wasm <artifac
 node ../../trim/trim.mjs scan --project game --out my.trim.json      # trim.config.json 是本例 balanced 的扫描结果
 node ../../trim/trim.mjs build --config my.trim.json --work D:/wasm-build/startap --lto thin
 
-# 6. 分包（方案二；方案一用 planA.kit.json + wx/demowx.js）。init、preview 前先确认
+# 6. 分包（方案二；方案一用 planA.kit.json + wx/demowx.js；两种方案的区别只在接口文件里的 WxSplitConfig.gate）。init、preview 前先确认
 node ../../split/kit.mjs split init --config planB.kit.json
 node ../../split/kit.mjs collect-pack --config planB.kit.json --from work/minigame --out collect-B --label STAR_B_COLLECT_01
 node ../../split/kit.mjs preview --config planB.kit.json --project collect-B      # 手机上：改名、登录、登出、点 2D/3D 各几次

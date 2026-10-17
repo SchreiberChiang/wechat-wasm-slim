@@ -33,7 +33,7 @@
 4. 有完整 WASM 的符号表（`symbols.json`），供 `lookup` 把函数编号换算成名字用。
 
 **按模式不同**
-- **点击模式（onclick）**：游戏在进入重场景前要调用点击门 `__WXSLIM_CLICK_GATE__`（见 README 的“游戏接入约定”）；采集包要原样走完“点击 → 等待 → 就绪”，但不进入重场景。推荐游戏自己判断采集包（训练门会发布 `__WXSLIM_COLLECT_GATE__`），这样不用单独导出训练 PCK。
+- **点击模式（onclick）**：游戏在进入重场景前要调用点击门 `__WXSLIM_CLICK_GATE__`——装 Godot 插件 wx_split、用 `WxSplit.enter_scene` 即可（见 README 的“游戏接入约定”）；采集包要原样走完“点击 → 等待 → 就绪”，但不进入重场景。推荐游戏自己判断采集包（训练门会发布 `__WXSLIM_COLLECT_GATE__`），这样不用单独导出训练 PCK。
 - **实测模式（measured）**：**游戏代码不用改**。采集时正常完整地玩一遍即可；首包已经包含实测用到的全部函数，不调用点击门也能运行。
 
 **可选**
@@ -41,7 +41,7 @@
 - **训练等待门挂在哪个脚本**：`trainingGateHost`，默认 `godot-data/local-interfaces.js`，可以改成游戏启动时已经加载的任意 JS 文件。
 - **计时汇总的数据来源**：
   - 首包 WASM 就绪、点击、下载、编译、callMain 来自运行时补丁，任何工程都有。
-  - 2D 首帧、进 3D 首帧需要游戏打印 `[STARTUP_3D_FLOW]` 事件（`two_d_first_frame`、`game_3d_first_frame`、`transition_failed`）。
+  - 2D 首帧、进 3D 首帧需要游戏打印 `[STARTUP_3D_FLOW]` 事件（`two_d_first_frame`、`click`、`scene_first_frame`、`transition_failed`）；用插件 wx_split 时由 `mark_title_ready`、`enter_scene`、`mark_first_frame` 打印。
   - callMain 内部分解需要引擎里的 `WX_NATIVE_*` 埋点：trim 默认的启动补丁和宏会编进去；没有的引擎对应的行不会出现。
   - 帧率和 WASM 堆是 JS 侧测的，任何工程都有。
   - 少了某个来源只是少几行汇总，不影响分包。

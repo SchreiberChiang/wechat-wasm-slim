@@ -46,8 +46,8 @@ func _ready() -> void:
 	server.position.y = -60
 	add_child(server)
 	_refresh()
-	print("[STARTUP_3D_FLOW] {\"event\":\"two_d_first_frame\",\"scene\":\"title\"}")
-	var qa_mode := str(Game.qa.get("qa-play", ""))
+	WxSplit.mark_title_ready()
+	var qa_mode := WxSplit.qa_mode()
 	if qa_mode != "" and Game.title_message == "":
 		if not Game.logged_in:
 			await _on_login()
@@ -119,9 +119,9 @@ func _enter(label: String, entry: Callable) -> void:
 	status.text = "loading %s..." % label
 	var s: String = await entry.call()
 	busy = false
-	if s == "TRAINING_DONE":
+	if s == WxSplit.TRAINING_DONE:
 		status.text = "collection build: %s gate done (scene skipped)" % label
-	elif s != "READY":
+	elif s != WxSplit.READY:
 		status.text = "%s not ready (%s), tap to retry" % [label, s]
 
 

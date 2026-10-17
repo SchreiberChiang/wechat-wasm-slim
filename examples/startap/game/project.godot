@@ -21,7 +21,12 @@ environment/defaults/default_clear_color=Color(0.02, 0.02, 0.06, 1)
 
 [autoload]
 
+WxSplit="*res://addons/wx_split/wx_split.gd"
 Game="*res://scripts/game.gd"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/wx_split/plugin.cfg")
 
 [startup]
 

@@ -48,7 +48,7 @@ func _ready() -> void:
 	result_box.add_child(result_label)
 	result_box.add_child(UI.button("PLAY AGAIN", _start_round))
 	result_box.add_child(UI.button("TITLE", _to_title))
-	print("[STARTUP_3D_FLOW] {\"event\":\"scene_first_frame\",\"scene\":\"2d\"}")
+	WxSplit.mark_first_frame("2d")
 	_start_round()
 
 
@@ -67,9 +67,9 @@ func _start_round() -> void:
 	Game.play_sfx("start")
 	Game.vibrate(30)
 	print("[DEMO] ROUND_START mode=2d")
-	if Game.qa.has("qa-shot"):
+	if WxSplit.has_qa_arg("qa-shot"):
 		await get_tree().create_timer(6.0).timeout
-		get_viewport().get_texture().get_image().save_png(str(Game.qa["qa-shot"]))
+		get_viewport().get_texture().get_image().save_png(WxSplit.qa_arg("qa-shot"))
 		print("[DEMO] SHOT saved")
 
 
@@ -117,7 +117,7 @@ func _process(delta: float) -> void:
 		n.rotation += s.spin * delta
 		if n.position.y > h:
 			_miss(s)
-	if Game.qa.has("qa-play"):
+	if WxSplit.qa_mode() != "":
 		for s in stars:
 			if s.node.position.y > 300:
 				_pop(s)
@@ -197,6 +197,6 @@ func _end_round() -> void:
 		for t in r.data.top:
 			lines.append("%s  %d" % [t.name, t.best])
 		result_label.text = "TIME UP!\nscore %d   best %d%s\n\nTOP 2D\n%s" % [score, r.data.best, "  NEW!" if r.data.record else "", "\n".join(lines)]
-	if Game.qa.has("qa-quit"):
+	if WxSplit.has_qa_arg("qa-quit"):
 		await get_tree().create_timer(1.5).timeout
 		get_tree().quit()

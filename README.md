@@ -7,6 +7,7 @@
 | **convert（转换）** | 把 Godot 项目（PCK）+ 微信版引擎，一条命令转成能在微信里跑的小游戏工程（WXGameKit 通用适配），自带浏览器兼容层（网络、键盘、震动）和加载计时汇总。**不需要** godot-minigame 之类的社区小游戏模板 | Godot 4.7.2 项目（见下面“转换靠什么”） |
 | **trim（裁剪）** | 去掉游戏用不到的引擎功能，重新编译出更小的 `godot.wasm`；默认带启动补丁，可以跳过默认 3D 预热 | **任何**微信 Godot 小游戏（模板版或通用适配版都行） |
 | **split（分包）** | 开局只下载必须的引擎代码，其余等玩家点进玩法时再下载 | 只适用于**通用适配（WXGameKit）**工程，因为它用的是微信官方的分包服务 |
+| **Godot 插件 wx_split** | 游戏侧接入：点击门、采集包判断、加载计时事件、自动测试开关，游戏只调 `WxSplit.enter_scene` 等几个函数 | 放进游戏的 `addons/` 就能用（Godot 4.7.2） |
 
 可以只用一个，也可以都用。顺序是 **转换 → 裁剪 → 重新转换 → 分包**：裁剪会改变引擎，分包要在最终引擎上做。
 
@@ -49,9 +50,9 @@ convert 做的事：把上面两样接起来——接上启动桥，把 PCK 打�
    gles3/skip_default_3d_prewarm=true
    ```
    需要 trim 编出的引擎（默认带启动补丁和宏）。开局不再编译用不到的 3D shader，第一次进 3D 时再编译。
-5. **分包（split）**：`split init`（**先问用户**，会上传 WASM）→ `collect-pack` → `preview`（**先问用户**）→ 在手机上采集 → `split release` → `assemble` → `verify` → `preview` → 真机测试。详见 `split/README.md`。**用安卓或 iPhone 都能做第一轮采集**；正式发布前两种手机都要测。
+5. **分包（split）**：游戏先装 Godot 插件 `godot-addon/addons/wx_split`，进玩法场景改用 `await WxSplit.enter_scene(...)`（见 [godot-addon/README.md](godot-addon/README.md)）。然后 `split init`（**先问用户**，会上传 WASM）→ `collect-pack` → `preview`（**先问用户**）→ 在手机上采集 → `split release` → `assemble` → `verify` → `preview` → 真机测试。详见 `split/README.md`。**用安卓或 iPhone 都能做第一轮采集**；正式发布前两种手机都要测。
 
-**必须人工的步骤**：小游戏后台（AppID、WXGameKit 插件、分包私钥、体验成员）；授权每一次上传、预览、init、dosplit、云函数部署；在开发者工具和手机上实际玩（开发者工具无法自动点击 Godot 画布）；游戏自身的微信适配——GDScript 用到的 JS 接口（`convert --interfaces`）、网络合法域名（正式上线要已备案域名 + HTTPS/WSS）、登录、支付、分享、广告。
+**必须人工的步骤**：小游戏后台（AppID、WXGameKit 插件、分包私钥、体验成员）；授权每一次上传、预览、init、dosplit、云函数部署；在开发者工具和手机上实际玩（开发者工具无法自动点击 Godot 画布）；游戏自身的微信适配——GDScript 用到的 JS 接口（`convert --interfaces`；分包接入用插件 wx_split，不用自己写）、网络合法域名（正式上线要已备案域名 + HTTPS/WSS）、登录、支付、分享、广告。
 
 ## 我是哪种工程？
 
@@ -120,9 +121,11 @@ node trim/trim.mjs apply --engine D:/wasm-build/build-1/artifacts --minigame <�
 - `convert/`：转换工具（`convert.mjs`、胶水和兼容层 `assets/`、检查 `lib/`）。
 - `trim/`：裁剪工具（`trim.mjs`、扫描 `lib/scan.mjs`、编译 `lib/build.mjs`、默认引擎补丁 `patches/`、工具链配置）。
 - `split/`：分包工具（`kit.mjs`、README、SETUP）。
+- `godot-addon/addons/wx_split/`：Godot 插件（autoload `WxSplit` + 配套 JS，convert 默认装成 `godot-data/wx-split.js`）。
+- `tests/`：工具包自身的测试：`node tests/run.mjs [--godot <Godot 可执行文件>]`（所有 .mjs 的 node --check、点击门 / 采集门 / 接口文件 / 计时契约测试、插件 headless 运行）。
 - `cloud/`：云日志云函数（可选）。
 - `skill/wechat-wasm-slim/`：给 AI 的 skill。
-- `examples/startap/`：完整流程示例（游戏源码、测试服务、接口文件、配置、实测结果）。
+- `examples/startap/`：完整流程示例（游戏源码、测试服务、接口文件、配置、实测结果），用插件 wx_split 接入。
 - `examples/breakout3d/`、`examples/breakout-split/`：打砖块的裁剪和分包配置。
 - `docs/`：已知问题与处理结论（[KNOWN_ISSUES.md](docs/KNOWN_ISSUES.md)）、历史踩坑（PLAYBOOK.md）。
 
