@@ -48,6 +48,7 @@ func _ready() -> void:
 	result_box.add_child(result_label)
 	result_box.add_child(UI.button("PLAY AGAIN", _start_round))
 	result_box.add_child(UI.button("TITLE", _to_title))
+	print("[STARTUP_3D_FLOW] {\"event\":\"scene_first_frame\",\"scene\":\"2d\"}")
 	_start_round()
 
 

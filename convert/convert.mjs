@@ -109,6 +109,14 @@ const commands = {
     fs.writeFileSync(f('godot-data/local-interfaces.js'), interfaces ? fs.readFileSync(interfaces) : asset('local-interfaces.js'));
     let entry = fs.readFileSync(f('game.js'), 'utf8');
     entry = "import './godot-data/package-info';\n" + entry;
+    // 加载计时汇总（和 split 共用 ../split/assets/wx15-timing.js）：首包进场景、点进各场景、callMain 分解、帧率、内存。
+    // 必须最先加载；split 组装时会按实际首包/余包大小覆盖 wx15-sizes.js。--no-timing 不装。
+    if (!flag('no-timing')) {
+      fs.writeFileSync(f('godot-data/wx15-sizes.js'), 'GameGlobal.__WX15_SIZES__=' + JSON.stringify({primaryBr: fs.statSync(brNew).size, code1Br: null, mode: 'nosplit'}) + ';\n');
+      fs.writeFileSync(f('godot-data/wx15-timing.js'), fs.readFileSync(path.join(home, '../split/assets/wx15-timing.js')));
+      entry = "import './godot-data/wx15-sizes';\nimport './godot-data/wx15-timing';\n" + entry;
+      if (entry.split("console.log('start success');").length === 2) entry = entry.replace("console.log('start success');", "GameGlobal.__WX15_TIMING__.mark('loader_start_ok');\n    console.log('start success');");
+    }
     entry = replaceOnce(entry, 'import commFrameWork from', "import './godot-data/custom-package';\nimport './godot-data/single-entry';\n" + (compat ? "import './godot-data/wx-compat';\n" : '') + "import './godot-data/local-interfaces';\nimport commFrameWork from", 'game.js import');
     entry = replaceOnce(entry, 'WXGameKit.loader.setModuleFunctionHandler(commFrameWork);', 'WXGameKit.loader.setModuleFunctionHandler(GameGlobal.__WX15_CREATE_SINGLE_ENTRY__(commFrameWork));', 'setModuleFunctionHandler');
     fs.writeFileSync(f('game.js'), entry);

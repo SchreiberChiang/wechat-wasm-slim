@@ -80,7 +80,10 @@ const commands = {
   },
   // 离线测试：用真实运行时代码 + 模拟 wx（waiterMode 只有 await() 才完成）。
   async verify() {
-    const {runWaiterTests} = await import('./lib/offline-tests.mjs'); const r = runWaiterTests(fs.readFileSync(path.join(abs(need('project')), 'wasm-split.js'), 'utf8'));
+    const {runWaiterTests} = await import('./lib/offline-tests.mjs'), {runTimingTests} = await import('./lib/timing-tests.mjs');
+    const dir = abs(need('project')), r = runWaiterTests(fs.readFileSync(path.join(dir, 'wasm-split.js'), 'utf8'));
+    // 计时汇总契约：包里的计时模块能认出游戏的打印方式（Star Tap / 打砖块两种写法）
+    const tf = path.join(dir, 'godot-data/wx15-timing.js'); if (fs.existsSync(tf)) r.push(...runTimingTests(fs.readFileSync(tf, 'utf8')).map(x => ({...x, name: '计时：' + x.name})));
     for (const x of r) console.log(x.ok ? 'PASS' : 'FAIL', x.name, x.ok ? '' : x.error); if (r.some(x => !x.ok)) process.exitCode = 1;
   },
   // 开发者工具本地操作（不含上传）：open / refresh / close / console / screenshot。

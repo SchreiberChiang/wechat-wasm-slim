@@ -14,35 +14,55 @@
  function first(force){
   if(firstDone||marks.two_d_first_frame==null||(callMainMs==null&&!force))return;firstDone=true;
   var total=since('two_d_first_frame'),wasm=since('primary_wasm_ready');
-  emit('首包进场景：总计 '+fmt(total)+'（从游戏脚本开始计） | 插件加载器就绪 '+fmt(since('loader_start_ok'))+' | 首包WASM('+mb(SZ.primaryBr)+')下载编译就绪 '+fmt(wasm)+' | WASM就绪到2D首帧 '+fmt(total!=null&&wasm!=null?total-wasm:null)+'（其中callMain '+fmt(callMainMs)+'） | 未下载剩余WASM | WASM堆 '+mb(heap())+' | '+device+bench,
+  emit('首包进场景：总计 '+fmt(total)+'（从游戏脚本开始计） | 插件加载器就绪 '+fmt(since('loader_start_ok'))+' | 首包WASM('+mb(SZ.primaryBr)+')下载编译就绪 '+fmt(wasm)+' | WASM就绪到2D首帧 '+fmt(total!=null&&wasm!=null?total-wasm:null)+'（其中callMain '+fmt(callMainMs)+'） | '+(SZ.code1Br?'未下载剩余WASM':'未分包')+' | WASM堆 '+mb(heap())+' | '+device+bench,
    {kind:'first_scene',heapBytes:heap(),totalMs:total,primaryWasmBytes:SZ.primaryBr||null,loaderReadyMs:since('loader_start_ok'),primaryWasmReadyMs:wasm,callMainMs:callMainMs,device:device+bench});shaderText('启动到2D首帧');fpsWindow('2D',3000,5000);
  }
  function mark(name,value){
   var now=Date.now();
   if(name==='callmain_ms'){if(callMainMs==null)callMainMs=value;first(false);return;}
-  if(name==='click_request'){click={at:now,reused:!!value};return;}
+  if(name==='click_request'){click=Object.assign(click&&click.at==null?click:{},{at:now,reused:!!value});return;}
   if(name==='code1_downloaded'||name==='code1_ready'){if(click)click[name]=now;return;}
   if(name==='fallback'){var v=value||{};emit((v.clicked?'点击后':'点击前')+'首包缺函数：同步等待剩余WASM '+fmt(v.ms)+'（函数编号 '+v.func+'）',{kind:'primary_miss_fallback',clicked:!!v.clicked,waitMs:v.ms,func:v.func});if(click){click.fallbackMs=v.ms;}return;}
   if(marks[name]==null)marks[name]=now;
   if(name==='two_d_first_frame'){first(false);setTimeout(function(){first(true);},3000);}
  }
- function threeD(transitionMs){
-  var c=click||{};if(c.fallbackMs!=null){emit('点击进3D：总计 '+fmt(transitionMs)+' | 其中缺函数同步等待剩余WASM('+mb(SZ.code1Br)+'，下载+编译) '+fmt(c.fallbackMs),{kind:'enter_3d',totalMs:transitionMs,fallbackWaitMs:c.fallbackMs,code1Bytes:SZ.code1Br||null,reusedCode:false});click=null;return;}var dl=c.code1_downloaded&&c.at?c.code1_downloaded-c.at:null,inst=c.code1_ready&&c.code1_downloaded?c.code1_ready-c.code1_downloaded:null,reused=!c.code1_downloaded;
-  emit(reused?(SZ.mode==='measured'&&!c.reused?'进3D(实测模式)：总计 '+fmt(transitionMs)+'（首包已含3D代码，未下载剩余WASM）':'再次进3D：总计 '+fmt(transitionMs)+'（剩余WASM已在内存，未重新下载）'):
-   '点击进3D：总计 '+fmt(transitionMs)+' | 下载剩余WASM('+mb(SZ.code1Br)+') '+fmt(dl)+' | 编译实例化 '+fmt(inst)+' | 3D资源加载到首帧 '+fmt(transitionMs!=null&&dl!=null&&inst!=null?transitionMs-dl-inst:null),
-   {kind:'enter_3d',totalMs:transitionMs,code1Bytes:SZ.code1Br||null,downloadMs:dl,instantiateMs:inst,reusedCode:reused});
-  click=null;shaderText(reused?'再次进3D期间':'点击进3D期间');fpsWindow(reused?'再次3D':'3D',0,5000);
+ // 进入一个场景的汇总。总时长优先用游戏给的 transition_total_ms，没有就从游戏打印 click 事件算到场景首帧。
+ var sceneCN={'2d':'2D','3d':'3D'};
+ function enterScene(scene,transitionMs){
+  var c=click||{},name=sceneCN[scene]||scene||'场景';
+  if(transitionMs==null&&c.gameAt)transitionMs=Date.now()-c.gameAt;
+  if(c.fallbackMs!=null){emit('点击进'+name+'：总计 '+fmt(transitionMs)+' | 其中缺函数同步等待剩余WASM('+mb(SZ.code1Br)+'，下载+编译) '+fmt(c.fallbackMs),{kind:'enter_scene',scene:scene,totalMs:transitionMs,fallbackWaitMs:c.fallbackMs,code1Bytes:SZ.code1Br||null,reusedCode:false});click=null;return;}
+  var dl=c.code1_downloaded&&c.at?c.code1_downloaded-c.at:null,inst=c.code1_ready&&c.code1_downloaded?c.code1_ready-c.code1_downloaded:null,gated=c.at!=null,reused=gated&&!c.code1_downloaded;
+  var text=!gated?'进'+name+'：总计 '+fmt(transitionMs)+'（'+(SZ.code1Br?'首包已含这个场景的代码，不需要下载':'未分包')+'）':
+   reused?(SZ.mode==='measured'&&!c.reused?'进'+name+'(实测模式)：总计 '+fmt(transitionMs)+'（首包已含代码，未下载剩余WASM）':'再次进'+name+'：总计 '+fmt(transitionMs)+'（剩余WASM已在内存，未重新下载）'):
+   '点击进'+name+'：总计 '+fmt(transitionMs)+' | 下载剩余WASM('+mb(SZ.code1Br)+') '+fmt(dl)+' | 编译实例化 '+fmt(inst)+' | 场景加载到首帧 '+fmt(transitionMs!=null&&dl!=null&&inst!=null&&c.gameAt?transitionMs-(c.at-c.gameAt)-dl-inst:(transitionMs!=null&&dl!=null&&inst!=null?transitionMs-dl-inst:null));
+  emit(text,{kind:'enter_scene',scene:scene,totalMs:transitionMs,gated:gated,code1Bytes:SZ.code1Br||null,downloadMs:dl,instantiateMs:inst,reusedCode:reused});
+  click=null;shaderText((reused||!gated?'':'点击')+'进'+name+'期间');fpsWindow(name,0,5000);
  }
- // Godot's console.info('[STARTUP_3D_FLOW]', json) arrives through this console.
- // Only key flow stages are printed; per-step stages are summarized above instead.
- var keep={transition_failed:1};
+ // 游戏的流程事件 [STARTUP_3D_FLOW]。两种写法都认：
+ //   console.info('[STARTUP_3D_FLOW]', '{"stage":...}')（打砖块）；
+ //   print('[STARTUP_3D_FLOW] {"event":...}') → console.log 一整行（Star Tap，Godot print 的默认样子）。
+ // 事件：two_d_first_frame（首个可交互画面）、click（点进某个场景，带 scene）、scene_first_frame（场景首帧，带 scene）、
+ //   game_3d_first_frame（= scene_first_frame + scene 3d）、transition_failed、collection_gate_complete_3d_blocked（采集包过门）。
+ var keep={transition_failed:1,collection_gate_complete_3d_blocked:1};
+ function parseFlow(args){
+  var a=args[0];
+  if(a==='[STARTUP_3D_FLOW]')return typeof args[1]==='string'?JSON.parse(args[1]):args[1];
+  if(typeof a==='string'){var i=a.indexOf('[STARTUP_3D_FLOW]');if(i>=0){var j=a.indexOf('{',i);if(j>=0)return JSON.parse(a.slice(j));}}
+  return null;
+ }
+ function flow(r){
+  var ev=r.event||r.stage,d=r.detail||{},sc=r.scene||d.scene;
+  if(ev==='two_d_first_frame')mark('two_d_first_frame');
+  else if(ev==='click'){var now=Date.now();click={gameAt:now,scene:sc};}
+  else if(ev==='scene_first_frame')enterScene(sc,d.transition_total_ms);
+  else if(ev==='game_3d_first_frame')enterScene('3d',d.transition_total_ms);
+  else if(ev==='transition_failed'){var nm=sceneCN[sc]||sc||'场景';emit('进'+nm+'失败：'+(r.status||d.error_code||'未知'),{kind:'enter_scene_failed',scene:sc,code:r.status||d.error_code});click=null;}
+  return !!keep[ev];
+ }
  var info=console.info;
  console.info=function(){
-  try{if(arguments[0]==='[STARTUP_3D_FLOW]'){var r=JSON.parse(arguments[1]);
-   if(r.stage==='two_d_first_frame')mark('two_d_first_frame');
-   else if(r.stage==='transition_failed')emit('进3D失败：'+(r.detail&&r.detail.error_code),{kind:'enter_3d_failed',code:r.detail&&r.detail.error_code});
-   else if(r.stage==='game_3d_first_frame')threeD(r.detail&&r.detail.transition_total_ms);
-   if(!keep[r.stage])return;}
+  try{var r=parseFlow(arguments);if(r&&!flow(r))return;
    if(typeof arguments[0]==='string'&&arguments[0].indexOf('[REPRO_')===0)return;
   }catch(_){}
   return info.apply(console,arguments);
@@ -55,12 +75,17 @@
   var tops=rs.filter(function(r){return !r.parent;});
   var parts=tops.map(function(t){var kids=rs.filter(function(r){return r.parent===t.id&&ms(r)>=20;}).sort(function(a,b){return b.duration_us-a.duration_us;});
    return (CN[t.label]||t.label)+' '+ms(t)+'ms'+(kids.length?'['+kids.map(function(k){return (CN[k.label]||k.label)+' '+ms(k);}).join('、')+']':'');});
+  // 没有分包运行时（没装 callMain 标记）时，用原生计时的 webmain_total 作为 callMain 时长
+  if(callMainMs==null){var w=rs.filter(function(r){return r.label==='webmain_total';})[0];if(w){callMainMs=ms(w);first(false);}}
   emit(title+'：'+parts.join(' | ')+'（20ms以下子项省略）',{kind:'native',schema:v.schema,records:rs.map(function(r){return [r.label,ms(r),r.parent];})});
  }
  var log=console.log;
  console.log=function(){
   try{var a=arguments[0];
    if(arguments.length===1&&typeof a==='function')return;
+   var fr=parseFlow(arguments);if(fr){if(!flow(fr))return;return log.apply(console,arguments);}
+   // convert 启动桥的阶段日志：主 WASM 实例化完成（分包运行时没标记时用它）
+   if(a==='[WX15_BOOT]'&&arguments[1]==='WASM_INSTANTIATED')mark('primary_wasm_ready');
    if(typeof a==='string'&&(a.indexOf('代码分包1下载进度')===0||a.indexOf('资源包下载进度')>=0||a.indexOf('[minigamefe keyValueReport]')===0||a==='Module is'||a==='unity framework')){dropped.spam++;return;}
    if(typeof a==='string'&&a.indexOf('[WX_SHADER_')===0){var o=JSON.parse(a.slice(a.indexOf('{')));
     if(a.indexOf('[WX_SHADER_BIND]')===0){if(!o.first){sh.dropped++;return;}sh.firsts++;return;}

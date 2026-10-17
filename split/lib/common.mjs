@@ -53,7 +53,9 @@ export function installTelemetry(dir, {label, cloud, keep, mode = 'onclick'}) {
   fs.writeFileSync(path.join(dir, 'phone-log-bootstrap.js'), replaceOnce(asset('phone-log-bootstrap.base.js'), 'const relay=', `effective=Object.assign({},effective,{keep:function(level,text){return level==='error'||/${keep}/.test(text);}});\n const relay=`, 'bootstrap'));
   fs.writeFileSync(path.join(dir, 'phone-log-config.js'), 'module.exports = ' + JSON.stringify({enabled: !!cloud?.env, env: cloud?.env || '', build: label, functionName: cloud?.functionName || 'phoneLogIngest'}, null, 2) + ';\n');
   editText(path.join(dir, 'game.js'), s => {
+    // convert 已经装了计时（wx15-sizes/wx15-timing 在最前面）时，只在它们后面补云日志引导；文件内容在上面已覆盖为分包后的版本。
     if (!s.includes("import './godot-data/wx15-timing';")) s = "import './godot-data/wx15-sizes';\nimport './godot-data/wx15-timing';\nimport './phone-log-bootstrap';\n" + s;
+    else if (!s.includes("import './phone-log-bootstrap';")) s = s.replace("import './godot-data/wx15-timing';\n", "import './godot-data/wx15-timing';\nimport './phone-log-bootstrap';\n");
     // Optional mark: only when the template's loader success line exists (otherwise the summary shows 插件加载器就绪 未知).
     if (s.includes("mark('loader_start_ok')") || s.split("console.log('start success');").length !== 2) return s + '\n';
     return s.replace("console.log('start success');", "GameGlobal.__WX15_TIMING__.mark('loader_start_ok');\n    console.log('start success');");

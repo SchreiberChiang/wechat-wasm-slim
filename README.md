@@ -4,7 +4,7 @@
 
 | 工具 | 做什么 | 适用于 |
 |---|---|---|
-| **convert（转换）** | 把 Godot Web 导出（godot.js + godot.wasm + .pck）一条命令转成 WXGameKit 通用适配小游戏工程，自带浏览器兼容层（网络、键盘、震动） | 用 citizenll/godot 微信分支引擎导出的 Godot 4.7.2 游戏 |
+| **convert（转换）** | 把 Godot 项目（PCK）+ 微信版引擎，一条命令转成能在微信里跑的小游戏工程（WXGameKit 通用适配），自带浏览器兼容层（网络、键盘、震动）和加载计时汇总。**不需要** godot-minigame 之类的社区小游戏模板 | Godot 4.7.2 项目（见下面“转换靠什么”） |
 | **trim（裁剪）** | 去掉游戏用不到的引擎功能，重新编译出更小的 `godot.wasm`；默认带启动补丁，可以跳过默认 3D 预热 | **任何**微信 Godot 小游戏（模板版或通用适配版都行） |
 | **split（分包）** | 开局只下载必须的引擎代码，其余等玩家点进玩法时再下载 | 只适用于**通用适配（WXGameKit）**工程，因为它用的是微信官方的分包服务 |
 
@@ -24,9 +24,23 @@
 
 更早的打砖块数据：保留 3D 裁剪 8.70 → 5.95 MB；分包开局 3.54 MB，点进 3D 再下 5.59 MB（`examples/breakout3d/`、`examples/breakout-split/`）。
 
+## 转换靠什么（从 Godot 新项目直接到微信小游戏）
+
+Star Tap 就是这样从一个全新 Godot 项目直接转成微信小游戏的，**没有用 godot-minigame 模板或其他社区转换方案**。整个过程用到三样东西，各管一段：
+
+| 用到的 | 做什么 | 从哪来 |
+|---|---|---|
+| **Godot 编辑器 4.7.2** | 只用来导出游戏内容（`.pck`）。官方版就行（Star Tap 用的是 Steam 上的官方 4.7.2） | 官方 |
+| **微信版 Godot 引擎**（`godot.js` + `godot.wasm`） | 在微信里运行游戏。官方 Godot 的 Web 引擎不能直接在微信里跑：它用浏览器的 fetch、文件系统、输入法，微信里没有。社区的 [citizenll/godot](https://github.com/citizenll/godot) 微信分支把这些换成了 `wx.request`、微信文件系统、微信键盘等 | **trim 从这个分支的源码编译**（同时裁剪），也可以用别人编好的 |
+| **微信官方转换器 wx-transformer** | 生成 WXGameKit 通用适配工程的骨架（插件加载、WASM 压缩、首包数据），这是微信官方分包服务要求的工程结构 | 微信官方下载（便携版，本机运行） |
+
+convert 做的事：把上面两样接起来——接上启动桥，把 PCK 打进首包数据，补浏览器兼容层和计时，生成官方分包 init 要的符号表。所以：
+- **能直接转**：任何 Godot 4.7.2 项目，只要能用微信版引擎跑（单线程、不用 GDExtension）。
+- **不能直接转**：官方 Godot Web 导出（引擎不对，`check` 会拦下）；其他 Godot 版本（见下面“其他 Godot 版本”）。
+
 ## 一条龙顺序
 
-1. **Godot 导出 Web**：编辑器 4.7.2，用 citizenll/godot 微信分支编译的单线程 Web 模板导出，得到 `.js`、`.wasm`、`.pck`（带 `.js.symbols` 更好）。只改了游戏内容时，用 `godot --headless --path <项目> --export-pack "Web" x.pck` 只导出 PCK 就行。
+1. **准备引擎和 PCK**：引擎用 trim 编译（或现成的微信版引擎 `.js` + `.wasm` + `.js.symbols`）；游戏内容用编辑器导出 PCK：`godot --headless --path <项目> --export-pack "Web" game.pck`（项目要用 GL Compatibility 渲染）。
 2. **转换（convert）**：`check` → `convert --appid-from <已有工程>` → `verify`。用开发者工具打开 `<新目录>/minigame`，**人工把游戏完整玩一遍**。
 3. **（可选）裁剪（trim）**：`scan` → 看配置、选档位 → `build`（25–50 分钟）。编出的 `artifacts/` 配上同一个 `.pck` **重新 convert** 到新目录，再完整玩一遍。
 4. **（推荐）跳过默认 3D 预热**：在游戏的 `project.godot` 里加
@@ -50,7 +64,8 @@
 **转换（convert）**
 - Windows，Node.js 24。
 - 官方 wx-transformer 1.0.35 便携版，路径写进 `convert/convert.toolchain.json`（下载地址见 `convert/README.md`）。
-- citizenll/godot 微信分支编译的单线程 Web 引擎（trim 编出来的也可以）。
+- 微信版 Godot 引擎（citizenll/godot 微信分支、单线程）：用 trim 编译，或者用现成的。
+- Godot 编辑器 4.7.2（官方版即可），用来导出 PCK。
 
 **裁剪（trim）**
 - Git；微信版 Godot 引擎源码（citizenll/godot 微信分支，提交 `df3cdd9bc`）、emscripten 4.0.10、Python 3.9+ 和 SCons 4.4+。路径填进 `trim/trim.toolchain.json`，首次编译前运行 `node trim/trim.mjs check`。
@@ -117,10 +132,23 @@ node trim/trim.mjs apply --engine D:/wasm-build/build-1/artifacts --minigame <�
 
 云日志是可选功能：不用时把 `cloud.env` 设为 `null`。启用后会上报设备平台、系统、型号、SDK 版本和筛选后的日志；云函数使用微信身份校验，并保存 OpenID 的哈希用于归属和去重。日志脱敏规则不能识别所有自由文本，请勿在游戏日志中输出个人资料或凭据。
 
+## 其他 Godot 版本
+
+现在只在 **Godot 4.7.2 + 微信分支提交 df3cdd9bc + emscripten 4.0.10 + wx-transformer 1.0.35 + wasmsplit-v2-ci 2.1.5 + WXGameKit 1.3.15** 上验证过。换版本时各部分的影响：
+
+| 部分 | 换 Godot 版本要做什么 |
+|---|---|
+| 引擎 | 要有对应版本的微信分支源码（或自己把微信适配移植过去）；trim 的启动补丁要重新打（补丁锚点会变） |
+| convert | 启动桥依赖 Emscripten 模块结构和微信分支的运行时约定；`check` 会检查这些约定，不满足就报错 |
+| PCK | 编辑器版本必须和引擎一致 |
+| split | 基本不受 Godot 版本影响（作用于官方分包运行时），但新引擎要重新 init 和采集 |
+
+工具在锚点对不上时一定会明确报错，不会悄悄出错，所以**换版本可以交给 AI 按报错逐项适配**：思路和检查都在工具里，改的是补丁锚点和版本号。不承诺开箱即用。
+
 ## 做不到的
 
 - 不替你导出 Godot 项目（在 Godot 编辑器里导出），也不做游戏自身的微信适配（网络域名、登录、支付等）。
-- 只支持 citizenll/godot 微信分支的单线程模板；官方 Godot 模板不行。
+- 引擎必须是微信版（citizenll/godot 微信分支、单线程、不带 GDExtension）；官方 Godot Web 引擎不能在微信里运行。
 - 模板版工程不能用 split（微信官方分包只支持通用适配）。
 - 官方分包只有“首包 + 一个余包”；标题、2D、3D 各一个包需要自研（未实现，见 KNOWN_ISSUES）。
 - PCK 资源整体放在首包数据里，不按场景拆。

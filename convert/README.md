@@ -41,6 +41,7 @@ node convert/convert.mjs verify  --project <新目录>/minigame
 
 ```
 <out>/minigame/          小游戏工程：开发者工具打开它；split 配置的 workProject 指向它（里面有官方 init 要用的 game.symbols.json，已从小游戏包排除）
+                         默认还装了加载计时汇总 godot-data/wx15-timing.js（日志前缀 [WX15_TIMING]，--no-timing 不装）
 <out>/webgl/symbols.json 转换器生成的符号表；split 配置的 symbols 指向它
 <out>/convert-work/      接好启动桥的 JS、转换器配置和日志（转换器配置里只有占位 AppID）
 <out>/CONVERT_REPORT.json 输入 sha256、大小、md5、AppID 来源（不含 AppID 本身）

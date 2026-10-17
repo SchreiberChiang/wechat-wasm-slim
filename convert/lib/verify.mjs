@@ -102,6 +102,7 @@ export function verifyProject(dir, plugin) {
 
   const sym = path.join(path.dirname(dir), 'webgl', 'symbols.json');
   fs.existsSync(sym) ? pass('符号表 ../webgl/symbols.json 存在（split 配置里的 symbols 指向它）') : warn('没有 ../webgl/symbols.json：split 的 lookup 和问题排查需要符号表');
+  has('godot-data/wx15-timing.js') && /import '\.\/godot-data\/wx15-timing'/.test(text('game.js')) ? pass('装了加载计时汇总（godot-data/wx15-timing.js，日志前缀 [WX15_TIMING]）') : warn('没有加载计时汇总（转换时用了 --no-timing？）：日志里不会有“首包进场景”“点击进场景”等统计');
   if (has('game.symbols.json')) {
     const pc = JSON.parse(text('project.config.json') || '{}'), ign = pc.packOptions?.ignore || [];
     ign.some(x => x.value === 'game.symbols.json') ? pass('工程里有 game.symbols.json（官方 init 要用），且已从小游戏包排除') : fail('game.symbols.json 没有在 project.config.json 的 packOptions.ignore 里，会被打进小游戏包');

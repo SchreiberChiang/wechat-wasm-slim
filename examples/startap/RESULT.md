@@ -27,12 +27,12 @@ Godot 4.7.2（GL Compatibility，竖屏 720×1280）。三个场景：
 - 分包版在安卓上。
 - 方案一（标题 + 2D 首包，3D 余包）：配置 `planA.kit.json` 已备好，没采集。
 - 微信登录换 openid（服务器没配 AppSecret）。
-- 进 3D 的耗时（跳过预热后 3D shader 改在进 3D 时编译）、点击后的下载和编译耗时：云日志汇总里还没有这几项。
+- 加载计时汇总修好后（开发者工具已验证）还没在手机上看过；跳过预热后进 3D 的真实耗时待手机数据。
 
 ## 做法要点（给下一个游戏参考）
 
 - **接口文件**（`wx/demowx.js`）只放游戏自己的 JS 接口：`DemoWx.startLogin()`（wx.login）、`hasClickGate()`、`isTraining()`、`gate2d`。浏览器兼容由 convert 默认的 `wx-compat.js` 提供。
 - **点击门**：`Game._enter_scene()` 进场景前调 `__WX15_RELEASE_CLICK_GATE__.request()`，轮询到 READY 再 `load()` 场景。采集包里（`isTraining()`）过门就停，不加载场景。`gate2d` 决定 2D 要不要过门：`demowx.js`（false）= 方案一，`demowx-gate2d.js`（true）= 方案二。正式包和采集包共用一个 PCK。
-- **计时事件**：打印 `[STARTUP_3D_FLOW] {"event":"two_d_first_frame"|"click"|"game_3d_first_frame"|"transition_failed"|"collection_gate_complete_3d_blocked"}`。
+- **计时事件**：打印 `[STARTUP_3D_FLOW] {"event":"two_d_first_frame"|"click"|"scene_first_frame"|"game_3d_first_frame"|"transition_failed"|"collection_gate_complete_3d_blocked"}`（click、scene_first_frame 带 `scene`）。计时模块据此输出“首包进场景”“点击进2D/3D”的分段耗时。
 - **测试用自动玩**：`wx/demowx-qa3d.js`（`qa: "3d"`）登录后自动进 3D 玩一局，电脑上用 `-- --qa-play=2d|3d --qa-quit`。开发者工具不能点 Godot 画布，靠这个验证全流程。
 - **服务器**：`server/server.mjs` 只用于测试（频率和连接数有限制，不记录 token、openid、AppSecret）。IP + HTTP 只能在开发者工具（不校验合法域名）或手机调试模式下用。
