@@ -1,6 +1,6 @@
 # wasmsplit-kit：微信小游戏 WASM 分包工具
 
-把历史实验里验证过的一次性脚本，合成一个可复用的命令行工具（历史记录见 [PLAYBOOK](../docs/PLAYBOOK.md)）。每个游戏写一份配置文件（参考 [Star Tap 示例](../examples/startap/planB.kit.json)），用同一套命令完成整个流程。
+把历史实验里验证过的一次性脚本，合成一个可复用的命令行工具（历史记录见 [PLAYBOOK](../docs/PLAYBOOK.md)）。每个游戏写一份统一配置 `wxslim.json`（参考 [Star Tap 示例](../examples/startap/wxslim.json)；旧的 `*.kit.json` 兼容），用同一套命令完成整个流程。
 
 已验证：
 - 打砖块：组装出的核心运行时 `wasm-split.js` 与真机验证过的体验版 0.12.8 逐字节相同；离线测试全部通过。
@@ -28,7 +28,9 @@
 
 ## 命令
 
-所有命令都要带 `--config <游戏配置.json>`。路径相对于配置文件所在目录。
+所有命令都要带 `--config`，两种都认，路径相对于配置文件所在目录：
+- **统一配置 `wxslim.json`（推荐）**：读 `split` 段（字段名和旧 `*.kit.json` 一样），没写的从别的段推出来：`workProject` = `<output.convert>/minigame`，`symbols` = `<output.convert>/webgl/symbols.json`，`releasePck`/`releaseInterfaces` = `game.pck`/`game.interfaces`（写 `null` 表示不替换），`projectName` = `game.name`，`workDir` = `<output.dir>/kit-work`，`officialCli` = 配置目录下的 `node_modules/wasmsplit-v2-ci/bin/cli.js`。私钥路径和云环境 ID 只能写在 `wxslim.private.json`。`split.mode` 是 `assemble` 的默认模式。每个命令开始前检查它要用的文件在不在。`info` 不写 `--project` 时看 `workProject`，并打印分包配置（私密值只说有没有设置）。
+- **旧的 `*.kit.json`（兼容）**：照旧可用，见 [example.kit.json](example.kit.json)。
 
 ```
 node kit.mjs info --project <dir>                          # 查看 md5、subVersion、首包/次包大小

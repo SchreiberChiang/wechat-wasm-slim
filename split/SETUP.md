@@ -49,7 +49,9 @@
 
 ## 4. 配置文件
 
-复制 `example.kit.json`（或 [Star Tap 的 planB.kit.json](../examples/startap/planB.kit.json)）填写：开发者工具目录 `devtoolsDir`、官方 CLI 路径、私钥路径（也可以用环境变量 `WASMSPLIT_KIT_KEY`）、`workProject`、符号表、云开发环境（不用可以写 `null`）；PCK 两项按需填写。私钥路径只放在本机配置里，配置文件不要提交到仓库。
+推荐在游戏目录写统一配置 `wxslim.json`（参考 [Star Tap 的 wxslim.json](../examples/startap/wxslim.json)，字段说明见根 README“一个游戏一份配置”），分包读其中的 `split` 段；私钥路径、云环境 ID 写在同目录的 `wxslim.private.json`。
+
+旧写法（兼容）：复制 `example.kit.json`（或 [Star Tap 的 planB.kit.json](../examples/startap/planB.kit.json)）填写：开发者工具目录 `devtoolsDir`、官方 CLI 路径、私钥路径（也可以用环境变量 `WASMSPLIT_KIT_KEY`）、`workProject`、符号表、云开发环境（不用可以写 `null`）；PCK 两项按需填写。私钥路径只放在本机配置里，配置文件不要提交到仓库。
 
 ## 5. 交接时一起给的东西
 

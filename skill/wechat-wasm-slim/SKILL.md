@@ -1,6 +1,6 @@
 ---
 name: wechat-wasm-slim
-version: 0.3.0
+version: 0.4.0
 description: >-
   把 Godot 游戏做成微信小游戏并缩小引擎 WASM：Godot Web 导出一条命令转成 WXGameKit 通用适配工程（convert），
   编译期裁剪（去掉用不到的引擎功能，适用于任何微信 Godot 小游戏）和官方 WASM 分包（开局只下载必须的代码，
@@ -31,9 +31,20 @@ metadata:
 - 测量和验证要如实报告：没测的写“未测”；模拟器通过不等于手机通过。
 - 采集和最终验证需要人在手机上操作（开发者工具无法自动点击 Godot 画布），到这一步要明确告诉用户该怎么玩。
 
+## 统一配置（wxslim.json）
+
+- 每个游戏在它的工作目录写**一份** `wxslim.json`（照 `<KIT>/examples/startap/wxslim.json`，字段见 `<KIT>/README.md`“一个游戏一份配置”），convert / trim / split 都用 `--config wxslim.json`。先跑 `node <KIT>/wxslim.mjs config --config wxslim.json` 校验，报错按提示改，不要绕过。
+- AppID 来源（`game.appidFrom`）、AppID、私钥路径（`split.privateKeyPath`）、云环境 ID（`split.cloud.env`）**只写进同目录的 `wxslim.private.json`**，不进仓库、不贴进聊天。
+- 命令行参数优先于配置，例如 `convert --config wxslim.json --out <新目录>`。工具链路径仍在 `*.toolchain(.private).json`，不放进游戏配置。
+- 旧写法（逐个写参数、trim 的裁剪配置当 `--config`、split 的 `*.kit.json`）兼容可用；用户已有旧配置时不必强迫迁移。
+
 ## 转换（convert）
 
 ```
+node <KIT>/convert/convert.mjs check   --config wxslim.json
+node <KIT>/convert/convert.mjs convert --config wxslim.json [--out <新目录>]
+node <KIT>/convert/convert.mjs verify  --config wxslim.json
+# 兼容写法：
 node <KIT>/convert/convert.mjs check   --export <Web导出目录> [--pck <x.pck>] [--symbols <x.js.symbols>]
 node <KIT>/convert/convert.mjs convert --export <Web导出目录> --appid-from <已有小游戏工程> --out <新目录> [--interfaces <游戏JS接口.js>] [--orientation landscape]
 node <KIT>/convert/convert.mjs verify  --project <新目录>/minigame
@@ -51,6 +62,10 @@ node <KIT>/convert/convert.mjs verify  --project <新目录>/minigame
 
 ```
 node <KIT>/trim/trim.mjs check
+node <KIT>/trim/trim.mjs scan    --config wxslim.json     # 读 game.godotProject，写到 trim.config
+node <KIT>/trim/trim.mjs profile --config wxslim.json     # trim.level / trim.overrides 叠加到裁剪配置上
+node <KIT>/trim/trim.mjs build   --config wxslim.json     # 编译到 trim.work，lto 取 trim.lto
+# 兼容写法：
 node <KIT>/trim/trim.mjs scan --project <Godot项目目录> --out <配置.json>
 node <KIT>/trim/trim.mjs profile --config <配置.json> --out <x.gdbuild>
 node <KIT>/trim/trim.mjs build --config <配置.json> --work <新编译目录> [--lto thin] [--max-minutes 120]
@@ -68,7 +83,7 @@ node <KIT>/trim/trim.mjs apply --engine <编译目录>/artifacts --minigame <小
 
 ## 分包（split，只适用于通用适配版）
 
-先读 `<KIT>/split/README.md` 和 `<KIT>/split/SETUP.md`。输入工程用 convert 产物（`workProject` = `<out>/minigame`，`symbols` = `<out>/webgl/symbols.json`），先跑 `convert verify`；用户自己的工程按 SETUP 第 3 节检查，不满足就停下，跟用户说明缺什么。
+先读 `<KIT>/split/README.md` 和 `<KIT>/split/SETUP.md`。所有 kit 命令带 `--config wxslim.json`（读 `split` 段；旧 `*.kit.json` 兼容）。输入工程用 convert 产物（统一配置下默认就是 `workProject` = `<output.convert>/minigame`，`symbols` = `<output.convert>/webgl/symbols.json`），先跑 `convert verify`；用户自己的工程按 SETUP 第 3 节检查，不满足就停下，跟用户说明缺什么。
 
 一台手机（安卓或 iPhone）就能做第一轮采集：采集包会让不能同步等待的设备先加载余包再启动。发布前两种手机都要测。
 

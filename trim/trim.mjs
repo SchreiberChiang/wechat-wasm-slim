@@ -3,11 +3,18 @@
 import fs from 'node:fs';import path from 'node:path';import zlib from 'node:zlib';
 import {engineMap, scanProject, proposeConfig, toBuildProfile, normalizeOverrides} from './lib/scan.mjs';
 import {checkToolchain, buildEngine} from './lib/build.mjs';
+import {treatAsGameConfig, loadGameConfig, trimSettings} from '../lib/game-config.mjs';
 
 const argv = process.argv.slice(2), cmd = argv[0];
 const opt = k => { const i = argv.indexOf('--' + k); return i > 0 ? argv[i + 1] : undefined; };
 const need = k => { const v = opt(k); if (!v) throw Error('缺少参数 --' + k); return path.resolve(v); };
 const readJson = p => JSON.parse(fs.readFileSync(p, 'utf8'));
+// --config 两种写法：统一配置 wxslim.json（读 game.godotProject 和 trim 段，命令行参数优先），或者旧的裁剪配置（scan 生成的格式，兼容）。
+let game = null, settings;
+const trimCfgOf = () => game ? settings ??= trimSettings(game) : null;
+const val = (k, fromGame) => opt(k) ? path.resolve(opt(k)) : game && fromGame != null ? fromGame : need(k);
+// 裁剪配置：统一配置时 = trim.config 指向的文件 + trim.level / trim.overrides；旧写法 = --config 文件本身。
+const trimConfig = () => game ? trimCfgOf().load() : readJson(need('config'));
 // 工具链配置：--toolchain 指定的文件 > 同目录 trim.toolchain.private.json（本机，不进仓库）> trim.toolchain.json（示例）。
 // patches 相对路径按工具目录解析（私密配置里也能写 patches/xxx.patch）。
 const home = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
@@ -20,7 +27,7 @@ const commands = {
 
   // 扫描 Godot 项目（含 project.godot 的目录），生成可编辑的裁剪配置。
   async scan() {
-    const tc = toolchain(), project = need('project'), out = need('out');
+    const t = trimCfgOf(), tc = toolchain(), project = val('project', t?.project), out = val('out', t?.configFile);
     if (!fs.existsSync(path.join(project, 'project.godot'))) throw Error('不是 Godot 项目目录（找不到 project.godot）');
     if (fs.existsSync(out)) throw Error('配置文件已存在，不覆盖：' + out);
     const map = engineMap(tc.engineSource), scan = scanProject(project, map.allClasses), cfg = proposeConfig({source: tc.engineSource, project, map, scan});
@@ -32,7 +39,9 @@ const commands = {
 
   // 根据配置生成 .gdbuild，并列出最终会去掉什么。
   async profile() {
-    const cfg = readJson(need('config')), out = need('out'), {profile, keptModules} = toBuildProfile(cfg);
+    const cfg = trimConfig(), out = val('out', trimCfgOf()?.gdbuild), {profile, keptModules} = toBuildProfile(cfg);
+    if (game) console.log(`统一配置 ${game.file}：裁剪配置 ${trimCfgOf().configFile}${game.c.trim.level ? '，档位由 trim.level 指定' : ''}${game.c.trim.overrides ? '，手动覆盖合并了 trim.overrides' : ''}`);
+    fs.mkdirSync(path.dirname(out), {recursive: true});
     const ov = normalizeOverrides(cfg); if (Object.keys(ov).length) console.log('手动覆盖（已校验）：' + JSON.stringify(ov));
     fs.writeFileSync(out, JSON.stringify(profile, null, 2) + '\n');
     const o = profile.disabled_build_options;
@@ -43,10 +52,10 @@ const commands = {
 
   // 编译。--work 是这次编译的独立目录（约 0.9 GB），失败后用同一目录重跑即可续编。
   async build() {
-    const tc = toolchain(), work = need('work'); let profileFile = opt('profile') && path.resolve(opt('profile'));
-    if (!profileFile) { const cfg = readJson(need('config')); fs.mkdirSync(work, {recursive: true}); profileFile = path.join(work, 'from-config.gdbuild'); fs.writeFileSync(profileFile, JSON.stringify(toBuildProfile(cfg).profile, null, 2) + '\n'); }
+    const t = trimCfgOf(), tc = toolchain(), work = val('work', t?.work); let profileFile = opt('profile') && path.resolve(opt('profile'));
+    if (!profileFile) { const cfg = trimConfig(); fs.mkdirSync(work, {recursive: true}); profileFile = path.join(work, 'from-config.gdbuild'); fs.writeFileSync(profileFile, JSON.stringify(toBuildProfile(cfg).profile, null, 2) + '\n'); }
     await checkToolchain(tc);
-    const r = await buildEngine({tc, profileFile, workDir: work, symbols: !argv.includes('--no-symbols'), jobs: Number(opt('jobs') || 8), retries: Number(opt('retries') || 2), lto: opt('lto') || tc.lto || 'full', ltoJobs: Number(opt('lto-jobs') || 4), maxMinutes: Number(opt('max-minutes') || 120), onLog: s => console.log(s)});
+    const r = await buildEngine({tc, profileFile, workDir: work, symbols: !argv.includes('--no-symbols'), jobs: Number(opt('jobs') || t?.jobs || 8), retries: Number(opt('retries') || 2), lto: opt('lto') || t?.lto || tc.lto || 'full', ltoJobs: Number(opt('lto-jobs') || 4), maxMinutes: Number(opt('max-minutes') || t?.maxMinutes || 120), onLog: s => console.log(s)});
     console.log(`完成：用时 ${r.buildMinutes} 分钟；godot.wasm ${mb(r.wasmBytes)}，压缩后 godot.wasm.br ${mb(r.wasmBrBytes)}；保留模块 ${r.enabledModules.length} 个。产物在 ${path.join(work, 'artifacts')}`);
   },
 
@@ -72,5 +81,9 @@ const commands = {
     for (const f of ['godot.wasm', 'godot.wasm.br', 'godot.js']) { const x = s(a, f), y = s(b, f); if (x && y) console.log(`${f.padEnd(14)} ${mb(x)} → ${mb(y)}（${((1 - y / x) * 100).toFixed(1)}%）`); }
   },
 };
-try { if (!commands[cmd]) throw Error('用法：node trim.mjs <check|scan|profile|build|apply|compare> ...（见 README.md）'); await commands[cmd](); }
+try {
+  if (!commands[cmd]) throw Error('用法：node trim.mjs <check|scan|profile|build|apply|compare> [--config wxslim.json] ...（见 README.md）');
+  if (opt('config') && treatAsGameConfig(opt('config'))) game = loadGameConfig(opt('config'));
+  await commands[cmd]();
+}
 catch (e) { console.error('错误：', e.message); process.exitCode = 1; }

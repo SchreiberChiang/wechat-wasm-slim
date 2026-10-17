@@ -3,11 +3,17 @@
 import fs from 'node:fs';import path from 'node:path';import zlib from 'node:zlib';import {spawnSync} from 'node:child_process';
 import {sha, md5, MODULE_TAIL, locateInputs, checkInputs} from './lib/inputs.mjs';
 import {verifyProject, PLACEHOLDER_APPID} from './lib/verify.mjs';
+import {FORMAT, treatAsGameConfig, loadGameConfig, convertArgs} from '../lib/game-config.mjs';
 
 const home = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
 const argv = process.argv.slice(2), cmd = argv[0];
-const opt = k => { const i = argv.indexOf('--' + k); return i > 0 ? argv[i + 1] : undefined; };
-const flag = k => argv.includes('--' + k);
+const argOpt = k => { const i = argv.indexOf('--' + k); return i > 0 ? argv[i + 1] : undefined; };
+// --config wxslim.json：从统一配置的 game / engine / output 段取值，命令行参数优先。不带 --config 时和以前完全一样。
+let game = null, fromCfg;
+function loadConfig() { const f = argOpt('config'); if (!f) return; if (!treatAsGameConfig(f)) throw Error(`convert 的 --config 要指向统一配置 wxslim.json（"格式": "${FORMAT}"）：${path.resolve(f)}`); game = loadGameConfig(f); }
+const cfgArgs = () => fromCfg ??= game ? convertArgs(game) : {args: {}, flags: {}};
+const opt = k => argOpt(k) ?? (game ? cfgArgs().args[k] : undefined);
+const flag = k => argv.includes('--' + k) || !!(game && cfgArgs().flags[k]);
 const need = k => { const v = opt(k); if (!v) throw Error('缺少参数 --' + k); return path.resolve(v); };
 const readJson = p => JSON.parse(fs.readFileSync(p, 'utf8'));
 const writeJson = (p, v) => fs.writeFileSync(p, JSON.stringify(v, null, 2) + '\n');
@@ -145,17 +151,17 @@ const commands = {
     console.log(`已生成 ${mini}\n  WASM 压缩后 ${mb(result.sizes.wasmBr)}（wasmcode/${id}.wasm.br），PCK ${mb(pck.length)} 放在 data-package/${dataId}.data.bin，挂载为 ${pckPath}`);
     console.log('  浏览器兼容层：' + (compat ? 'godot-data/wx-compat.js（HTTP、WebSocket、键盘、震动）' : '未生成（--no-compat），游戏要自己在 --interfaces 里补'));
     console.log('  AppID：' + {placeholder: '占位符（打开开发者工具前要换成真实 AppID，可重新 convert 加 --appid-from）', appid: '来自 --appid', 'appid-from': '来自 --appid-from'}[appidSource]);
-    console.log(`下一步：node convert/convert.mjs verify --project ${mini}`);
+    console.log(`下一步：node convert/convert.mjs verify --project ${mini}${game && !argOpt('out') ? '（或 --config ' + game.file + '）' : ''}`);
   },
 
   // 离线检查工程结构（不联网、不改文件）。
   async verify() {
-    const dir = need('project'), lines = verifyProject(dir, toolchain().plugin);
+    const dir = !argOpt('project') && game ? path.join(argOpt('out') ? path.resolve(argOpt('out')) : game.c.output.convert, 'minigame') : need('project'), lines = verifyProject(dir, toolchain().plugin);
     for (const [k, m] of lines) console.log(`${k === 'PASS' ? '通过' : k === 'WARN' ? '注意' : '失败'}  ${m}`);
     const n = k => lines.filter(l => l[0] === k).length;
     console.log(`结果：通过 ${n('PASS')}，注意 ${n('WARN')}，失败 ${n('FAIL')}`);
     if (n('FAIL')) process.exitCode = 1;
   },
 };
-try { if (!commands[cmd]) throw Error('用法：node convert.mjs <check|convert|verify> ...（见 ../README.md）'); await commands[cmd](); }
+try { if (!commands[cmd]) throw Error('用法：node convert.mjs <check|convert|verify> [--config wxslim.json] ...（见 ../README.md）'); loadConfig(); await commands[cmd](); }
 catch (e) { console.error('错误：', e.message); process.exitCode = 1; }
