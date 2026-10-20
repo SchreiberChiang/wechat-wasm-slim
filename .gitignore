@@ -11,3 +11,11 @@ node_modules/
 *.pem
 # Godot 生成的资源 ID 文件
 *.uid
+
+
+# Local iPhone samples, screenshots, pairing environment and Python caches
+.local/
+.tools/
+.venv*/
+__pycache__/
+*.pyc

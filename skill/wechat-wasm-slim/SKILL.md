@@ -1,20 +1,28 @@
 ---
 name: wechat-wasm-slim
-version: 0.4.0
 description: >-
   把 Godot 游戏做成微信小游戏并缩小引擎 WASM：Godot Web 导出一条命令转成 WXGameKit 通用适配工程（convert），
   编译期裁剪（去掉用不到的引擎功能，适用于任何微信 Godot 小游戏）和官方 WASM 分包（开局只下载必须的代码，
   适用于通用适配工程）。用户提到“Godot 转微信小游戏”“Web 导出转小游戏”“WXGameKit / 通用适配”“WASM 太大”
-  “首包太大”“引擎裁剪”“build profile / .gdbuild”“WASM 分包”“wasmsplit”“开局加载慢”时使用。
+  “首包太大”“引擎裁剪”“build profile / .gdbuild”“WASM 分包”“wasmsplit”“开局加载慢”，
+  或“iPhone 微信小游戏内存不足”“WebContent 内存”“pymobiledevice3 无线采集”时使用。
 metadata:
-  short-description: Godot 转微信小游戏、WASM 裁剪与分包
+  version: "0.5.0"
+  short-description: Godot 微信转换、WASM 裁剪分包与 iPhone 内存采集
 ---
 
 # wechat-wasm-slim
 
 工具包根目录：本文件往上两级，记为 `<KIT>`（里面有 `README.md`、`convert/`、`trim/`、`split/`、`cloud/`）。所有说明、回复和报告都用中文。
 
-## 先做这三件事
+## 先选任务路线
+
+- **只查 iPhone 运行内存、退出或无线采集**：读 [references/ios-memory.md](references/ios-memory.md)，使用 `<KIT>/tools/ios-memory/`。不要因此触发转换、重编译、分包、预览或上传。磁盘包体积与运行内存不是同一个指标。
+- 转换 / 裁剪 / 分包：按下面现有流程。两者都要时，各自保留基线，先说明测量的是哪一项。
+- `<KIT>` 必须包含真实工具脚本；若 skill 单独安装到 AI 的 skills 目录，往上两级已不是工具包，先定位用户已有 `wechat-wasm-slim` checkout。不要猜路径或自动重新下载整仓库。
+- skill 的 description 让宿主有机会自动选用，但不保证每次自动加载。实际读取后才声明已使用；用户可显式指定 `$wechat-wasm-slim`。
+
+## 转换 / 裁剪 / 分包先做这三件事
 
 1. 读 `<KIT>/README.md`。
 2. **判断工程类型**，并直接告诉用户：
@@ -29,7 +37,7 @@ metadata:
 - 不覆盖用户的原工程和历史产物：一律输出到新目录（工具本身就会拒绝覆盖）。
 - 私钥、AppSecret、登录状态、token、真实 AppID 不打印、不进仓库、不发聊天。AppID 优先用 `convert --appid-from <已有工程>` 传递；读开发者工具控制台时要过滤掉 AppID 和账号信息。私钥只通过配置的路径或环境变量 `WASMSPLIT_KIT_KEY` 使用。
 - 测量和验证要如实报告：没测的写“未测”；模拟器通过不等于手机通过。
-- 采集和最终验证需要人在手机上操作（开发者工具无法自动点击 Godot 画布），到这一步要明确告诉用户该怎么玩。
+- 玩法操作和最终体验验证仍需人在手机上执行；内存采集、标记和导出可由脚本自动完成。截图不代表能点击、滑动或代开车；当前验证设备的触控服务缺失，不承诺自动操控。
 
 ## 统一配置（wxslim.json）
 
@@ -105,3 +113,4 @@ node <KIT>/trim/trim.mjs apply --engine <编译目录>/artifacts --minigame <小
 ## 汇报格式
 
 完成一步就用中文简要报告：做了什么、结果数字（大小、耗时）、下一步需要用户做什么。数字要对比前后，比如“8.69 MB → 5.08 MB（-41.5%）”。
+
