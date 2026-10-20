@@ -1,0 +1,3 @@
+# Isolated venv only; official PyPI release verified 2026-10-20.
+pymobiledevice3==11.40.0
+

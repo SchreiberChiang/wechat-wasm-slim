@@ -7,6 +7,7 @@
 | **convert（转换）** | 把 Godot 项目（PCK）+ 微信版引擎，一条命令转成能在微信里跑的小游戏工程（WXGameKit 通用适配），自带浏览器兼容层（网络、键盘、震动）和加载计时汇总。**不需要** godot-minigame 之类的社区小游戏模板 | Godot 4.7.2 项目（见下面“转换靠什么”） |
 | **trim（裁剪）** | 去掉游戏用不到的引擎功能，重新编译出更小的 `godot.wasm`；默认带启动补丁，可以跳过默认 3D 预热 | **任何**微信 Godot 小游戏（模板版或通用适配版都行） |
 | **split（分包）** | 开局只下载必须的引擎代码，其余等玩家点进玩法时再下载 | 只适用于**通用适配（WXGameKit）**工程，因为它用的是微信官方的分包服务 |
+| **iPhone 内存采集** | 用 pymobiledevice3 记录微信 / WebContent 各自的内存曲线，支持已验证的有线和 Wi-Fi API 路径、本地导出；不修改游戏 | 当前固定验证档案：Windows、iPhone 16 Pro / iOS 18.3.1；其他组合需单独适配与验收 |
 | **Godot 插件 wx_split** | 游戏侧接入：点击门、采集包判断、加载计时事件、自动测试开关，游戏只调 `WxSplit.enter_scene` 等几个函数 | 放进游戏的 `addons/` 就能用（Godot 4.7.2） |
 
 可以只用一个，也可以都用。顺序是 **转换 → 裁剪 → 重新转换 → 分包**：裁剪会改变引擎，分包要在最终引擎上做。
@@ -163,6 +164,14 @@ node trim/trim.mjs apply --engine D:/wasm-build/build-1/artifacts --minigame <�
 
 `skill/wechat-wasm-slim/SKILL.md` 是给 AI 的操作说明。可以把这个目录放进 AI 的 skills 目录（Claude Code 是 `~/.claude/skills/`，Codex 是 `~/.codex/skills/`）。
 
+## iPhone 内存不足：交给同一个 skill
+
+告诉 AI：“用 wechat-wasm-slim 检查这个微信小游戏的 iPhone 运行内存；先复用现有工具和配对，确认正确进程与有效样本，不上传新预览、不自动改手机设置。”
+
+入口是 [skill 的内存参考](skill/wechat-wasm-slim/references/ios-memory.md)，实现为 `tools/ios-memory/`。AI 可以运行采集、停止、标记与本地 CSV / 离线 HTML 导出；手机开退游戏仍由用户操作。工具不依赖 PerfDog 企业服务，也不要求微信脚本真机调试先连接成功。无线需要已有且获准使用的配对，不会自动配对或改系统服务。
+
+当前新增集成已做离线验证；来源赛车项目有有线、无线与截图的真机记录，但这不等于本次在每台手机重新实测。详见参考里的版本和验证边界。运行内存结果不等于 WASM 文件大小；不要把不同 PID 或指标直接相加。
+
 ## 裁剪怎么控制保留哪些能力
 
 扫描生成的配置里，每一项都写了用途、扫描依据和风险：
@@ -180,7 +189,8 @@ node trim/trim.mjs apply --engine D:/wasm-build/build-1/artifacts --minigame <�
 - `godot-addon/addons/wx_split/`：Godot 插件（autoload `WxSplit` + 配套 JS，convert 默认装成 `godot-data/wx-split.js`）。
 - `tests/`：工具包自身的测试：`node tests/run.mjs [--godot <Godot 可执行文件>]`（所有 .mjs 的 node --check、点击门 / 采集门 / 接口文件 / 计时契约测试、插件 headless 运行）。
 - `cloud/`：云日志云函数（可选）。
-- `skill/wechat-wasm-slim/`：给 AI 的 skill。
+- `skill/wechat-wasm-slim/`：给 AI 的 skill，内存采集细节按需读取 `references/ios-memory.md`。
+- `tools/ios-memory/`：固定版本的本地 iPhone 采集 / 无线发现 / 离线导出，来源见 `PROVENANCE.md`；`python tests/ios-memory-probe.py` 跑无手机测试。
 - `examples/startap/`：完整流程示例（游戏源码、测试服务、接口文件、配置、实测结果），用插件 wx_split 接入。
 - `examples/breakout3d/`、`examples/breakout-split/`：打砖块的裁剪和分包配置。
 - `doctor.mjs`：换版本时的只读体检（见“其他 Godot 版本”）。
@@ -234,3 +244,4 @@ node doctor.mjs --engine <新引擎 artifacts> --runtime <官方 wasm-split.js> 
 - 官方分包只有“首包 + 一个余包”；标题、2D、3D 各一个包需要自研（未实现，见 KNOWN_ISSUES）。
 - PCK 资源整体放在首包数据里，不按场景拆。
 - 采集和最终验证都要人在手机上操作。
+
