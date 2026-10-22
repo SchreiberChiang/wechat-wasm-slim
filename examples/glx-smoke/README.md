@@ -1,5 +1,7 @@
 # GLX 最小初始化与绘制探针
 
+开发者工具实际验证见 [WebGL 实测记录](../../docs/GLX_DEVTOOLS_WEBGL_20261022.md)：默认 WebGL 的游戏内摘要已读取成功。CLI 若返回 `canvas not found` / 诊断 null，先核对是否在实际游戏上下文；不要据此判定游戏按钮或渲染失败。
+
 Godot 4.7.2、GL Compatibility、单线程。没有联网、音频、登录、赛车资产或云上报；所有图形由代码生成。
 
 - 顶部直接在主视口绘制 2D 色条与移动圆。

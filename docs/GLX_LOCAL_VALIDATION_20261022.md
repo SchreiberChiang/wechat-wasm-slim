@@ -1,5 +1,7 @@
 # GLX 适配本地验证记录（2026-10-22）
 
+本文主体记录最初的静态/构建阶段。随后获准在独立开发者工具窗口实测：默认 WebGL 可见 2D/3D、离屏尺寸按钮及游戏内摘要读取已通过，详见 [开发者工具 WebGL 实测](GLX_DEVTOOLS_WEBGL_20261022.md)。下文“本轮未运行微信宿主”只指最初阶段；GLX 和手机验证不能由 WebGL 结果推定。
+
 ## 隔离与基线
 
 开始时 `E:\AI\wechat-wasm-slim` 是空目录，非 Git 仓库。本轮在此独立 clone，分支 `codex/glx-adaptation-20261022`，基线 `4e5c2f437108c23f5e430f49636844ca8af791d3`。远端默认分支实际是 `feature/wechat-wasm-slim`，不是 main；开始和结束核对均仍为该提交。远端另有独立 `codex/ios-memory-skill-20261020`，未覆盖或合入。
