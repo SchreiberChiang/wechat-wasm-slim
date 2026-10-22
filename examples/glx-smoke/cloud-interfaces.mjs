@@ -2,14 +2,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-export function buildCloudInterfaces({env, build}, relay, interfaces) {
+export function buildCloudInterfaces({env, build, presentation = false}, relay, interfaces) {
   if (!/^[a-zA-Z0-9-]{1,100}$/.test(env || '') || !/^[a-zA-Z0-9_.-]{1,100}$/.test(build || '')) throw Error('Explicit cloud environment and unique build label required');
+  if (typeof presentation !== 'boolean') throw Error('presentation must be an explicit boolean');
+  const early = presentation ? fs.readFileSync(new URL('./presentation-loader.js', import.meta.url), 'utf8') : '';
   return `(function(){var module={exports:{}};\n${relay}\nvar config=${JSON.stringify({enabled:true,env,build,functionName:'phoneLogIngest'})};
-config.keep=function(level,text){return /^(?:PHONE_LOG_START |\\[WXSLIM_(?:BOOT|RENDER_SUMMARY|FRAME_PROBE)\\])/.test(text);};
+config.keep=function(level,text){return /^(?:PHONE_LOG_START |\\[WXSLIM_(?:BOOT|RENDER_SUMMARY|FRAME_PROBE|PRESENTATION)\\])/.test(text);};
 var api=module.exports.installPhoneLog(wx,console,config);
 if(api){setTimeout(function(){api.flush();},20000);setTimeout(function(){api.stop();console.info('[WXSLIM_CLOUD_RELAY] bounded capture stopped');},60000);}
 else console.warn('[WXSLIM_CLOUD_RELAY] unavailable; game continues');
-})();\n${interfaces}`;
+})();\n${early}\n${interfaces}`;
 }
 if(process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta.url)) {
   try {

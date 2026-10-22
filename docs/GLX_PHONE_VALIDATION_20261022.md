@@ -174,3 +174,53 @@
 原始云响应保存在 `.local/webgl-cloud-control-20261023-01/cloud-control-reentry-02.json`。当前真机对照是：**GLX 首次正常、同包退出重进黑屏；WebGL 首次与重进均正常。** 故障优先排查 GLX 的帧缓冲/呈现及加载页交接状态，而不是修改共同 PCK 或服务器。此前原始 GLX 正常/黑屏日志还都包含一次 `start success`、零次 `start fail`；这仅证明当时 loader promise 返回，不能证明加载画布已经正确退场。当前云白名单尚未采集 loader 退场或实际像素，尚无具体根因或修复结论。
 
 后续如继续增加诊断，应针对这处未观测边界设计有界采样，并保留正常/黑屏同包对照。避免无证据地补发 flush、切换 framebuffer、重建上下文或自动回退；这些操作会改变故障现场，也不能代替验证。
+
+## 2026-10-23：帧缓冲与呈现查询诊断包
+
+用户继续批准补充帧缓冲/最终呈现诊断、手机预览和直接查询现有云日志，仍不修改赛车、服务器或合并 main。独立工具 `presentation-engine.mjs` 只创建新的引擎 JS 副本；默认转换器、WebGL 默认及已有包均保持不变。
+
+- 包版本 `wxslim-aac0e1ceea119bdba53a`，build `glx-presentation-20261023-01`，请求 GLX。
+- WASM、PCK、通用适配器哈希均与前一云端 GLX 对照包相同；新 JS SHA256 为 `dbbd15982264c62848af2bd13e345548fb1a47b85fe4b18aa6503e22d3bc4790`。
+- presentation 探针 SHA256 为 `66a465c2d01a3933b74394df8211f7e513bc33aa03a1de434364681b812355d7`，测试源码与新 JS、最终 framework 内嵌字节一致。
+- 全测试入口含 Godot headless：57 通过、0 失败；新增呈现探针 VM 合同 8 项，含原调用透传、取样前置条件、上下文丢失/查询异常、原 swap 异常、计时结束和未写入哨兵。它们不能代替手机帧缓冲证据。包 verify 为 37 通过、1 注意、0 失败；注意仍为未运行官方 split init。
+
+保留旧 3/8/15 秒帧计数。在安装后约 4、9 秒等待原 swap，分别于原调用前后记录当前 GLctx 状态；最多两组查询，约 16 秒结束，云转发仍在约 60 秒后停止。查询当前读写帧缓冲/完整性、viewport、scissor、colorMask、pack、contextLost、drawingBuffer；只在默认 READ/BACK 和安全 pack 条件满足时读三个像素的汇总值，不切换绑定或补帧。loader.resolved 仅表示观察到既有 loader_start_ok 标记返回，不能证明原生覆盖层已经退场。
+
+该版本的 GPU 查询/readPixels **可能同步提交、改变时序**。即使黑屏不再复现，也只记带查询诊断时未复现。swap 后默认缓冲可失效；三个点的黑或非黑都不认证整屏可见。方法返回但哨兵未变化不能判定成功读取；当前 GLctx 查询也不能独立证明 native GLX 内部状态一致。具体约束见 [示例 README](../examples/glx-smoke/README.md)。本地构建、测试、字节核对与后续云响应均留在忽略目录 `.local/glx-presentation-20261023-01/`。
+
+### 第一版呈现诊断的手机结果及观察限制
+
+`auto_preview` 成功，8,397,901 字节。用户确认“首次正常，重进也正常”，并补充重进后“一开始就正常”，没有等待约 4 秒查询才恢复的观察。最终云查询得到 21 批次、42 条记录、3 个会话、dropped=0，每个会话都有三条帧诊断与两条呈现诊断；不将额外一次会话补记为人工验收。原始响应为 `.local/glx-presentation-20261023-01/cloud-presentation-02.json`。
+
+已取得的全部 swap 前后查询显示 contextLost=false、draw/read framebufferStatus=36053（FRAMEBUFFER_COMPLETE），viewport=[0,0,1206,2622]、colorMask=[1,1,1,1]；提交字节与声明绘制数持续增加。绑定被该版分类为 unobserved，READ_BUFFER=36064（COLOR_ATTACHMENT0），像素门禁跳过；**没有读取到像素**。这些都是本版未复现黑屏时的状态，不能套用于之前失败会话。
+
+还发现并纠正了两个诊断适配不足：
+
+1. 该版把普通 WebGL 的对象/null 形式作为绑定识别范围，不能覆盖 native 返回形式。后续只记录绑定类型和数字零/非零分类，不上传句柄，不推断这些句柄是否等于主屏目标。
+2. 引擎内 timing.mark 包装安装过晚。此前原始日志中 `start success` 位于 FACTORY_START 之前（正常日志第 30/37 行，黑屏日志第 45/51 行），因此本版 loader.resolved=false 是未观察到早期标记，**不是 loader 失败证据**。后续将观察安装前移到 local-interfaces，先于 loader.start()。
+
+第一版已生成的源码/包与云证据全部保留，未覆盖后重用原版本号。当前数据不支持“查询已修复黑屏”，也没有证据证明加查询前后是同一失败现场。
+
+### 第二版：早期加载标记与当前读取目标
+
+新包 `wxslim-1d8c5547f9f627a0c7ce`，build `glx-presentation-20261023-02`。显式云配置 `presentation=true` 才安装前置加载标记观察器；观察到原标记返回便立即恢复原函数，60 秒未出现也恢复。引擎探针只读前置状态。两组 GPU 查询时机不变，约 16 秒停止；当前 READ framebuffer 完整、颜色缓冲和 pack 状态合适时，读取原点一个像素的汇总，不改绑定，也不把这个目标命名为显示缓冲。
+
+WASM/PCK/适配器仍与原云端 GLX 包一致。引擎 JS SHA256 `a3db1efa65130b135444058d7ab0126721832eb39e5a66647eaf4e6347612a2c`，呈现探针 SHA256 `2fcbb1ea1ad9ac30268f62b0f1629e32c1f605d0de4bcc840d7651086ab25d0b`，前置标记源码 SHA256 `68bf9636182396c7964b2e557a4b5e511377e8cf555a031f4c12f66e25183505`，已核对最终包包含测试源码。全套测试含 Godot headless 为 58 通过、0 失败；包 verify 为 37 通过、1 注意、0 失败。新增加了 native 数字绑定隐私、标记先于引擎发生及云不可用仍保留标记的测试。
+
+第二版 `auto_preview` 成功，8,398,638 字节。用户确认“首次正常，重进也正常”。云端查询取得 15 批次、28 条记录、2 个会话、dropped=0，两会话均有完整三条帧诊断和两条呈现诊断。原始响应为 `.local/glx-presentation-20261023-02/cloud-presentation-reentry-02.json`。
+
+两会话的 loader 均为 markHook=true、resolved=true、outcome=mark_returned；修正前置观察后不再误读为未完成。所有呈现查询均显示 contextLost=false、framebufferStatus.draw/read=36053、viewport 1206×2622、colorMask=[1,1,1,1]、scissorEnabled=false。提交字节/声明绘制数持续增长，约 15 秒主循环返回计数分别为 805、822。第二会话的末次 entered 多一次为截止采样边界，不是原调用卡住证据。
+
+draw/read/pack 绑定仍为 unobserved：即使增加数字零/非零分类，当前返回也未被识别，**没有证据确认具体返回类型，更不能猜测它等于默认缓冲**。READ_BUFFER 仍为 COLOR_ATTACHMENT0；像素以 read_binding_unobserved 原因跳过，第二版同样没有成功的像素读取证据。这里的 contextLost=false 来自新呈现探针的实际查询；保留的旧帧探针 isContextLostQueried=false 只描述旧探针自身，不能概括整个诊断包没有查询。
+
+两版增强诊断均未采到黑屏现场，不能用这些正常状态排除此前失败包中的帧缓冲或最终显示异常，也不能宣称查询已修复。继续回放原 `wxslim-70de8206532cc7387415` 云帧诊断包（无 GPU 查询），保持原生成字节和 build，新增会话与回放前已有两会话分开核对，以判别原故障是否仍可复现。
+
+### 原失败包原样回放：本轮也未复现
+
+再次推送原 `.local/glx-cloud-probe-20261023-01/glx/minigame`，没有重新转换或修改文件，`auto_preview` 成功且大小仍为 8,393,482 字节。用户报告“首次正常，重进也正常”。回放前的云快照为 10 批次/24 条/2 会话；回放后为 21 批次/47 条/4 会话、dropped=0。按新增 session 分离取得两份原版本 `wxslim-70de8206532cc7387415` 的运行证据，未与旧黑屏会话混用。
+
+新增两会话的主循环、batch、swap 返回计数分别为 97→397（本次未收到第三采样）和 105→405→825，实际 GLX/WebGL2，画布为 1206×2622。缺少第一会话末条的原因未确定，不否定用户的画面正常反馈，也不标为崩溃。原始快照分别为 `.local/glx-cloud-probe-20261023-01/cloud-before-original-replay-20261023.json` 与 `cloud-after-original-replay-20261023.json`；回放预览回执在第二版呈现诊断的本地证据目录。
+
+**当前结论：同一原包曾经重进黑屏，也能在本轮重进正常；故障呈间歇性，本轮暂不可复现，根因仍未定位。** 新增 GPU 查询不是本轮正常显示的必要条件，不能据此宣布查询修复或确定竞态。增强诊断记录的帧缓冲完整、contextLost=false 和 loader 标记成功都仅适用于本轮正常样本；当前绑定返回无法识别、像素读取跳过，最终显示层仍没有自动验收证据。
+
+本轮未部署、未变更服务器/赛车、未合 main；默认 WebGL 不变。手机最后收到的是原云帧诊断包。后续若再次出现黑屏，优先保留当次包身份和云 session，在可复现条件下使用增强诊断；不继续无差别清缓存、强制恢复或增加刷新调用。

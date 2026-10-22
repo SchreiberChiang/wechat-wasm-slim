@@ -79,4 +79,20 @@ node examples/glx-smoke/diagnostic-engine.mjs --input <原始引擎godot.js> --o
 
 `cloud-interfaces.mjs --config <private JSON> --out <新 interfaces.js>` 将现有 `split/assets/phone-log.js` 与本示例手动接口拼合。私有 JSON 必须明确给出 `env` 和唯一 `build`；正常 convert 使用该接口作为 `--interfaces`，生成新包身份。工具不部署或修改云函数，不修改默认转换器，也不覆盖已有输出。
 
-仅转发 PHONE_LOG_START、WXSLIM_BOOT、WXSLIM_RENDER_SUMMARY 和 WXSLIM_FRAME_PROBE；其他 console/error 不上传。复用现有协议的设备平台、型号、系统和基础库字段，服务端按既有身份校验存储。上报在 60 秒后停止，后台冻结可能延迟定时器执行；未成功发送的队列不会保存到存储。按唯一 build 查询现有 phone_log_batches，必须看到云端实际返回记录才能声称上报成功。2026-10-23 用户已明确批准本轮最小诊断包接入现有云日志及手机预览，未授权更改赛车或服务器。
+仅转发 PHONE_LOG_START、WXSLIM_BOOT、WXSLIM_RENDER_SUMMARY、WXSLIM_FRAME_PROBE 和下述 WXSLIM_PRESENTATION；其他 console/error 不上传。复用现有协议的设备平台、型号、系统和基础库字段，服务端按既有身份校验存储。上报在 60 秒后停止，后台冻结可能延迟定时器执行；未成功发送的队列不会保存到存储。按唯一 build 查询现有 phone_log_batches，必须看到云端实际返回记录才能声称上报成功。2026-10-23 用户已明确批准本轮最小诊断包接入现有云日志及手机预览，未授权更改赛车或服务器。
+
+### 帧缓冲与呈现查询诊断
+
+在独立输出目录使用原始 JS（不是已经带帧探针的 JS）：
+
+```powershell
+node examples/glx-smoke/presentation-engine.mjs --input <原始引擎godot.js> --out <新目录/godot.js>
+```
+
+该工具保留原帧计数探针，并加入 `presentation-probe.js`。正常转换器、默认 WebGL 和原始引擎均不加载此查询探针。约 4、9 秒分别等待下一次**原有 swap**，在调用前后读取 GLctx 的当前 draw/read framebuffer、完整性状态、viewport、scissor、colorMask、pack 状态、上下文丢失状态及 drawingBuffer 尺寸。每组只输出一条 `[WXSLIM_PRESENTATION]`，最多两条；到约 16 秒仍无原 swap 时输出未采到的原因并停止。绑定值只分类为 null、native 数字零/非零、对象或未观测，不记录句柄，也不把 native 非零值直接解释成 Godot 离屏缓冲。
+
+云接口私有 JSON 增加 `"presentation": true`，才能在 `local-interfaces` 阶段安装 `presentation-loader.js`，先于 `loader.start()` 观察既有 `loader_start_ok` 标记；引擎工厂阶段再安装已太晚。观察成功立刻恢复原 mark；60 秒未观察到则恢复并记超时。没有显式选项时不安装该包装。此字段不观测原生覆盖层是否已退场。
+
+只在当前 READ framebuffer 完整、读颜色缓冲已选中、pack buffer/行布局安全时，读取其原点一个 1×1 像素，上传 RGB/alpha 范围、非黑点数和未写入哨兵计数，不上传截图或逐像素 RGBA。当前目标可能是 native 宿主或离屏缓冲，不能称为屏幕像素；原点不依赖主画布尺寸与当前 FBO 尺寸相同。其余情况明确跳过；不绑定 framebuffer，不改 pack、viewport 或颜色掩码，不调用 getError（避免清掉原错误）、flush、finish、clear，不创建上下文，也不增加 swap。原调用的 this、参数、返回值和异常继续透传。
+
+**查询/readPixels 可能同步提交并改变时序，因此这不是无扰动探针或修复。** 保留默认缓冲可能在 swap 后失效的语义：swap 后黑像素不能独立证明黑屏；一个点有颜色也不证明整屏或实际显示成功。哨兵未改变时不能把 readPixels 的返回当作读取成功；GLctx 查询值也不是原生 GLX 内部对象与 GPU 完成的独立证明。只对本最小合成场景使用，比较同包正常/黑屏两次，结合用户画面反馈和云端包身份判读。
