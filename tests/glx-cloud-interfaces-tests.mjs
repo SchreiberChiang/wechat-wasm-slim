@@ -13,8 +13,9 @@ test('explicit cloud diagnostic relay filters unrelated logs, preserves console,
   consoleMock.error('PRIVATE_UNRELATED_ERROR');consoleMock.warn('[WXSLIM_FRAME_PROBE] {"sampleNumber":1}');
   consoleMock.warn('[WXSLIM_RENDER_SUMMARY] {"initialization":"initialized"}');consoleMock.log('[WXSLIM_BOOT] MAIN_RETURNED');
   consoleMock.warn('[WXSLIM_PRESENTATION] {"sampleNumber":1}');
+  consoleMock.warn('[WXSLIM_CANVAS_EXPORT] {"result":"png_1x1_received"}');
   interval();assert.equal(calls.length,1);const messages=calls[0].entries.map(e=>e.message);
-  assert.equal(messages.length,5);assert.ok(messages.some(m=>m.startsWith('PHONE_LOG_START ')));assert.ok(!JSON.stringify(calls).includes('PRIVATE_UNRELATED'));
+  assert.equal(messages.length,6);assert.ok(messages.some(m=>m.startsWith('PHONE_LOG_START ')));assert.ok(messages.some(m=>m.startsWith('[WXSLIM_CANVAS_EXPORT] ')));assert.ok(!JSON.stringify(calls).includes('PRIVATE_UNRELATED'));
   assert.ok(printed.some(args=>args[0]==='PRIVATE_UNRELATED_ERROR'));assert.equal(context.GameGlobal.interfacePreserved,true);
   timers.find(t=>t.ms===60000).fn();assert.equal(stopped,true);assert.equal(consoleMock.warn,original);
 });

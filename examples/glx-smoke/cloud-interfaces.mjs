@@ -7,7 +7,7 @@ export function buildCloudInterfaces({env, build, presentation = false}, relay, 
   if (typeof presentation !== 'boolean') throw Error('presentation must be an explicit boolean');
   const early = presentation ? fs.readFileSync(new URL('./presentation-loader.js', import.meta.url), 'utf8') : '';
   return `(function(){var module={exports:{}};\n${relay}\nvar config=${JSON.stringify({enabled:true,env,build,functionName:'phoneLogIngest'})};
-config.keep=function(level,text){return /^(?:PHONE_LOG_START |\\[WXSLIM_(?:BOOT|RENDER_SUMMARY|FRAME_PROBE|PRESENTATION)\\])/.test(text);};
+config.keep=function(level,text){return /^(?:PHONE_LOG_START |\\[WXSLIM_(?:BOOT|RENDER_SUMMARY|FRAME_PROBE|PRESENTATION|CANVAS_EXPORT)\\])/.test(text);};
 var api=module.exports.installPhoneLog(wx,console,config);
 if(api){setTimeout(function(){api.flush();},20000);setTimeout(function(){api.stop();console.info('[WXSLIM_CLOUD_RELAY] bounded capture stopped');},60000);}
 else console.warn('[WXSLIM_CLOUD_RELAY] unavailable; game continues');

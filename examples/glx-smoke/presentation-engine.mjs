@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {instrumentDiagnosticEngine} from './diagnostic-engine.mjs';
 export function instrumentPresentationEngine(source) {
   let result = instrumentDiagnosticEngine(source);
-  const probe = fs.readFileSync(new URL('./presentation-probe.js', import.meta.url), 'utf8');
+  const probe = fs.readFileSync(new URL('./canvas-export-probe.js', import.meta.url), 'utf8') + '\n' + fs.readFileSync(new URL('./presentation-probe.js', import.meta.url), 'utf8');
   for (const [anchor, replacement] of [
     ['__WXSLIM_FRAME_PROBE__.batchAsync(Module.wxContextGlobal,view);', '__WXSLIM_PRESENTATION_PROBE__.batch(Module.wxContextGlobal,view,drawcall);'],
     ['__WXSLIM_FRAME_PROBE__.swap(Module.wxContextGlobal)', '__WXSLIM_PRESENTATION_PROBE__.swap(Module.wxContextGlobal)'],

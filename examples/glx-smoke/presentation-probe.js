@@ -10,9 +10,18 @@ var __WXSLIM_PRESENTATION_PROBE__ = (function (root) {
     return Array.prototype.map.call(v, function (n) { return typeof n === 'boolean' ? n : finite(n); });
   }
   function binding(v) {
+    if (v === undefined) return 'undefined_unobservable';
     if (v === null) return 'null_default';
     if (typeof v === 'number' && Number.isInteger(v) && v >= 0) return v === 0 ? 'native_zero' : 'native_nonzero';
-    return v && typeof v === 'object' ? 'object' : 'unobserved';
+    if (typeof v === 'number') return !Number.isFinite(v) ? 'nonfinite_number' : Number.isInteger(v) ? 'negative_integer' : 'fractional_number';
+    if (typeof v === 'boolean') return v ? 'boolean_true' : 'boolean_false';
+    if (typeof v === 'bigint') return v === BigInt(0) ? 'bigint_zero' : 'bigint_nonzero';
+    return v && typeof v === 'object' ? 'object' : typeof v;
+  }
+  function bindingShape(v, gl, name, expected) {
+    return {type: typeof v, classification: binding(v), minusOne: v === -1,
+      emptyString: v === '', array: Array.isArray(v),
+      constant: typeof gl[name] === 'number' ? (gl[name] === expected ? 'matches' : 'mismatch') : 'absent'};
   }
   function add(key, n) { if (typeof n === 'number' && Number.isFinite(n) && n >= 0) totals[key] = Math.min(2147483647, totals[key] + n); }
   function stop() {
@@ -22,7 +31,7 @@ var __WXSLIM_PRESENTATION_PROBE__ = (function (root) {
   function emit(data) {
     if (emitted >= 2) return;
     var config = root.__WXSLIM_RENDER_CONFIG__ || {};
-    data.schema = 'wxslim-presentation-probe-v1';
+    data.schema = 'wxslim-presentation-probe-v2';
     data.packageVersion = /^wxslim-[a-f0-9]{20}$/.test(config.packageVersion || '') ? config.packageVersion : null;
     data.sampleNumber = ++emitted; data.relativeMillis = Date.now() - started;
     var loader = root.__WXSLIM_PRESENTATION_LOADER__ || {};
@@ -45,6 +54,8 @@ var __WXSLIM_PRESENTATION_PROBE__ = (function (root) {
       function get(p) { return gl.getParameter(p); }
       var draw = get(0x8CA6), read = get(0x8CAA), pack = get(0x88ED);
       result.drawFramebuffer = binding(draw); result.readFramebuffer = binding(read);
+      result.bindingShapes = {draw: bindingShape(draw, gl, 'DRAW_FRAMEBUFFER_BINDING', 0x8CA6),
+        read: bindingShape(read, gl, 'READ_FRAMEBUFFER_BINDING', 0x8CAA), pack: bindingShape(pack, gl, 'PIXEL_PACK_BUFFER_BINDING', 0x88ED)};
       result.viewport = vector(get(0x0BA2)); result.scissor = vector(get(0x0C10));
       var scissorEnabled = get(0x0C11); result.scissorEnabled = typeof scissorEnabled === 'boolean' ? scissorEnabled : scissorEnabled === 0 ? false : scissorEnabled === 1 ? true : null;
       result.colorMask = vector(get(0x0C23)); result.packBuffer = binding(pack);
@@ -63,7 +74,7 @@ var __WXSLIM_PRESENTATION_PROBE__ = (function (root) {
       result.pixels = {skipped: 'read_preconditions_not_met'};
       // Query the already-bound READ framebuffer at its origin, even if native GLX represents it by a number.
       // Do not infer the default display target from a native handle. Never bind, set pack state, clear or flush.
-      if (binding(read) === 'unobserved') result.pixels.skipped = 'read_binding_unobserved';
+      if (['null_default', 'native_zero', 'native_nonzero', 'object'].indexOf(binding(read)) < 0) result.pixels.skipped = 'read_binding_' + binding(read);
       else if ((pack !== null && pack !== 0) || result.packLayout[1] !== 0 || result.packLayout[2] !== 0 || result.packLayout[3] !== 0) result.pixels.skipped = 'pack_state_not_default';
       else if (!result.framebufferStatus || result.framebufferStatus.read !== 0x8CD5) result.pixels.skipped = 'read_framebuffer_not_complete';
       else if (result.readBuffer !== 0x0405 && !(result.readBuffer >= 0x8CE0 && result.readBuffer <= 0x8CEF)) result.pixels.skipped = 'read_color_buffer_not_selected';
@@ -117,6 +128,10 @@ var __WXSLIM_PRESENTATION_PROBE__ = (function (root) {
         var result = __WXSLIM_FRAME_PROBE__.swap(owner);
         if (active) add('swaps', 1);
         if (slot) emit({slot: slot, originalSwap: 'returned', before: before, after: snapshot()});
+        if (slot && typeof __WXSLIM_CANVAS_EXPORT__ !== 'undefined') safe(function () {
+          var gl = typeof GLctx !== 'undefined' ? GLctx : null;
+          __WXSLIM_CANVAS_EXPORT__.capture(slot, Module.canvas, root.canvas, gl && gl.canvas);
+        });
         return result;
       } catch (error) {
         if (slot) emit({slot: slot, originalSwap: 'threw', before: before});

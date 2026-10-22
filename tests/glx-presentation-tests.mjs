@@ -111,3 +111,11 @@ test('early loader mark is captured before engine factory and native numeric bin
   assert.ok(!JSON.stringify(h.logs).includes('987654321'));
   assert.ok(h.calls.filter(c=>c[0]==='pixels').every(c=>c[1]===0&&c[2]===0));
 });
+
+test('unrecognized bindings retain precise shapes without logging handles or guessing default buffers',()=>{
+  for(const [value,type,classification] of [[undefined,'undefined','undefined_unobservable'],[-1,'number','negative_integer'],[false,'boolean','boolean_false'],['','string','string']]){
+    const h=harness();h.params.set(0x8CAA,value);h.gl.READ_FRAMEBUFFER_BINDING=0x8CAA;h.advance(4000);h.probe.swap({swapWindow(){}});
+    assert.equal(h.logs[0].before.bindingShapes.read.type,type);assert.equal(h.logs[0].before.bindingShapes.read.classification,classification);
+    assert.equal(h.logs[0].before.bindingShapes.read.constant,'matches');assert.ok(h.logs[0].before.pixels.skipped.startsWith('read_binding_'));
+  }
+});
