@@ -28,11 +28,18 @@ export function locateInputs({exportDir, js, wasm, pck, symbols}) {
 
 // convert 在官方 wx-transformer 产物上打补丁的锚点（每处必须唯一命中；doctor 用同一份核对新版转换器）。
 export const FRAMEWORK_ANCHORS = {bridge: '__WXSLIM_GODOT_BRIDGE__.start(Godot,Module,', preloadAssets: "addRunDependency('wasm-preloadAssets');", createWasm: 'async function createWasm(){'};
-export const GAMEJS_ANCHORS = {imports: 'import commFrameWork from', handler: 'WXGameKit.loader.setModuleFunctionHandler(commFrameWork);', startOk: "console.log('start success');"};
+export const GAMEJS_ANCHORS = {imports: 'import commFrameWork from', handler: 'WXGameKit.loader.setModuleFunctionHandler(commFrameWork);', startOk: "console.log('start success');", startFail: "console.error('start fail', err);"};
+
+/** 缺省保持 WebGL；GLX 必须显式选择，不猜测大小写、空值或其他模式。 */
+export function normalizeRenderMode(value = 'webgl') {
+  if (!['webgl', 'glx'].includes(value)) throw Error(`--render-mode / game.renderMode 只能是 webgl 或 glx，现在是 ${JSON.stringify(value)}`);
+  return value;
+}
 
 /** 官方 wx-transformer 的配置（convert 和 doctor 共用）。AppID 用占位符，转换后再填。 */
-export function transformerConfig({jsFile, wasmFile, symbolsFile, outputDir, appID, appName, engineVersion, orientation}) {
-  return {jsFile, wasmFile, ...(symbolsFile ? {symbolsFile} : {}), outputDir, cdnUrl: 'http://127.0.0.1:65535/', appID, appName, engineName: 'Custom', engineVersion, webglVersion: 2, alphaChannel: false, deviceOrientation: orientation, loadFromSubpackage: true, compressData: true, forceSingleThread: false, enableGLX: false, enableMetal: false, preloadList: []};
+export function transformerConfig({jsFile, wasmFile, symbolsFile, outputDir, appID, appName, engineVersion, orientation, renderMode}) {
+  const mode = normalizeRenderMode(renderMode);
+  return {jsFile, wasmFile, ...(symbolsFile ? {symbolsFile} : {}), outputDir, cdnUrl: 'http://127.0.0.1:65535/', appID, appName, engineName: 'Custom', engineVersion, webglVersion: 2, alphaChannel: false, deviceOrientation: orientation, loadFromSubpackage: true, compressData: true, forceSingleThread: false, enableGLX: mode === 'glx', enableMetal: false, preloadList: []};
 }
 
 /** 引擎 JS 本身的检查（不需要 PCK）：Emscripten 模块结构、Godot 接口、微信分支运行时约定。 */

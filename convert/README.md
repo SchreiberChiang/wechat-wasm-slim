@@ -46,6 +46,7 @@ node convert/convert.mjs verify  --project <新目录>/minigame
 | `--interfaces <js>` | 空模板 | 游戏自己的 JS 接口（GDScript `JavaScriptBridge.get_interface` 要用的全局对象），复制为 `godot-data/local-interfaces.js` |
 | `--orientation portrait\|landscape` | portrait | 屏幕方向（写进 game.json） |
 | `--locale <xx>` | en | 传给 Godot `initConfig` 的 locale |
+| `--render-mode webgl\|glx` | webgl | 同 `game.renderMode`；GLX 是显式实验，无自动降级。重新生成新 WebGL 目录回退，详见 [适配说明](../docs/GLX_ADAPTATION.md) |
 | `--name <名字>` | PCK 文件名 | 项目名、数据包名 |
 | `--toolchain <json>` | `convert/convert.toolchain.json` | 换转换器路径 |
 
@@ -73,7 +74,8 @@ node convert/convert.mjs verify  --project <新目录>/minigame
 
 | 文件 | 作用 | 与游戏有关？ | 手工版来源 |
 |---|---|---|---|
-| `framework.js` 里的启动桥 | Godot 工厂 → `initConfig` → `initFS` → 把 PCK `copyToFS` → 只调用一次 `callMain(--main-pack)`；创建 `GODOTSDK` 音频上下文、关 GLX；补全局 `nowPolyfill` | 通用（PCK 路径、大小从 `package-info.js` 读） | `godot-bridge.js`，原来写死 `/breakout.pck` 和 67548 字节 |
+| `framework.js` 里的启动桥 | Godot 工厂 → `initConfig` → `initFS` → 把 PCK `copyToFS` → 只调用一次 `callMain(--main-pack)`；创建 `GODOTSDK` 音频上下文；与渲染配置核对并观察实际上下文；补全局 `nowPolyfill` | 通用（默认 WebGL，GLX 显式实验） | `godot-bridge.js` |
+| `godot-data/render-config.{json,js}` / `render-runtime.js` | 转换身份、请求模式、加载前能力门禁和模式锁定、一次性摘要与只读手动查看；在 WXGameKit 之前加载 | 每包身份，不含账户/路径 | 本工具生成 |
 | `framework.js` 里的资源依赖门 | 让插件的首包数据回调和 WASM 实例化无论谁先到，运行依赖计数都正确归零 | 通用 | `resource-gate-10/apply.mjs` |
 | `godot-data/package-info.js` | 数据包元数据：大小、sha256、PCK 起止位置和挂载路径 | 每个游戏生成 | `assemble-*-resources.mjs` |
 | `godot-data/package.metadata.json` | file_packager 格式的同一份元数据（split 的 PCK 替换会同步更新） | 每个游戏生成 | 同上 |

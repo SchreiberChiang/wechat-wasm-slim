@@ -1,8 +1,71 @@
 // 离线检查通用适配（WXGameKit）小游戏工程的结构，条件对应 split/SETUP.md 第 3 节。
 import fs from 'node:fs';import path from 'node:path';import zlib from 'node:zlib';
+import {isDeepStrictEqual} from 'node:util';
 import {sha, md5} from './inputs.mjs';
+import {RENDER_SCHEMA} from './render.mjs';
 
 export const PLACEHOLDER_APPID = 'wx0000000000000000';
+
+/** 只读渲染合同检查；不执行包内 JS，也不把结构检查当成真实 GLX 初始化。 */
+export function verifyRenderContract(dir, cfg) {
+  const out = [], pass = m => out.push(['PASS', m]), warn = m => out.push(['WARN', m]), fail = m => out.push(['FAIL', m]);
+  const has = rel => fs.existsSync(path.join(dir, rel)), text = rel => has(rel) ? fs.readFileSync(path.join(dir, rel), 'utf8') : '';
+  const files = ['godot-data/render-config.json', 'godot-data/render-config.js', 'godot-data/render-runtime.js'];
+  const entry = text('game.js'), fw = text('framework.js'), missing = files.filter(f => !has(f));
+  if (missing.length === files.length && !/render-config|render-runtime/.test(entry) && !/WXSLIM_RENDER_OBSERVER_V1|__WXSLIM_RENDER_DIAGNOSTIC__/.test(fw)) {
+    warn('旧产物没有渲染合同，保留原有检查；无法据此确认 GLX 模式或真实初始化，请重新 convert 获取一次性诊断。');
+    return out;
+  }
+  if (missing.length) { fail('渲染合同文件不完整，缺少：' + missing.join('、')); return out; }
+
+  let manifest, embedded;
+  try { manifest = JSON.parse(text(files[0])); }
+  catch { fail('godot-data/render-config.json 不是合法 JSON'); }
+  // Generated assignment only: never evaluate arbitrary project JavaScript while verifying.
+  const assignment = text(files[1]).match(/^\s*GameGlobal\.__WXSLIM_RENDER_CONFIG__\s*=\s*(\{[\s\S]*\})\s*;\s*$/);
+  try { if (!assignment) throw Error(); embedded = JSON.parse(assignment[1]); }
+  catch { fail('godot-data/render-config.js 不是可读取的单一渲染配置赋值'); }
+  if (manifest === null || typeof manifest !== 'object' || Array.isArray(manifest)) { fail('render-config.json 渲染配置必须是对象'); manifest = undefined; }
+  if (manifest && embedded) {
+    isDeepStrictEqual(manifest, embedded) ? pass('render-config.json 与 render-config.js 内容一致') : fail('render-config.json 与 render-config.js 内容不一致');
+  }
+  if (manifest) {
+    const checks = [
+      [manifest.schema === RENDER_SCHEMA, '渲染合同 schema 为 ' + RENDER_SCHEMA],
+      [['webgl', 'glx'].includes(manifest.requestedMode), '渲染合同 requestedMode 为 webgl 或 glx'],
+      [manifest.fallback === 'error', '渲染合同 fallback=error（不静默回退）'],
+      [/^wxslim-[0-9a-f]{20}$/.test(manifest.packageVersion), '渲染合同包含有效 packageVersion'],
+      [['adapterSha256', 'engineJsSha256', 'wasmSha256', 'pckSha256'].every(k => typeof manifest[k] === 'string' && /^[0-9a-f]{64}$/.test(manifest[k])), '渲染合同包含适配器、引擎 JS、WASM 和 PCK 的 SHA256'],
+      [['godot', 'transformer', 'wxGameKit'].every(k => typeof manifest.versions?.[k] === 'string' && manifest.versions[k].length > 0), '渲染合同包含 Godot、转换器和 WXGameKit 版本'],
+    ];
+    for (const [ok, message] of checks) ok ? pass(message) : fail(message + '：不满足');
+    const context = cfg?.runtime?.contextConfig;
+    if (['webgl', 'glx'].includes(manifest.requestedMode) && context?.contextExt?.enableGLX === (manifest.requestedMode === 'glx') && context?.contextExt?.enableMetal === false && context?.contextType === 2) {
+      pass('WXGameKit 渲染配置与请求模式一致，Metal 关闭，contextType=2');
+    } else fail('WXGameKit 渲染配置与请求不一致：enableGLX 应跟随 requestedMode，enableMetal=false，contextType=2');
+    const modes = [...fw.matchAll(/__WXSLIM_GODOT_BRIDGE__\.start\(\s*Godot\s*,\s*Module\s*,\s*\{[^{}]*?(?:\brenderMode|"renderMode"|'renderMode')\s*:\s*(["'])(webgl|glx)\1/g)];
+    if (modes.length === 1 && modes[0][2] === manifest.requestedMode) pass('启动桥内嵌请求模式与渲染合同一致');
+    else fail('启动桥内嵌 renderMode 缺失、不唯一或与渲染合同不一致');
+  }
+
+  const imports = ['./godot-data/render-config', './godot-data/render-runtime', './wx-game-kit/index'];
+  const positions = imports.map(specifier => {
+    const escaped = specifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const hits = [...entry.matchAll(new RegExp('\\bimport\\s*["\']' + escaped + '(?:\\.js)?["\']\\s*;?', 'g'))];
+    return hits.length === 1 ? hits[0].index : -1;
+  });
+  if (positions.some(at => at < 0) || positions.some((at, i) => i > 0 && at <= positions[i - 1])) fail('渲染加载顺序不对或 import 不唯一，应为 render-config → render-runtime → wx-game-kit/index');
+  else pass('渲染配置和 runtime 在 WXGameKit 初始化之前加载');
+  const runtime = text(files[2]);
+  if (['WXSLIM_RENDER_RUNTIME_V1', '__WXSLIM_RENDER_DIAGNOSTIC__', 'WXSLIM_RENDER_SUMMARY'].every(token => runtime.includes(token))) pass('包含一次性渲染诊断 runtime');
+  else fail('godot-data/render-runtime.js 缺少渲染诊断合同');
+  if (fw.includes('WXSLIM_RENDER_OBSERVER_V1') && fw.includes('__WXSLIM_READ_RENDER__')) pass('framework.js 包含实际上下文观察入口');
+  else fail('framework.js 缺少实际上下文观察入口');
+  const stages = ['prepare', 'attach', 'complete'];
+  if (stages.every(stage => new RegExp('__WXSLIM_RENDER_DIAGNOSTIC__\\s*\\.\\s*' + stage + '\\s*\\(').test(fw))) pass('启动桥连接 prepare、attach、complete 诊断阶段');
+  else fail('启动桥缺少 prepare、attach 或 complete 诊断阶段');
+  return out;
+}
 
 export function verifyProject(dir, plugin) {
   const out = [];
@@ -18,6 +81,9 @@ export function verifyProject(dir, plugin) {
 
   const game = json('game.json'), pc = json('project.config.json'), cfg = json('wx-game-kit/config.json');
   if (!game || !pc || !cfg) return out;
+  out.push(...verifyRenderContract(dir, cfg));
+  // Parsing errors already have a render-contract failure above. Keep the byte checks read-only.
+  const rendering = (() => { try { return JSON.parse(text('godot-data/render-config.json')); } catch { return null; } })();
   const p = game.plugins?.WXGameKit;
   if (!p) fail('game.json 没有声明 WXGameKit 插件');
   else if (p.provider !== plugin.provider) fail(`game.json 的 WXGameKit provider 是 ${p.provider}，应为 ${plugin.provider}`);
@@ -37,12 +103,16 @@ export function verifyProject(dir, plugin) {
   if (!/^[0-9a-f]{15,16}$/.test(code.fileMD5)) fail('launch.code.fileMD5 不是 15/16 位十六进制：' + code.fileMD5);
   if (code.fileMD5.length !== 15) warn('launch.code.fileMD5 是 16 位：官方 switch-md5 只接受 15 位，需要换 md5 时会被拒绝');
   const split = code.useWasmCodeSplit === true || has('wasm-split.js');
+  if (split && rendering) warn('分包产物可能已重写 WASM 和 PCK：渲染合同的 packageVersion / SHA256 只代表转换时身份，不能代表当前分包；不确认分包身份一致。');
   const br = 'wasmcode/' + code.fileMD5 + '.wasm.br';
   if (!has(br)) fail('找不到 ' + br);
   else if (split) pass(`已经是分包产物（${br}，wasm-split.js），跳过整包 WASM 检查`);
   else {
     let wasm = null; try { wasm = zlib.brotliDecompressSync(fs.readFileSync(file(br))); } catch { fail(br + ' 不是有效的 brotli'); }
     if (wasm) {
+      if (rendering) {
+        sha(wasm) === rendering.wasmSha256 ? pass('渲染合同 wasmSha256 与实际完整 WASM 字节一致') : fail('渲染合同 wasmSha256 与实际完整 WASM 字节不一致：包身份已过期或文件混用，请重新 convert');
+      }
       if (wasm.readUInt32LE(0) !== 0x6d736100) fail(br + ' 解压后不是 WASM');
       else { pass(`${br} 解压为完整 WASM（${(wasm.length / 1e6).toFixed(2)} MB，压缩 ${(fs.statSync(file(br)).size / 1e6).toFixed(2)} MB）`);
         if (!md5(wasm).startsWith(code.fileMD5)) warn('fileMD5 不是这份 WASM 的 md5 前缀（手工改过名也能用，只是无法从文件名追溯）'); else pass('fileMD5 与 WASM 内容的 md5 一致'); }
@@ -60,6 +130,9 @@ export function verifyProject(dir, plugin) {
       const info = text('godot-data/package-info.js'), meta = (() => { try { return JSON.parse(info.slice(info.indexOf('=') + 1).trim().replace(/;$/, '')); } catch { return null; } })();
       if (raw && meta) {
         const pck = raw.subarray(meta.pck?.start ?? 0, meta.pck?.end ?? 0);
+        if (rendering && !split) {
+          sha(pck) === rendering.pckSha256 ? pass('渲染合同 pckSha256 与实际 PCK 字节一致') : fail('渲染合同 pckSha256 与实际 PCK 字节不一致：包身份已过期或文件混用，请重新 convert');
+        }
         const checks = [[raw.length === data.fileSize && raw.length === data.optFileSize, 'launch.data.fileSize 与解压大小一致'],
           [md5(raw).startsWith(data.fileMD5), 'launch.data.fileMD5 与数据内容的 md5 一致'],
           [sha(raw) === meta.dataSha256 && raw.length === meta.size, 'package-info.js 的 dataSha256/size 与数据包一致'],

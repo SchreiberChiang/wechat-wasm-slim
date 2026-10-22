@@ -3,6 +3,7 @@ import test from 'node:test';import assert from 'node:assert/strict';
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import {spawnSync} from 'node:child_process';
 import {FORMAT, isGameConfig, loadGameConfig, convertArgs, trimSettings, splitConfig, describe} from '../lib/game-config.mjs';
 import {toBuildProfile} from '../trim/lib/scan.mjs';
+import {normalizeRenderMode, transformerConfig} from '../convert/lib/inputs.mjs';
 
 const KIT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
 const STARTAP = path.join(KIT, 'examples/startap');
@@ -87,6 +88,52 @@ test('convert：从配置得到参数；输入路径不存在时报出键名和�
   assert.throws(() => convertArgs(loadGameConfig(bad.file)), e => /game\.pck 指向的文件不存在：.*none\.pck/.test(e.message) && /engine\.wasm 指向的文件不存在/.test(e.message));
   const noEngine = sandbox({...base(), engine: {}}); assert.throws(() => convertArgs(loadGameConfig(noEngine.file)), /没有引擎来源/);
   const fromTrim = sandbox({...base(), engine: {fromTrim: true}, trim: {work: './w'}}); assert.throws(() => convertArgs(loadGameConfig(fromTrim.file)), /还没有编译产物/);
+});
+
+test('渲染模式：旧配置不添加参数，显式 webgl / glx 映射到 --render-mode', () => {
+  const old = sandbox(base()), oldConfig = loadGameConfig(old.file);
+  assert.equal(oldConfig.c.game.renderMode, undefined);
+  assert.equal(Object.hasOwn(convertArgs(oldConfig).args, 'render-mode'), false);
+  for (const renderMode of ['webgl', 'glx']) {
+    const {file} = sandbox({...base(), game: {...base().game, renderMode}});
+    assert.equal(convertArgs(loadGameConfig(file)).args['render-mode'], renderMode);
+  }
+});
+
+test('渲染模式：private 可显式启用 GLX，也可覆盖 public GLX 回到 WebGL', () => {
+  for (const [publicMode, privateMode] of [['webgl', 'glx'], ['glx', 'webgl']]) {
+    const {file} = sandbox({...base(), game: {...base().game, renderMode: publicMode}}, {game: {renderMode: privateMode}});
+    const g = loadGameConfig(file);
+    assert.equal(g.c.game.renderMode, privateMode);
+    assert.equal(convertArgs(g).args['render-mode'], privateMode);
+    assert.equal(g.c.game.name, 'g');
+  }
+});
+
+test('渲染模式：公开和 private 的非法模式均报键名，不静默降级', () => {
+  for (const renderMode of ['', 'auto', 'GLX', 'glx ', null, false, 2]) {
+    assert.match(loadErr({...base(), game: {...base().game, renderMode}}), /game\.renderMode 只能是 webgl \/ glx/);
+    assert.match(loadErr(base(), {game: {renderMode}}), /game\.renderMode 只能是 webgl \/ glx/);
+  }
+});
+
+test('渲染模式：标准化仅允许缺省、webgl、glx；无效值拒绝', () => {
+  assert.equal(normalizeRenderMode(), 'webgl');
+  assert.equal(normalizeRenderMode(undefined), 'webgl');
+  for (const mode of ['webgl', 'glx']) assert.equal(normalizeRenderMode(mode), mode);
+  for (const mode of ['', 'auto', 'GLX', 'glx ', null, false, 2, {}]) {
+    assert.throws(() => normalizeRenderMode(mode), /--render-mode \/ game\.renderMode 只能是 webgl 或 glx/);
+  }
+});
+
+test('转换器：省略模式保持完整旧默认，GLX 只改变渲染开关且 Metal 保持关闭', () => {
+  const input = {jsFile: 'engine.js', wasmFile: 'engine.wasm', symbolsFile: 'engine.js.symbols', outputDir: 'out', appID: 'placeholder', appName: 'minimal', engineVersion: '4.7.2', orientation: 'portrait'};
+  const expected = {...input, cdnUrl: 'http://127.0.0.1:65535/', engineName: 'Custom', webglVersion: 2, alphaChannel: false, deviceOrientation: 'portrait', loadFromSubpackage: true, compressData: true, forceSingleThread: false, enableGLX: false, enableMetal: false, preloadList: []};
+  delete expected.orientation;
+  assert.deepEqual(transformerConfig(input), expected);
+  assert.deepEqual(transformerConfig({...input, renderMode: 'webgl'}), expected);
+  assert.deepEqual(transformerConfig({...input, renderMode: 'glx'}), {...expected, enableGLX: true});
+  assert.throws(() => transformerConfig({...input, renderMode: 'auto'}), /只能是 webgl 或 glx/);
 });
 
 test('trim：档位和手动覆盖叠加到裁剪配置上，覆盖写错按原有规则报错', () => {

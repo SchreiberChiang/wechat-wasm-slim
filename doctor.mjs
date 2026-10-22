@@ -4,6 +4,7 @@
 // --run-transformer 的转换输出）都放系统临时目录，结束即删。用法见 docs/UPGRADING.md。
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import zlib from 'node:zlib';import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
 import {sha, md5, MODULE_TAIL, FRAMEWORK_ANCHORS, GAMEJS_ANCHORS, transformerConfig, checkEngineJs} from './convert/lib/inputs.mjs';
+import {instrumentRender} from './convert/lib/render.mjs';
 import {PLACEHOLDER_APPID} from './convert/lib/verify.mjs';
 import {checkRuntimeAnchors, OFFICIAL_RUNTIME_NORMALIZED_SHA256} from './split/lib/runtime-patches.mjs';
 import {runWaiterTests} from './split/lib/offline-tests.mjs';
@@ -88,6 +89,8 @@ async function checkConvert(engine) {
   else {
     js = fs.readFileSync(engine.js, 'utf8');
     const {problems, facts} = checkEngineJs(js);
+    try { instrumentRender(js); row(P, 'GL 上下文观察接入点', 'PASS', '唯一锚点与作用域约定齐全；不是 GLX 真机验证'); }
+    catch (e) { row(P, 'GL 上下文观察接入点', 'FAIL', e.message); }
     if (problems.length) for (const p of problems) row(P, '引擎 JS：convert check 同款检查', 'FAIL', p, {where: srcLine('convert/lib/inputs.mjs', 'export function checkEngineJs'), fix: '确认引擎是 citizenll 微信分支、threads=no 编出的原始 godot.js；约定名字确实改了的话，同步改 inputs.mjs 的 WX_MARKERS / GODOT_EXPORTS / MODULE_TAIL 和 assets/godot-bridge.js'});
     else row(P, '引擎 JS：convert check 同款检查', 'PASS', `var Godot、module.exports 段、${['initConfig', 'initFS', 'copyToFS', 'callMain'].join('/')}、微信运行时约定、单线程${facts.needsNowPolyfill ? '；引擎依赖全局 nowPolyfill（启动桥会补）' : ''}`);
     const tails = js.split(MODULE_TAIL).length - 1;
@@ -135,8 +138,8 @@ async function runTransformer(P, exe, engine, js, tc) {
     const at = js.lastIndexOf(MODULE_TAIL);
     if (at < 0) return row(P, '转换器产物锚点', 'SKIP', '引擎 JS 没有截断点，接不上启动桥');
     // 与 convert.mjs 第 1 步相同：截断点之前 + 启动桥。
-    const bridge = fs.readFileSync(path.join(home, 'convert/assets/godot-bridge.js'), 'utf8').replace('__WXSLIM_LOCALE__', '"en"');
-    fs.writeFileSync(path.join(work, 'godot-bridged.js'), js.slice(0, at) + '\n' + bridge);
+    const bridge = fs.readFileSync(path.join(home, 'convert/assets/godot-bridge.js'), 'utf8').replace('__WXSLIM_LOCALE__', '"en"').replace('__WXSLIM_RENDER_MODE__', '"webgl"');
+    fs.writeFileSync(path.join(work, 'godot-bridged.js'), instrumentRender(js.slice(0, at)) + '\n' + bridge);
     const cfg = transformerConfig({jsFile: path.join(work, 'godot-bridged.js'), wasmFile: engine.wasm, symbolsFile: engine.symbols, outputDir: path.join(work, 'out'), appID: PLACEHOLDER_APPID, appName: 'doctor', engineVersion: VERIFIED.godot, orientation: 'portrait'});
     fs.writeFileSync(path.join(work, 'transformer.config.json'), JSON.stringify(cfg, null, 2));
     const t0 = Date.now(), run = spawnSync(exe, ['--config', path.join(work, 'transformer.config.json')], {cwd: work, windowsHide: true, timeout: 600000, encoding: 'utf8', maxBuffer: 64 * 1024 ** 2, env: {...process.env, NODE_TLS_REJECT_UNAUTHORIZED: '1'}});

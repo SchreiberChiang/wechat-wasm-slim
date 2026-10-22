@@ -1,5 +1,7 @@
 # 已知问题与处理结论
 
+2026-10-22 新增显式 GLX 实验选项，默认 WebGL 不变。配置、启动桥、实际上下文诊断统一；能力不足停止并给出原因，不能回退后称为 GLX 成功。工具合同和本地双包检查通过，真实 GLX 渲染/resize/恢复仍未测，不能把赛车已有模拟器能力阻断当兼容性故障。见 [适配说明](GLX_ADAPTATION.md) 与 [本地验证记录](GLX_LOCAL_VALIDATION_20261022.md)。
+
 2026-10-17 用新做的联网小游戏 Star Tap（`examples/startap/`）把整条流程走了一遍：
 
 > 新游戏 → Godot 导出 → **convert** 转通用适配 → 开发者工具 → **trim** 裁剪编译 → 重新 convert → **split** 分包（init → 采集 → Release → 组装）→ iPhone 实测

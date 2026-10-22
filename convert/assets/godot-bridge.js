@@ -32,9 +32,8 @@
       check(Number.isInteger(opts.expectedPackBytes) && opts.expectedPackBytes>0,'WXSLIM_PACK_SIZE_REQUIRED');
       check(wxApi && typeof wxApi.getFileSystemManager==='function','WXSLIM_WX_FS_REQUIRED');
       check(module.canvas || root.canvas,'WXSLIM_CANVAS_REQUIRED');
-      root.__godotMinigameWXGLXEnabled=false;
-      root.__GODOT_DISABLE_WXGLX=true;
-      check(!module.wxContextGlobal,'WXSLIM_UNEXPECTED_GLX_CONTEXT');
+      check(root.__WXSLIM_RENDER_DIAGNOSTIC__,'WXSLIM_RENDER_RUNTIME_REQUIRED');
+      root.__WXSLIM_RENDER_DIAGNOSTIC__.prepare(module,opts.renderMode);
       var ownsAudio=false;
       if(!root.GODOTSDK) {
         check(typeof wxApi.createWebAudioContext==='function','WXSLIM_NATIVE_AUDIO_REQUIRED');
@@ -55,9 +54,11 @@
       mark('FACTORY_START');state.factoryCalls++;
       return Promise.resolve(factory(module)).then(function (m) {
         check(m===module,'WXSLIM_MODULE_IDENTITY_CHANGED');
+        root.__WXSLIM_RENDER_DIAGNOSTIC__.attach(m);
         check(typeof m.initConfig==='function' && typeof m.initFS==='function' && typeof m.copyToFS==='function' && typeof m.callMain==='function','WXSLIM_GODOT_EXPORTS_REQUIRED');
         mark('GODOT_RUNTIME_READY');
         m.initConfig({canvas:m.canvas || root.canvas,canvasResizePolicy:2,locale:opts.locale || 'en',virtualKeyboard:false,persistentDrops:false,focusCanvas:false,godotPoolSize:4,onExit:function(code){
+          root.__WXSLIM_RENDER_DIAGNOSTIC__.exit(code);
           if(ownsAudio)releaseOwnedAudio();
           if(typeof opts.onExit==='function')opts.onExit(code);
         }});
@@ -77,7 +78,14 @@
             if(packIndex<0)actual.push('--main-pack',opts.packPath);
             else check(actual[packIndex+1]===opts.packPath,'WXSLIM_UNEXPECTED_MAIN_PACK');
             state.mainCalls++;mark('CALL_MAIN');
-            return nativeMain.call(m,actual);
+            try {
+              var result=nativeMain.call(m,actual);
+              root.__WXSLIM_RENDER_DIAGNOSTIC__.complete(result);
+              return result;
+            } catch(error) {
+              root.__WXSLIM_RENDER_DIAGNOSTIC__.fail(error);
+              throw error;
+            }
           };
           mark('PACK_READY_WAITING_LOADER_MAIN');
           module.onRuntimeInitialized=notifyRuntime;
@@ -88,6 +96,7 @@
       });
     }).catch(function(error){
       state.error=String(error && error.message || error);mark('FAILED');
+      if(root.__WXSLIM_RENDER_DIAGNOSTIC__)root.__WXSLIM_RENDER_DIAGNOSTIC__.fail(error);
       if(module && typeof module==='object')module.onRuntimeInitialized=previousRuntimeCallback;
       if(state.mainCalls===0)releaseOwnedAudio();
       throw error;
@@ -98,7 +107,7 @@
 
 if(typeof Module!=='undefined' && typeof readyPromiseResolve==='function' && typeof readyPromiseReject==='function') {
  var wxslimOuterResolve=readyPromiseResolve, wxslimOuterReject=readyPromiseReject;
- (typeof GameGlobal!=='undefined'?GameGlobal:globalThis).__WXSLIM_GODOT_BRIDGE__.start(Godot,Module,{autoCallMainAfterMount:true,locale:__WXSLIM_LOCALE__,expectedPackBytes:GameGlobal.__WXSLIM_PACKAGE_META__.pckBytes,packPath:GameGlobal.__WXSLIM_PACKAGE_META__.pck.filename,readPack:function(){
+ (typeof GameGlobal!=='undefined'?GameGlobal:globalThis).__WXSLIM_GODOT_BRIDGE__.start(Godot,Module,{autoCallMainAfterMount:true,renderMode:__WXSLIM_RENDER_MODE__,locale:__WXSLIM_LOCALE__,expectedPackBytes:GameGlobal.__WXSLIM_PACKAGE_META__.pckBytes,packPath:GameGlobal.__WXSLIM_PACKAGE_META__.pck.filename,readPack:function(){
  if(Module.__WXSLIM_CUSTOM_PACKAGE_READY__!==true)throw Error('WXSLIM_CUSTOM_PACKAGE_NOT_VALIDATED');
  var owned=Module.__WXSLIM_CUSTOM_PCK_BYTES__;
  if(!owned || owned.byteLength!==GameGlobal.__WXSLIM_PACKAGE_META__.pckBytes)throw Error('WXSLIM_RETAINED_PACKAGE_MISSING');

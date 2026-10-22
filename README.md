@@ -41,6 +41,8 @@ convert 做的事：把上面两样接起来——接上启动桥，把 PCK 打�
 
 ## 一个游戏一份配置：wxslim.json
 
+渲染默认仍为 WebGL。实验 GLX 使用 `game.renderMode: "glx"` 或 `convert --render-mode glx`；配置、加载前模式锁定和引擎启动桥统一选择，不支持或不匹配时停止，不能静默回退。一次性诊断、回退与验证边界见 [GLX 适配说明](docs/GLX_ADAPTATION.md)，最小项目见 [examples/glx-smoke](examples/glx-smoke/README.md)。
+
 一个游戏只填一份 `wxslim.json`（放在游戏的工作目录里），convert、trim、split 都用 `--config wxslim.json` 读自己那一段。同目录有 `wxslim.private.json` 时自动合并覆盖：**AppID 来源、AppID、私钥路径、云环境 ID 只能写在 private 文件里**（`*.private.*` 已在 .gitignore 里），写进公开文件会直接报错。完整示例见 [examples/startap/wxslim.json](examples/startap/wxslim.json)。
 
 ```jsonc
@@ -64,7 +66,7 @@ convert 做的事：把上面两样接起来——接上启动桥，把 PCK 打�
 
 | 段 | 谁读 | 字段 |
 |---|---|---|
-| `game` | 都读 | `name`、`godotProject`（trim scan）、`pck`、`interfaces`、`orientation`、`locale`、`compat`/`timing`（false = 不装兼容层/计时）；private：`appidFrom` 或 `appid` |
+| `game` | 都读 | `name`、`godotProject`（trim scan）、`pck`、`interfaces`、`orientation`、`locale`、`renderMode`（webgl 默认 / glx 实验）、`compat`/`timing`（false = 不装兼容层/计时）；private：`appidFrom` 或 `appid` |
 | `engine` | convert | 引擎来源四选一：`fromTrim`（用 `<trim.work>/artifacts`）、`artifacts`、`export`、`js`+`wasm`(+`symbols`) |
 | `trim` | trim | `config`（scan 生成的裁剪配置，默认 `./trim.config.json`）、`level`（覆盖其中的“当前档位”）、`overrides`（合并进“手动覆盖”，同样校验）、`lto`、`work`（编译目录，放在工具包外）、`jobs`、`maxMinutes` |
 | `split` | split | 和旧 `*.kit.json` 同名的字段：`projectName`、`mode`（assemble 的默认模式）、`workDir`、`workProject`、`symbols`、`officialCli`、`releasePck`、`trainingPck`、`releaseInterfaces`、`trainingGateHost`、`cloud`、`devtoolsDir`；private：`privateKeyPath`、`cloud.env` |

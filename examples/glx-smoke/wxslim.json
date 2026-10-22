@@ -1,0 +1,22 @@
+{
+  "格式": "wechat-wasm-slim/game-v1",
+  "说明": "默认 WebGL。GLX 仅显式 --render-mode glx；对照输出到不同的新目录。实际 engine 来源和 AppID 来源放同目录 wxslim.private.json。",
+  "game": {
+    "name": "glx-smoke",
+    "godotProject": ".",
+    "pck": "../../.local/glx-smoke/glx-smoke.pck",
+    "interfaces": "./local-interfaces.js",
+    "orientation": "portrait",
+    "renderMode": "webgl",
+    "timing": false
+  },
+  "engine": {
+    "说明": "在不入库的 wxslim.private.json 写 engine.artifacts，或 engine.js + engine.wasm + engine.symbols。"
+  },
+  "split": {
+    "cloud": { "env": null }
+  },
+  "output": {
+    "dir": "../../.local/glx-smoke/default-webgl"
+  }
+}

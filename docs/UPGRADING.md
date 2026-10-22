@@ -114,7 +114,7 @@ split 的锚点有两类：官方模板里的锚点，和前面补丁插入的�
 
 ## doctor 查不到的
 
-- 行为层面的变化（锚点都命中但语义变了）：只有 split 有离线测试兜底，convert 侧要靠开发者工具和真机。
+- 行为层面的变化（锚点都命中但语义变了）：split 有离线测试；convert 的渲染配置与启动桥有 Node VM 合同（`tests/render-*-tests.mjs`），但真实 GLX/native、像素与恢复仍要靠微信宿主和真机。新渲染观察入口要求 `installWXGLXPatches();` 唯一命中以及 wxGLXGet*/CallNative/GLctx 约定，doctor 与 convert 共用检查；不支持的引擎变体必须先核对再移植。
 - `convert/assets/wx-compat.js`、`custom-package.js`、`single-entry.js` 依赖的小游戏基础库和 WXGameKit 运行时行为。
 - 微信开发者工具、基础库版本、手机微信版本的变化。
 - 分包后真机上的缺函数情况（要靠采集和云日志）。

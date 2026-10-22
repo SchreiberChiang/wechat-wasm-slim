@@ -8,6 +8,8 @@ ledgers/
 kit-work/
 *.private.*
 node_modules/
+.local/
+.godot/
 *.pem
 # Godot 生成的资源 ID 文件
 *.uid
