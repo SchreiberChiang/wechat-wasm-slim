@@ -74,3 +74,9 @@ node examples/glx-smoke/diagnostic-engine.mjs --input <原始引擎godot.js> --o
 探针在原调用边界记录 native 主循环、afterDoFrame/flush、batchRenderAsync、swapWindow 的次数和返回/抛错状态；不读取命令缓冲内容，不创建上下文，不补发 rAF、flush、swap 或自动恢复。约 3、8、15 秒输出最多三条 `[WXSLIM_FRAME_PROBE]`，计时起点为探针安装，实际时间以记录为准；采集窗口结束后停止计数并移除自有监听。记录中的调用返回和帧数增长都不能替代人工可见画面验证。
 
 此版本用于定位，不能用来测性能或声称修复。手机保持前台约 20 秒，无需点击游戏内摘要按钮，再从 vConsole 导出全部日志；记录这次是否黑屏。若返回到同一个已结束采集的 JS 会话，旧三条记录不代表恢复后的状态。新预览及手机操作继续受会话中的用户授权范围约束。
+
+### 经批准的现有云日志接入
+
+`cloud-interfaces.mjs --config <private JSON> --out <新 interfaces.js>` 将现有 `split/assets/phone-log.js` 与本示例手动接口拼合。私有 JSON 必须明确给出 `env` 和唯一 `build`；正常 convert 使用该接口作为 `--interfaces`，生成新包身份。工具不部署或修改云函数，不修改默认转换器，也不覆盖已有输出。
+
+仅转发 PHONE_LOG_START、WXSLIM_BOOT、WXSLIM_RENDER_SUMMARY 和 WXSLIM_FRAME_PROBE；其他 console/error 不上传。复用现有协议的设备平台、型号、系统和基础库字段，服务端按既有身份校验存储。上报在 60 秒后停止，后台冻结可能延迟定时器执行；未成功发送的队列不会保存到存储。按唯一 build 查询现有 phone_log_batches，必须看到云端实际返回记录才能声称上报成功。2026-10-23 用户已明确批准本轮最小诊断包接入现有云日志及手机预览，未授权更改赛车或服务器。
