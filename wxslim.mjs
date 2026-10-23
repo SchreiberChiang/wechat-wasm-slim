@@ -1,10 +1,11 @@
 #!/usr/bin/env node
+import {fileURLToPath} from 'node:url';
 // 总入口：只做转发。node wxslim.mjs <convert|trim|split> <子命令> [--config wxslim.json] ...
 // 另外 `node wxslim.mjs config --config wxslim.json` 校验统一配置并打印合并后的值（私密值只显示“已设置”）。
 import path from 'node:path';import {spawnSync} from 'node:child_process';
 import {loadGameConfig, describe} from './lib/game-config.mjs';
 
-const home = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+const home = path.dirname(fileURLToPath(import.meta.url));
 const TOOLS = {convert: 'convert/convert.mjs', trim: 'trim/trim.mjs', split: 'split/kit.mjs'};
 const [tool, ...rest] = process.argv.slice(2);
 const USAGE = '用法：node wxslim.mjs <convert|trim|split> <子命令> [--config wxslim.json] ...\n      node wxslim.mjs config --config wxslim.json   # 校验统一配置，打印合并后的值';

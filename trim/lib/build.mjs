@@ -22,7 +22,7 @@ function run(cmd, args, {cwd, env, log, timeoutMs = 3 * 3600e3}) {
     child.once('error', reject); child.once('close', code => { clearTimeout(t); if (log) fs.closeSync(out); code === 0 ? resolve() : reject(Error(`${path.basename(cmd)} exit ${code}${log ? '，日志：' + log : ''}`)); });
   });
 }
-export const capture = (cmd, args, opt = {}) => new Promise((res, rej) => { let s = ''; const c = spawn(cmd, args, {...opt, windowsHide: true}); c.stdout.on('data', d => s += d); c.stderr.on('data', d => s += d); c.once('close', code => code === 0 ? res(s.trim()) : rej(Error(s.trim()))); });
+export const capture = (cmd, args, opt = {}) => new Promise((res, rej) => { let s = ''; const c = spawn(cmd, args, {...opt, windowsHide: true}); c.stdout.on('data', d => s += d); c.stderr.on('data', d => s += d); c.once('error', rej); c.once('close', code => code === 0 ? res(s.trim()) : rej(Error(s.trim()))); });
 
 /** 检查工具链：Python+SCons、emscripten 4.0.10、git、源码固定提交。 */
 export async function checkToolchain(tc) {
@@ -34,12 +34,104 @@ export async function checkToolchain(tc) {
   if (!/4\.0\.10/.test(r.emcc)) throw Error('需要 emscripten 4.0.10（引擎附带的 libemscriptenglx 只匹配这个版本）：' + r.emcc);
   r.commit = await capture('git.exe', ['-C', tc.engineSource, 'rev-parse', 'HEAD']);
   if (tc.pin && r.commit !== tc.pin) throw Error(`引擎源码提交不对：期望 ${tc.pin}，实际 ${r.commit}`);
+  r.glxLibrary = await glxInput(tc, r.commit, tc.engineSource);
   return r;
 }
 export function buildEnv(tc) {
   const base = {...process.env}, cache = path.join(tc.emsdk, 'upstream/emscripten/cache');
-  const env = {...base, EMSDK: tc.emsdk, EM_CONFIG: path.join(tc.emsdk, '.emscripten'), EMSDK_PYTHON: tc.python, EM_CACHE: cache, PATH: [path.dirname(tc.python), path.join(tc.emsdk, 'upstream/emscripten'), tc.emsdk, base.PATH ?? base.Path ?? ''].join(path.delimiter)};
+  // Only sanitize the child environment; never change the caller's SDK session.
+  for (const k of Object.keys(base)) if (/^(EM_|EMCC_|EMSDK|EMMAKEN_|BINARYEN_)|^(NODE_OPTIONS|NODE_PATH|PYTHONHOME|PYTHONPATH)$/i.test(k)) delete base[k];
+  const env = {...base, PYTHONDONTWRITEBYTECODE: '1', EMSDK: tc.emsdk, EM_CONFIG: path.join(tc.emsdk, '.emscripten'), EMSDK_PYTHON: tc.python, EM_CACHE: cache, PATH: [path.dirname(tc.python), path.join(tc.emsdk, 'upstream/emscripten'), tc.emsdk, base.PATH ?? base.Path ?? ''].join(path.delimiter)};
   delete env.Path; delete env.NODE_OPTIONS; return env;
+}
+
+export function resolveToolchain(t, file) {
+  const tc = {...t}, base = path.dirname(path.resolve(file));
+  for (const k of ['engineSource', 'emsdk', 'python', 'glxLibrary']) if (tc[k]) tc[k] = path.resolve(base, tc[k]);
+  tc.patches = (tc.patches || []).map(p => path.resolve(base, p));
+  return tc;
+}
+const git = (dir, args) => capture('git.exe', ['-C', dir, ...args]);
+const fileIdentity = file => ({path: path.resolve(file), bytes: fs.statSync(file).size, sha256: sha(fs.readFileSync(file))});
+const gitBlob = (dir, ref) => new Promise((resolve, reject) => {
+  const c = spawn('git.exe', ['-C', dir, 'show', ref], {windowsHide: true}), chunks = []; let err = '';
+  c.stdout.on('data', b => chunks.push(b)); c.stderr.on('data', b => err += b);
+  c.once('error', reject); c.once('close', code => code === 0 ? resolve(Buffer.concat(chunks)) : reject(Error(err)));
+});
+
+/** Snapshot only Git source state: generated/ignored build trees are never traversed. */
+export async function sourceState(dir) {
+  const trackedDiff = await git(dir, ['diff', '--binary', 'HEAD', '--', '.']);
+  const allNames = (await git(dir, ['ls-files', '--others', '--exclude-standard', '-z'])).split('\0').filter(Boolean);
+  const names = allNames.filter(n => !/^(bin|build|\.scons|\.cache|\.godot)\//.test(n) && /\.(c|cc|cpp|h|hpp|py|js|mjs|json|gd|glsl|inc|inl|txt|patch)$|(^|\/)SC(sub|onstruct)$/.test(n));
+  // Keep an aggregate digest and a bounded path preview, not a dump of untracked artifacts.
+  const entries = names.map(name => {
+    const file = path.join(dir, name), st = fs.lstatSync(file);
+    return {path: name, bytes: st.size, sha256: st.isFile() ? sha(fs.readFileSync(file)) : sha(fs.readlinkSync(file))};
+  });
+  return {head: await git(dir, ['rev-parse', 'HEAD']), trackedDiff,
+    trackedDiffSha256: sha(trackedDiff), untracked: {scope: 'source extensions and SCons files, excluding build/bin/cache directories', count: entries.length, excludedCount: allNames.length - names.length, sha256: sha(JSON.stringify(entries)), paths: names.slice(0, 40), truncated: names.length > 40}};
+}
+
+/** Resolve the exact library that will be linked, including the legacy bundled default. */
+export async function glxInput(tc, commit, stage) {
+  if (tc.glxLibrarySha256 && !tc.glxLibrary) throw Error('glxLibrarySha256 需要 glxLibrary');
+  let library;
+  if (tc.glxLibrary) {
+    if (!/^[0-9a-f]{64}$/i.test(tc.glxLibrarySha256 || '')) throw Error('外部 glxLibrary 必须配置 64 位 glxLibrarySha256');
+    library = {...fileIdentity(tc.glxLibrary), kind: 'external'};
+    if (library.sha256 !== tc.glxLibrarySha256.toLowerCase()) throw Error('GLX library SHA256 mismatch: ' + library.path);
+  } else {
+    const files = (await git(tc.engineSource, ['ls-tree', '-r', '--name-only', commit])).split('\n');
+    const matches = files.filter(f => /(^|\/)libemscriptenglx_4\.0\.10\.a$/.test(f));
+    if (matches.length !== 1) throw Error('无法唯一确定源码附带的 libemscriptenglx_4.0.10.a');
+    const blob = await gitBlob(tc.engineSource, `${commit}:${matches[0]}`);
+    library = {kind: 'bundled', sourcePath: matches[0], path: path.resolve(stage, matches[0]), bytes: blob.length, sha256: sha(blob)};
+  }
+  return library;
+}
+
+export async function buildIdentity({tc, profileFile, stage, lto, symbols, ltoJobs}) {
+  const commit = await git(tc.engineSource, ['rev-parse', tc.pin || 'HEAD']);
+  const glxLibrary = await glxInput(tc, commit, stage);
+  const sdkFiles = ['.emscripten', '.emsdk_version', 'upstream/emscripten/emscripten-version.txt', 'upstream/emscripten/emcc.py', 'upstream/emscripten/em++.py',
+    'upstream/bin/clang.exe', 'upstream/bin/wasm-ld.exe', 'upstream/bin/wasm-opt.exe', 'upstream/bin/clang', 'upstream/bin/wasm-ld', 'upstream/bin/wasm-opt'];
+  for (const category of ['node', 'python']) {
+    const root = path.join(tc.emsdk, category);
+    if (fs.existsSync(root)) for (const dir of fs.readdirSync(root)) for (const exe of category === 'node' ? ['node.exe', 'bin/node.exe', 'bin/node'] : ['python.exe', 'bin/python.exe', 'bin/python3']) {
+      const rel = `${category}/${dir}/${exe}`; if (fs.existsSync(path.join(tc.emsdk, rel))) sdkFiles.push(rel);
+    }
+  }
+  const files = sdkFiles.map(f => path.join(tc.emsdk, f)).filter(fs.existsSync).map(fileIdentity);
+  // This is a bounded SDK fingerprint, not a claim of hashing every SDK/cache byte.
+  const sdkRoot = await git(tc.emsdk, ['rev-parse', '--show-toplevel']).catch(() => null);
+  const gitHead = sdkRoot && path.resolve(sdkRoot).toLowerCase() === path.resolve(tc.emsdk).toLowerCase() ? await git(tc.emsdk, ['rev-parse', 'HEAD']) : null;
+  const venvConfig = path.join(path.dirname(tc.python), '..', 'pyvenv.cfg');
+  const pythonVenv = fs.existsSync(venvConfig) ? fileIdentity(venvConfig) : null;
+  const venvText = pythonVenv ? fs.readFileSync(venvConfig, 'utf8') : '';
+  const baseExecutable = /^executable\s*=\s*(.+)$/m.exec(venvText)?.[1].trim();
+  const sdk = {path: path.resolve(tc.emsdk), gitHead, files, python: fileIdentity(tc.python), pythonVenv,
+    pythonBase: baseExecutable && fs.existsSync(baseExecutable) ? fileIdentity(baseExecutable) : null};
+  return {contractVersion: 2, pin: commit, patches: (tc.patches || []).map(p => ({file: path.basename(p), sha256: sha(fs.readFileSync(p))})),
+    cppdefines: tc.cppdefines || '', lto, ltoJobs: lto === 'thin' ? ltoJobs : null, symbols,
+    profileSha256: sha(fs.readFileSync(profileFile)), commonArgs: COMMON_ARGS, glxLibrary, sdk,
+    hostRuntime: {node: fileIdentity(process.execPath), versions: {...process.versions}}, windowsAdapterSha256: sha(LINK_ADAPTER)};
+}
+
+export function assertBuildIdentity(previous, identity, state) {
+  if (previous && JSON.stringify(previous) !== JSON.stringify(identity)) throw Error('这个 --work 目录上次的编译输入不同（源码/补丁/宏/参数/profile/GLX/SDK），不能续编。换一个新的 --work 目录。差异见 ' + state);
+}
+
+export function assertStageInputs(previous, current) {
+  if (!previous) return;
+  if (previous.head !== current.head || previous.trackedDiffSha256 !== current.trackedDiffSha256 || previous.untracked.sha256 !== current.untracked.sha256) {
+    throw Error('stage source 在续编前已改变（包含未跟踪源码），请保留现场并使用新目录');
+  }
+}
+
+export function outputPair(glue, raw, br) {
+  const outputs = Object.fromEntries([['godot.js', glue], ['godot.wasm', raw], ['godot.wasm.br', br]].map(([name, b]) => [name, {bytes: b.length, sha256: sha(b)}]));
+  return {outputs, pairing: {sha256: sha(JSON.stringify(outputs)), files: Object.keys(outputs), brotliDecodesToWasm: zlib.brotliDecompressSync(br).equals(raw)}};
 }
 
 /** 编译一个 .gdbuild。workDir 下：engine/（源码克隆）、logs/、artifacts/、BUILD.json。 */
@@ -49,23 +141,33 @@ export async function buildEngine({tc, profileFile, workDir, symbols = true, job
   const stage = path.join(workDir, 'engine'), logs = path.join(workDir, 'logs'), state = path.join(workDir, 'BUILD.json');
   const rec = fs.existsSync(state) ? JSON.parse(fs.readFileSync(state, 'utf8')) : {startedAt: new Date().toISOString()};
   // 编译身份：源码提交、补丁、宏、编译参数、build profile 的哈希。续编时必须和上次完全一致，否则拒绝混用。
-  const identity = {pin: tc.pin || null, patches: (tc.patches || []).map(p => ({file: path.basename(p), sha256: sha(fs.readFileSync(p))})), cppdefines: tc.cppdefines || '', lto, symbols, profileSha256: sha(fs.readFileSync(profileFile)), commonArgs: COMMON_ARGS};
-  if (rec.identity && JSON.stringify(rec.identity) !== JSON.stringify(identity)) throw Error('这个 --work 目录上次的编译输入不同（源码/补丁/宏/参数/profile），不能续编。换一个新的 --work 目录。差异见 ' + state);
+  const identity = await buildIdentity({tc, profileFile, stage, lto, symbols, ltoJobs});
+  assertBuildIdentity(rec.identity, identity, state);
   rec.identity = identity;
   const save = () => fs.writeFileSync(state, JSON.stringify(rec, null, 2) + '\n');
+  rec.source = {...await sourceState(tc.engineSource), policy: 'Only the pinned commit is cloned; source working-tree changes are not copied.'};
+  save();
   const env = {...buildEnv(tc), TEMP: path.join(workDir, 'temp'), TMP: path.join(workDir, 'temp'), EMCC_TEMP_DIR: path.join(workDir, 'temp')}; await fsp.mkdir(env.TEMP, {recursive: true});
   if (!fs.existsSync(stage)) {
     onLog('克隆引擎源码（独立副本）…');
     await run('git.exe', ['clone', '--no-local', '--no-hardlinks', '--no-checkout', tc.engineSource, stage], {log: path.join(logs, 'clone.log')});
     await run('git.exe', ['-C', stage, 'config', 'core.autocrlf', 'false'], {log: path.join(logs, 'clone.log')});
-    await run('git.exe', ['-C', stage, 'checkout', '--detach', tc.pin || 'HEAD'], {log: path.join(logs, 'clone.log')});
+    await run('git.exe', ['-C', stage, 'checkout', '--detach', identity.pin], {log: path.join(logs, 'clone.log')});
     for (const p of tc.patches || []) await run('git.exe', ['-C', stage, 'apply', '--whitespace=nowarn', p], {log: path.join(logs, 'patches.log')});
   }
   const detect = path.join(stage, 'platform/web/detect.py'); let dt = fs.readFileSync(detect, 'utf8');
   if (!dt.includes('ENGINE_LAB_WINDOWS_LINK_RESPONSE_V')) { if (dt.split(DETECT_ANCHOR).length !== 2) throw Error('detect.py 锚点变了，无法加 Windows 链接适配'); fs.writeFileSync(detect, dt.replace(DETECT_ANCHOR, DETECT_ANCHOR + '\n' + LINK_ADAPTER)); }
+  const stageState = {...await sourceState(stage), policy: 'Pinned commit plus configured patches and Windows link response adapter.'};
+  if (stageState.head !== identity.pin) throw Error('stage HEAD 不匹配编译身份');
+  assertStageInputs(rec.stage, stageState);
+  rec.stage = stageState;
+  rec.stageInputs = rec.stage.trackedDiffSha256;
+  if (fileIdentity(identity.glxLibrary.path).sha256 !== identity.glxLibrary.sha256) throw Error('stage/external GLX library SHA256 mismatch');
+  save();
   for (const t of SOURCE_TESTS) { const f = path.join(stage, 'platform/web/js/tests', t); if (fs.existsSync(f)) await run(process.execPath, [f], {cwd: stage, env, log: path.join(logs, 'source-tests.log')}); }
   const profile = path.join(workDir, 'profile.gdbuild'); fs.copyFileSync(profileFile, profile);
   const args = [...COMMON_ARGS, `lto=${lto}`, `--jobs=${jobs}`, 'modules_enabled_by_default=yes', `build_profile=${profile}`];
+  args.push(`wx_glx_lib=${identity.glxLibrary.path}`);
   if (tc.cppdefines) args.push(`cppdefines=${tc.cppdefines}`);
   const linkflags = [symbols ? '--emit-symbol-map' : '', lto === 'thin' ? `-Wl,--thinlto-jobs=${ltoJobs}` : ''].filter(Boolean).join(' ');
   if (linkflags) args.push('linkflags=' + linkflags);
@@ -99,6 +201,6 @@ export async function buildEngine({tc, profileFile, workDir, symbols = true, job
   fs.writeFileSync(path.join(art, 'godot.js'), glue); fs.writeFileSync(path.join(art, 'godot.wasm'), raw); fs.writeFileSync(path.join(art, 'godot.wasm.br'), br);
   const symSrc = [path.join(stage, 'bin/.web_zip/godot.js.symbols'), path.join(stage, 'bin/godot.web.template_release.wasm32.nothreads.js.symbols')].find(fs.existsSync);
   if (symSrc) { const lines = fs.readFileSync(symSrc, 'utf8'); fs.writeFileSync(path.join(art, 'godot.js.symbols'), lines); const map = {}; for (const l of lines.split('\n')) { const i = l.indexOf(':'); if (i > 0) map[l.slice(0, i)] = l.slice(i + 1).trim(); } fs.writeFileSync(path.join(art, 'symbols.json'), JSON.stringify(map)); }
-  Object.assign(rec, {finishedAt: new Date().toISOString(), enabledModules: enabled, wasmBytes: raw.length, wasmBrBytes: br.length, glueBytes: glue.length, symbols: !!symSrc, wasmSha256: sha(raw)}); save();
+  Object.assign(rec, {finishedAt: new Date().toISOString(), enabledModules: enabled, wasmBytes: raw.length, wasmBrBytes: br.length, glueBytes: glue.length, symbols: !!symSrc, wasmSha256: sha(raw), glueSha256: sha(glue), wasmBrSha256: sha(br), ...outputPair(glue, raw, br)}); save();
   return rec;
 }

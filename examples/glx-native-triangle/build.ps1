@@ -48,6 +48,9 @@ $argsList = @(
     # Matches the full baseline's detect.py:352 and provenance tmp0ro2obs8.lnk.
     # main.cpp/strict-post.js do not use emscripten_webgl_get_proc_address.
     '-sGL_ENABLE_GET_PROC_ADDRESS=0',
+    # Match Godot detect.py:441 / audited tmp0ro2obs8.lnk. The Safari shim
+    # references browser WebGLRenderingContext, absent in the WeChat GLX host.
+    '-sGL_WORKAROUND_SAFARI_GETCONTEXT_BUG=0',
     # The baseline uses EXIT_RUNTIME=1; main keeps the runtime alive with its
     # emscripten_set_main_loop(..., true), rather than relying on a natural return.
     '-sEXIT_RUNTIME=1', '-sALLOW_MEMORY_GROWTH=1', '-sINITIAL_MEMORY=33554432',

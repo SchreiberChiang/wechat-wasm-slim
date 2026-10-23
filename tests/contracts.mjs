@@ -1,10 +1,11 @@
+import {fileURLToPath} from 'node:url';
 // 契约测试：文档里的“游戏接入约定”（点击门、采集门、接口文件、[STARTUP_3D_FLOW] 计时事件）靠这些用例保证。
 // 用的是仓库里真实的运行时文件（点击门核心、采集门、wx-compat、插件 JS、计时模块）和插件 GDScript 源码；
 // 微信环境用 vm 模拟，Godot 一侧要么静态检查源码，要么（给了 Godot 可执行文件时）headless 跑 tests/godot-flow 截 stdout。
 import fs from 'node:fs'; import path from 'node:path'; import os from 'node:os'; import vm from 'node:vm'; import {spawnSync} from 'node:child_process';
 import {runTimingTests} from '../split/lib/timing-tests.mjs';
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const read = rel => fs.readFileSync(path.join(root, rel), 'utf8');
 const ADDON = 'godot-addon/addons/wx_split';
 const src = {

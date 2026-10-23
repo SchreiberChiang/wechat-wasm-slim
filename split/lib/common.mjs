@@ -1,3 +1,4 @@
+import {fileURLToPath} from 'node:url';
 import fs from 'node:fs';import path from 'node:path';import crypto from 'node:crypto';import zlib from 'node:zlib';import {execFile,spawn} from 'node:child_process';
 export const sha = b => crypto.createHash('sha256').update(b).digest('hex');
 export const readJson = p => JSON.parse(fs.readFileSync(p, 'utf8'));
@@ -6,7 +7,7 @@ export function check(v, code) { if (!v) throw Object.assign(Error(code), {code}
 export function copyTree(a, b) { check(!fs.existsSync(b), 'TARGET_EXISTS:' + b); (function c(x, y) { fs.mkdirSync(y, {recursive: true}); for (const e of fs.readdirSync(x, {withFileTypes: true})) { const s = path.join(x, e.name), d = path.join(y, e.name); check(!fs.lstatSync(s).isSymbolicLink(), 'SYMLINK:' + s); e.isDirectory() ? c(s, d) : fs.copyFileSync(s, d, fs.constants.COPYFILE_EXCL); } })(a, b); }
 export function editText(file, fn) { const s = fs.readFileSync(file, 'utf8'), n = fn(s); check(n !== s, 'NO_CHANGE:' + file); fs.writeFileSync(file, n); }
 export function replaceOnce(s, a, b, label) { const n = s.split(a).length - 1; check(n === 1, `ANCHOR_${n ? 'NOT_UNIQUE' : 'MISSING'}:${label || a.slice(0, 50)}`); return s.replace(a, b); }
-export const kitDir = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
+export const kitDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const asset = n => fs.readFileSync(path.join(kitDir, 'assets', n), 'utf8');
 
 /** Project facts the kit relies on. */

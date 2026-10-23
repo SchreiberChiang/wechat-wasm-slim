@@ -1,3 +1,4 @@
+import {fileURLToPath} from 'node:url';
 // 统一配置 wxslim.json 的解析与校验测试（离线，不需要工具链）。运行：node --test tests/
 import test from 'node:test';import assert from 'node:assert/strict';
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import {spawnSync} from 'node:child_process';
@@ -5,7 +6,7 @@ import {FORMAT, isGameConfig, loadGameConfig, convertArgs, trimSettings, splitCo
 import {toBuildProfile} from '../trim/lib/scan.mjs';
 import {normalizeRenderMode, transformerConfig} from '../convert/lib/inputs.mjs';
 
-const KIT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
+const KIT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STARTAP = path.join(KIT, 'examples/startap');
 const APPID = 'wx' + '0123456789abcdef';
 

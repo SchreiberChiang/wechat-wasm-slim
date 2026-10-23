@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // 微信 Godot 引擎编译期裁剪：扫描项目 → 可手动开关的配置 → .gdbuild → 编译 → 替换进小游戏工程。用法见 ../README.md。
 import fs from 'node:fs';import path from 'node:path';import zlib from 'node:zlib';
+import {fileURLToPath} from 'node:url';
 import {engineMap, scanProject, proposeConfig, toBuildProfile, normalizeOverrides} from './lib/scan.mjs';
-import {checkToolchain, buildEngine} from './lib/build.mjs';
+import {checkToolchain, buildEngine, resolveToolchain} from './lib/build.mjs';
 import {treatAsGameConfig, loadGameConfig, trimSettings} from '../lib/game-config.mjs';
 
 const argv = process.argv.slice(2), cmd = argv[0];
@@ -17,9 +18,9 @@ const val = (k, fromGame) => opt(k) ? path.resolve(opt(k)) : game && fromGame !=
 const trimConfig = () => game ? trimCfgOf().load() : readJson(need('config'));
 // 工具链配置：--toolchain 指定的文件 > 同目录 trim.toolchain.private.json（本机，不进仓库）> trim.toolchain.json（示例）。
 // patches 相对路径按工具目录解析（私密配置里也能写 patches/xxx.patch）。
-const home = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+const home = path.dirname(fileURLToPath(import.meta.url));
 const toolchainFile = () => opt('toolchain') ? path.resolve(opt('toolchain')) : fs.existsSync(path.join(home, 'trim.toolchain.private.json')) ? path.join(home, 'trim.toolchain.private.json') : path.join(home, 'trim.toolchain.json');
-const toolchain = () => { const f = toolchainFile(); const t = readJson(f); for (const k of ['engineSource', 'emsdk', 'python']) t[k] = path.resolve(path.dirname(f), t[k]); t.patches = (t.patches || []).map(p => path.resolve(path.dirname(f), p)); return t; };
+const toolchain = () => { const f = toolchainFile(); return resolveToolchain(readJson(f), f); };
 const mb = n => (n / 1e6).toFixed(2) + ' MB';
 
 const commands = {

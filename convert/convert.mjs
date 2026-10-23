@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import {fileURLToPath} from 'node:url';
 // Godot 4 Web 导出 → 微信小游戏通用适配（WXGameKit）工程。用法见 ../README.md 的“转换（convert）”。
 import fs from 'node:fs';import path from 'node:path';import zlib from 'node:zlib';import {spawnSync} from 'node:child_process';
 import {sha, md5, MODULE_TAIL, FRAMEWORK_ANCHORS as FA, GAMEJS_ANCHORS as GA, transformerConfig, normalizeRenderMode, normalizeLoadingPage, configureLoadingPage, locateInputs, checkInputs} from './lib/inputs.mjs';
@@ -6,7 +7,7 @@ import {instrumentRender, renderManifest} from './lib/render.mjs';
 import {verifyProject, PLACEHOLDER_APPID} from './lib/verify.mjs';
 import {FORMAT, treatAsGameConfig, loadGameConfig, convertArgs} from '../lib/game-config.mjs';
 
-const home = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
+const home = path.dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2), cmd = argv[0];
 const argOpt = k => { const i = argv.indexOf('--' + k); return i > 0 ? argv[i + 1] : undefined; };
 // --config wxslim.json：从统一配置的 game / engine / output 段取值，命令行参数优先。不带 --config 时和以前完全一样。

@@ -1,3 +1,4 @@
+import {fileURLToPath} from 'node:url';
 // 工具包自身的测试入口（不联网、不碰小游戏后台）：
 //   node tests/run.mjs                               契约测试 + 计时测试 + 所有 .mjs 的 node --check
 //   node tests/run.mjs --godot <Godot 4.7.2 可执行文件>  再 headless 跑 tests/godot-flow，核对插件在电脑上的分支和打印格式（也可用环境变量 WXSLIM_GODOT）
@@ -11,7 +12,7 @@ const godot = opts('godot')[0] || process.env.WXSLIM_GODOT || null, flowLogs = o
 if (godot && !fs.existsSync(godot)) { console.error('找不到 Godot 可执行文件：' + godot); process.exit(2); }
 for (const f of flowLogs) if (!fs.existsSync(f)) { console.error('找不到 --flow-log 文件：' + f); process.exit(2); }
 
-const root = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const skip = new Set(['node_modules', '.git', '.godot', '.local', 'kit-work', 'work']);
 const mjs = []; (function walk(d) { for (const e of fs.readdirSync(d, {withFileTypes: true})) { if (skip.has(e.name)) continue; const p = path.join(d, e.name); e.isDirectory() ? walk(p) : e.name.endsWith('.mjs') && mjs.push(p); } })(root);
 const results = mjs.map(f => { const r = spawnSync(process.execPath, ['--check', f], {encoding: 'utf8'}); return {name: 'node --check ' + path.relative(root, f).replace(/\\/g, '/'), ok: r.status === 0, error: (r.stderr || '').slice(0, 400)}; });
@@ -20,7 +21,7 @@ for (const rel of ['convert/assets/godot-bridge.js', 'convert/assets/render-runt
   results.push({name: 'node --check ' + rel, ok: r.status === 0, error: (r.stderr || '').slice(0, 400)});
 }
 results.push(...runContracts({godot, flowLogs}));
-const renderTests = spawnSync(process.execPath, ['--test', 'tests/config-tests.mjs', 'tests/render-config-tests.mjs', 'tests/render-runtime-tests.mjs', 'tests/glx-frame-probe-tests.mjs', 'tests/glx-cloud-interfaces-tests.mjs', 'tests/glx-smoke-identity-tests.mjs', 'tests/glx-acceptance-summary-tests.mjs', 'tests/glx-presentation-tests.mjs', 'tests/glx-canvas-export-tests.mjs'], {cwd: root, encoding: 'utf8', timeout: 120000});
+const renderTests = spawnSync(process.execPath, ['--test', 'tests/config-tests.mjs', 'tests/render-config-tests.mjs', 'tests/render-runtime-tests.mjs', 'tests/glx-frame-probe-tests.mjs', 'tests/glx-cloud-interfaces-tests.mjs', 'tests/glx-smoke-identity-tests.mjs', 'tests/glx-acceptance-summary-tests.mjs', 'tests/glx-presentation-tests.mjs', 'tests/glx-canvas-export-tests.mjs', 'tests/selfbuild-contract-tests.mjs', 'tests/selfbuild-pair-tests.mjs', 'tests/selfbuild-candidate-tests.mjs'], {cwd: root, encoding: 'utf8', timeout: 120000});
 results.push({name: '配置与 WebGL/GLX 运行时合同', ok: renderTests.status === 0, error: (renderTests.stdout || '') + (renderTests.stderr || '')});
 
 for (const x of results) console.log(x.ok ? 'PASS' : 'FAIL', x.name, x.ok ? '' : '\n    ' + x.error.replace(/\n/g, '\n    '));
