@@ -110,3 +110,13 @@ node examples/glx-smoke/presentation-engine.mjs --input <原始引擎godot.js> -
 独立 `[WXSLIM_CANVAS_EXPORT]` 日志包含导出结果、耗时、清理状态和受限 PNG hex。`decode-canvas.mjs` 在电脑本地解码颜色（限制解压输出），不部署服务或上传整屏截图。API 不存在、失败、超时、尺寸超限等均明确报告；没有补建 canvas、改变 framebuffer 绑定、开启 preserveDrawingBuffer 或强制绘制。此结果观察的是宿主画布导出内容，仍不能证明手机合成器最终显示，更不能从成功导出推导 GLX 长期稳定。
 
 同包循环建议固定一次首次进入及三次退出重进，每次前台保留约 20 秒，记录实际画面与对应 cloud session。若同一 JS 会话继续存活且有界探针已经停止，缺日志不能补算成新一轮验收；必须明确该轮没有新采样。
+
+### 离线核对验收会话
+
+新验收场景显示现有 cloud session 的短码。先按已授权的读取方式保存云响应，再运行：
+
+```powershell
+node examples/glx-smoke/summarize-acceptance.mjs <本地云响应.json> <新摘要.json>
+```
+
+此工具不联网、不改包、不覆盖旧输出，只在提供的快照内按完整 session 分组并计算与游戏相同的短码。已知分页/截断、短码碰撞、多包混杂或会话身份冲突时拒绝自动匹配。输出不含完整 session、openid 或原始日志；保留已有初始化、上下文、生命周期、设备型号/系统/SDK、丢弃和解析失败证据。快照看似完整也不证明手机采集完整，微信客户端版本仍需单独核实。工具不会把 initialized、swap 或缺日志换算成画面结果，所有视觉/音频结论仍为 `not_verified`，需与人工画面证据配对。

@@ -15,12 +15,12 @@ const root = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace
 const skip = new Set(['node_modules', '.git', '.godot', '.local', 'kit-work', 'work']);
 const mjs = []; (function walk(d) { for (const e of fs.readdirSync(d, {withFileTypes: true})) { if (skip.has(e.name)) continue; const p = path.join(d, e.name); e.isDirectory() ? walk(p) : e.name.endsWith('.mjs') && mjs.push(p); } })(root);
 const results = mjs.map(f => { const r = spawnSync(process.execPath, ['--check', f], {encoding: 'utf8'}); return {name: 'node --check ' + path.relative(root, f).replace(/\\/g, '/'), ok: r.status === 0, error: (r.stderr || '').slice(0, 400)}; });
-for (const rel of ['convert/assets/godot-bridge.js', 'convert/assets/render-runtime.js', 'convert/assets/render-observer.js', 'examples/glx-smoke/local-interfaces.js', 'examples/glx-smoke/frame-probe.js', 'examples/glx-smoke/presentation-probe.js', 'examples/glx-smoke/presentation-loader.js', 'examples/glx-smoke/canvas-export-probe.js']) {
+for (const rel of ['convert/assets/godot-bridge.js', 'convert/assets/render-runtime.js', 'convert/assets/render-observer.js', 'examples/glx-smoke/local-interfaces.js', 'examples/glx-smoke/frame-probe.js', 'examples/glx-smoke/presentation-probe.js', 'examples/glx-smoke/presentation-loader.js', 'examples/glx-smoke/canvas-export-probe.js', 'examples/glx-native-triangle/strict-post.js']) {
   const r = spawnSync(process.execPath, ['--check', path.join(root, rel)], {encoding: 'utf8'});
   results.push({name: 'node --check ' + rel, ok: r.status === 0, error: (r.stderr || '').slice(0, 400)});
 }
 results.push(...runContracts({godot, flowLogs}));
-const renderTests = spawnSync(process.execPath, ['--test', 'tests/config-tests.mjs', 'tests/render-config-tests.mjs', 'tests/render-runtime-tests.mjs', 'tests/glx-frame-probe-tests.mjs', 'tests/glx-cloud-interfaces-tests.mjs', 'tests/glx-smoke-identity-tests.mjs', 'tests/glx-presentation-tests.mjs', 'tests/glx-canvas-export-tests.mjs'], {cwd: root, encoding: 'utf8', timeout: 120000});
+const renderTests = spawnSync(process.execPath, ['--test', 'tests/config-tests.mjs', 'tests/render-config-tests.mjs', 'tests/render-runtime-tests.mjs', 'tests/glx-frame-probe-tests.mjs', 'tests/glx-cloud-interfaces-tests.mjs', 'tests/glx-smoke-identity-tests.mjs', 'tests/glx-acceptance-summary-tests.mjs', 'tests/glx-presentation-tests.mjs', 'tests/glx-canvas-export-tests.mjs'], {cwd: root, encoding: 'utf8', timeout: 120000});
 results.push({name: '配置与 WebGL/GLX 运行时合同', ok: renderTests.status === 0, error: (renderTests.stdout || '') + (renderTests.stderr || '')});
 
 for (const x of results) console.log(x.ok ? 'PASS' : 'FAIL', x.name, x.ok ? '' : '\n    ' + x.error.replace(/\n/g, '\n    '));
