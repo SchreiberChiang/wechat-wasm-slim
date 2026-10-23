@@ -51,7 +51,8 @@ export function resolveToolchain(t, file) {
   tc.patches = (tc.patches || []).map(p => path.resolve(base, p));
   return tc;
 }
-const git = (dir, args) => capture('git.exe', ['-C', dir, ...args]);
+// Read-only inspection must not refresh .git/index before a resume refusal.
+const git = (dir, args) => capture('git.exe', ['--no-optional-locks', '-c', 'diff.autoRefreshIndex=false', '-C', dir, ...args]);
 const fileIdentity = file => ({path: path.resolve(file), bytes: fs.statSync(file).size, sha256: sha(fs.readFileSync(file))});
 const gitBlob = (dir, ref) => new Promise((resolve, reject) => {
   const c = spawn('git.exe', ['-C', dir, 'show', ref], {windowsHide: true}), chunks = []; let err = '';
@@ -123,7 +124,10 @@ export function assertBuildIdentity(previous, identity, state) {
 }
 
 export function assertStageInputs(previous, current) {
-  if (!previous) return;
+  if (!previous || !/^[0-9a-f]{40,64}$/.test(previous.head || '') || typeof previous.trackedDiff !== 'string' ||
+      previous.trackedDiffSha256 !== sha(previous.trackedDiff) || !/^[0-9a-f]{64}$/.test(previous.untracked?.sha256 || '')) {
+    throw Error('stage 初始化证据缺失或不完整，请保留现场并使用新目录');
+  }
   if (previous.head !== current.head || previous.trackedDiffSha256 !== current.trackedDiffSha256 || previous.untracked.sha256 !== current.untracked.sha256) {
     throw Error('stage source 在续编前已改变（包含未跟踪源码），请保留现场并使用新目录');
   }
@@ -137,18 +141,37 @@ export function outputPair(glue, raw, br) {
 /** 编译一个 .gdbuild。workDir 下：engine/（源码克隆）、logs/、artifacts/、BUILD.json。 */
 export async function buildEngine({tc, profileFile, workDir, symbols = true, jobs = 8, retries = 2, lto = 'full', ltoJobs = 4, maxMinutes = 120, onLog = () => {}}) {
   if (!['full', 'thin', 'none'].includes(lto)) throw Error('--lto 只能是 full / thin / none');
-  await fsp.mkdir(path.join(workDir, 'logs'), {recursive: true});
   const stage = path.join(workDir, 'engine'), logs = path.join(workDir, 'logs'), state = path.join(workDir, 'BUILD.json');
-  const rec = fs.existsSync(state) ? JSON.parse(fs.readFileSync(state, 'utf8')) : {startedAt: new Date().toISOString()};
+  // Fail closed before logs, records, adapters or temporary files can alter an interrupted scene.
+  // Legacy records with complete stage evidence remain resumable; identity alone is not evidence.
+  const resuming = fs.existsSync(workDir) && fs.readdirSync(workDir).length > 0;
+  let rec = {startedAt: new Date().toISOString()};
+  if (resuming) {
+    const refuse = () => Error('构建初始化未完成或证据不可信，不能续编；请保留现场并使用新的 --work 目录');
+    try { rec = JSON.parse(fs.readFileSync(state, 'utf8')); } catch { throw refuse(); }
+    if (!rec || !rec.identity || !fs.existsSync(path.join(stage, '.git')) ||
+        ('initialization' in rec && (rec.initialization?.version !== 1 || rec.initialization?.status !== 'complete'))) throw refuse();
+    assertStageInputs(rec.stage, rec.stage);
+    const stageRoot = await git(stage, ['rev-parse', '--show-toplevel']);
+    if (path.resolve(stageRoot).toLowerCase() !== path.resolve(stage).toLowerCase()) throw refuse();
+  }
   // 编译身份：源码提交、补丁、宏、编译参数、build profile 的哈希。续编时必须和上次完全一致，否则拒绝混用。
   const identity = await buildIdentity({tc, profileFile, stage, lto, symbols, ltoJobs});
   assertBuildIdentity(rec.identity, identity, state);
+  if (resuming) {
+    const current = await sourceState(stage);
+    if (current.head !== identity.pin) throw Error('stage HEAD 不匹配编译身份');
+    assertStageInputs(rec.stage, current);
+    if (fileIdentity(identity.glxLibrary.path).sha256 !== identity.glxLibrary.sha256) throw Error('stage/external GLX library SHA256 mismatch');
+  }
+  await fsp.mkdir(logs, {recursive: true});
   rec.identity = identity;
+  if (!resuming) rec.initialization = {version: 1, status: 'initializing'};
   const save = () => fs.writeFileSync(state, JSON.stringify(rec, null, 2) + '\n');
   rec.source = {...await sourceState(tc.engineSource), policy: 'Only the pinned commit is cloned; source working-tree changes are not copied.'};
   save();
   const env = {...buildEnv(tc), TEMP: path.join(workDir, 'temp'), TMP: path.join(workDir, 'temp'), EMCC_TEMP_DIR: path.join(workDir, 'temp')}; await fsp.mkdir(env.TEMP, {recursive: true});
-  if (!fs.existsSync(stage)) {
+  if (!resuming) {
     onLog('克隆引擎源码（独立副本）…');
     await run('git.exe', ['clone', '--no-local', '--no-hardlinks', '--no-checkout', tc.engineSource, stage], {log: path.join(logs, 'clone.log')});
     await run('git.exe', ['-C', stage, 'config', 'core.autocrlf', 'false'], {log: path.join(logs, 'clone.log')});
@@ -156,13 +179,14 @@ export async function buildEngine({tc, profileFile, workDir, symbols = true, job
     for (const p of tc.patches || []) await run('git.exe', ['-C', stage, 'apply', '--whitespace=nowarn', p], {log: path.join(logs, 'patches.log')});
   }
   const detect = path.join(stage, 'platform/web/detect.py'); let dt = fs.readFileSync(detect, 'utf8');
-  if (!dt.includes('ENGINE_LAB_WINDOWS_LINK_RESPONSE_V')) { if (dt.split(DETECT_ANCHOR).length !== 2) throw Error('detect.py 锚点变了，无法加 Windows 链接适配'); fs.writeFileSync(detect, dt.replace(DETECT_ANCHOR, DETECT_ANCHOR + '\n' + LINK_ADAPTER)); }
+  if (!resuming && !dt.includes('ENGINE_LAB_WINDOWS_LINK_RESPONSE_V')) { if (dt.split(DETECT_ANCHOR).length !== 2) throw Error('detect.py 锚点变了，无法加 Windows 链接适配'); fs.writeFileSync(detect, dt.replace(DETECT_ANCHOR, DETECT_ANCHOR + '\n' + LINK_ADAPTER)); }
   const stageState = {...await sourceState(stage), policy: 'Pinned commit plus configured patches and Windows link response adapter.'};
   if (stageState.head !== identity.pin) throw Error('stage HEAD 不匹配编译身份');
-  assertStageInputs(rec.stage, stageState);
+  if (resuming) assertStageInputs(rec.stage, stageState);
   rec.stage = stageState;
   rec.stageInputs = rec.stage.trackedDiffSha256;
   if (fileIdentity(identity.glxLibrary.path).sha256 !== identity.glxLibrary.sha256) throw Error('stage/external GLX library SHA256 mismatch');
+  rec.initialization = {version: 1, status: 'complete'};
   save();
   for (const t of SOURCE_TESTS) { const f = path.join(stage, 'platform/web/js/tests', t); if (fs.existsSync(f)) await run(process.execPath, [f], {cwd: stage, env, log: path.join(logs, 'source-tests.log')}); }
   const profile = path.join(workDir, 'profile.gdbuild'); fs.copyFileSync(profileFile, profile);

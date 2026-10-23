@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import crypto from 'node:crypto';import zlib from 'node:zlib';import {execFileSync} from 'node:child_process';
-import {resolveToolchain, buildEnv, glxInput, buildIdentity, buildEngine, assertBuildIdentity, assertStageInputs, sourceState, outputPair, COMMON_ARGS, EMSCRIPTEN_VERSION} from '../trim/lib/build.mjs';
+import {resolveToolchain, buildEnv, glxInput, buildIdentity, buildEngine, assertBuildIdentity, assertStageInputs, sourceState, outputPair, COMMON_ARGS, EMSCRIPTEN_VERSION, DETECT_ANCHOR, SOURCE_TESTS} from '../trim/lib/build.mjs';
 const hash = b => crypto.createHash('sha256').update(b).digest('hex');
 const git = (dir, ...args) => execFileSync('git.exe', ['-C', dir, ...args], {encoding: 'utf8', windowsHide: true}).trim();
 function fixture(t) {
@@ -9,6 +9,9 @@ function fixture(t) {
   const write = (p, b) => { const file = path.join(root, p); fs.mkdirSync(path.dirname(file), {recursive: true}); fs.writeFileSync(file, b); return file; };
   git(root, 'init', '-q'); git(root, 'config', 'user.name', 'Selfbuild Test'); git(root, 'config', 'user.email', 'selfbuild@example.invalid'); git(root, 'config', 'core.autocrlf', 'false');
   write('platform/web/libemscriptenglx/libemscriptenglx_4.0.10.a', 'bundled-library'); write('source.cpp', 'original\n');
+  write('platform/web/detect.py', DETECT_ANCHOR);
+  // Our own tiny source contract deliberately stops before SCons or any engine/toolchain runs.
+  write('platform/web/js/tests/' + SOURCE_TESTS[0], 'console.error("SELFBUILD_TEST_STOP"); process.exit(71);\n');
   write('.gitignore', 'sdk/\npython.exe\nprofile.gdbuild\nexternal.a\nwork/\n');
   git(root, 'add', '.'); git(root, 'commit', '-qm', 'fixture');
   const tc = {engineSource: root, pin: git(root, 'rev-parse', 'HEAD'), emsdk: path.join(root, 'sdk'), python: write('python.exe', 'test interpreter')};
@@ -46,12 +49,86 @@ test('resume rejects changed external bytes even if operator updates the expecte
   const f = fixture(t); f.tc.glxLibrary = f.write('external.a', 'library A'); f.tc.glxLibrarySha256 = hash('library A');
   const identity = await buildIdentity(f.opts), workDir = path.dirname(f.stage);
   assert.equal(identity.glxLibrary.sha256, hash('library A')); assert.equal(identity.sdk.gitHead, null, 'ancestor repository must never impersonate SDK Git identity');
-  fs.mkdirSync(workDir, {recursive: true}); fs.writeFileSync(path.join(workDir, 'BUILD.json'), JSON.stringify({identity}));
+  await assert.rejects(buildEngine({...f.opts, workDir}), /exit 71/);
   f.write('external.a', 'library B');
   await assert.rejects(buildEngine({...f.opts, workDir}), /SHA256 mismatch/);
   f.tc.glxLibrarySha256 = hash('library B');
   await assert.rejects(buildEngine({...f.opts, workDir}), /不能续编/);
+  assert.equal(fs.existsSync(f.stage), true);
+});
+
+function snapshot(dir) {
+  if (!fs.existsSync(dir)) return null;
+  return Object.fromEntries(fs.readdirSync(dir, {withFileTypes: true}).sort((a, b) => a.name.localeCompare(b.name)).map(entry => {
+    const file = path.join(dir, entry.name);
+    return [entry.name, entry.isDirectory() ? snapshot(file) : hash(fs.readFileSync(file))];
+  }));
+}
+
+test('real patch failure leaves a partial stage that refuses resume without changing any evidence', async t => {
+  const f = fixture(t), workDir = path.dirname(f.stage);
+  const good = f.write('first.patch', 'diff --git a/source.cpp b/source.cpp\n--- a/source.cpp\n+++ b/source.cpp\n@@ -1 +1 @@\n-original\n+patched\n');
+  f.tc.patches = [good, f.write('second.patch', 'not a patch\n')];
+  await assert.rejects(buildEngine({...f.opts, workDir}), /exit 128/);
+  assert.equal(fs.readFileSync(path.join(f.stage, 'source.cpp'), 'utf8'), 'patched\n');
+  const record = JSON.parse(fs.readFileSync(path.join(workDir, 'BUILD.json')));
+  assert.equal(record.initialization.status, 'initializing'); assert.equal(record.stage, undefined);
+  f.write('work/artifacts/godot.wasm', 'preserved prior package'); f.write('work/failed/evidence.txt', 'preserved failure');
+  const before = snapshot(workDir), original = snapshot(f.root);
+  await assert.rejects(buildEngine({...f.opts, workDir}), /初始化未完成/);
+  assert.deepEqual(snapshot(workDir), before); assert.deepEqual(snapshot(f.root), original);
+});
+
+test('failure before cloning also locks the identity-only work directory', async t => {
+  const f = fixture(t), workDir = path.dirname(f.stage);
+  await assert.rejects(buildEngine({...f.opts, workDir, onLog: () => { throw Error('test interruption before clone'); }}), /test interruption/);
   assert.equal(fs.existsSync(f.stage), false);
+  const before = snapshot(workDir);
+  await assert.rejects(buildEngine({...f.opts, workDir}), /初始化未完成/);
+  assert.deepEqual(snapshot(workDir), before);
+});
+
+test('fresh empty work initializes once; complete and legacy stage records resume without reapplying patches', async t => {
+  const f = fixture(t), workDir = path.dirname(f.stage);
+  f.tc.patches = [f.write('once.patch', 'diff --git a/source.cpp b/source.cpp\n--- a/source.cpp\n+++ b/source.cpp\n@@ -1 +1 @@\n-original\n+patched\n')];
+  fs.mkdirSync(workDir, {recursive: true});
+  await assert.rejects(buildEngine({...f.opts, workDir}), /exit 71/);
+  const stateFile = path.join(workDir, 'BUILD.json'), record = JSON.parse(fs.readFileSync(stateFile));
+  assert.equal(record.initialization.status, 'complete'); assert.equal(record.stage.head, f.tc.pin);
+  assert.match(fs.readFileSync(path.join(f.stage, 'platform/web/detect.py'), 'utf8'), /ENGINE_LAB_WINDOWS_LINK_RESPONSE_V2/);
+  const sourceBefore = snapshot(f.stage), patchLog = fs.readFileSync(path.join(workDir, 'logs/patches.log'));
+  for (const legacy of [false, true]) {
+    if (legacy) { delete record.initialization; fs.writeFileSync(stateFile, JSON.stringify(record)); }
+    await assert.rejects(buildEngine({...f.opts, workDir}), /exit 71/);
+    assert.deepEqual(snapshot(f.stage), sourceBefore);
+    assert.deepEqual(fs.readFileSync(path.join(workDir, 'logs/patches.log')), patchLog);
+    assert.equal(fs.existsSync(path.join(workDir, 'profile.gdbuild')), false, 'must stop before compiler setup');
+  }
+});
+
+test('untrusted records and edited resumed source reject at the real entry before writes or adapter repair', async t => {
+  const f = fixture(t), workDir = path.dirname(f.stage);
+  await assert.rejects(buildEngine({...f.opts, workDir}), /exit 71/);
+  const stateFile = path.join(workDir, 'BUILD.json'), originalText = fs.readFileSync(stateFile, 'utf8'), original = JSON.parse(originalText);
+  const cases = [null, '{broken', JSON.stringify({identity: original.identity}), JSON.stringify({...original, identity: undefined}),
+    JSON.stringify({...original, stage: {head: original.stage.head}}), JSON.stringify({...original, initialization: null}),
+    JSON.stringify({...original, initialization: {version: 1, status: 'initializing'}})];
+  for (const record of cases) {
+    if (record === null) fs.unlinkSync(stateFile); else fs.writeFileSync(stateFile, record);
+    const before = snapshot(workDir);
+    await assert.rejects(buildEngine({...f.opts, workDir}), /初始化/);
+    assert.deepEqual(snapshot(workDir), before);
+    fs.writeFileSync(stateFile, originalText);
+  }
+  const detect = path.join(f.stage, 'platform/web/detect.py');
+  fs.writeFileSync(detect, DETECT_ANCHOR);
+  // Force stale cached stat data on an otherwise unchanged tracked file: ordinary
+  // git diff may auto-refresh the index here even though this path must be read-only.
+  const staleTime = new Date('2001-01-01T00:00:00Z');
+  fs.utimesSync(path.join(f.stage, 'source.cpp'), staleTime, staleTime);
+  const before = snapshot(workDir);
+  await assert.rejects(buildEngine({...f.opts, workDir}), /stage source/);
+  assert.deepEqual(snapshot(workDir), before, 'adapter removal must reject, never silently repair or rewrite BUILD.json');
 });
 
 test('SDK selected compiler/config/runtime files and actual source HEAD participate in identity', async t => {

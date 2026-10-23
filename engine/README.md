@@ -1,5 +1,7 @@
 # 完整 GLX 引擎的独立自构建
 
+最新电脑侧核对：[Losomz 源码差异与 BUILD-01 修复](../docs/GLX_LOSOMZ_COMPARISON_20261023.md)。参考核心适配已包含，静态库相同，没有据此生成新的黑屏修复引擎；当前仍保留强退后失败现场。
+
 后续核对与候选：[shader 对象与共享 ID](../docs/GLX_SHADER_ID_COMPAT_20261023.md)。当前旧库缺少可验证的 allocator 注入接口；独立整组作者引擎对照候选已完成静态检查，但用户拒绝该预编译替换路线，预览申请撤回，不运行或推送。本任务继续以可自构建、裁剪和进入现有分包流程为目标。
 
 目标是得到可维护、可回退的完整引擎，先验证实际 GLX 显示和生命周期，再恢复启动优化、裁剪、WASM 分包。作者发布引擎作为已接受的参考；本配方不是作者原构建的精确重建，也尚未证明修复旧黑屏。
@@ -71,6 +73,8 @@ node trim/trim.mjs build `
 后续构建指纹包含 `wasm-opt`，并兼容官方 SDK 的 `node/<version>/bin/node.exe` 和 Python 对应布局。构建子进程移除外部 Node/Python 模块注入环境变量，不改调用者环境。这些是在 `-02` 构建启动后补入的流程改进；该次构建的实际输入仍以原 BUILD.json、链接记录和独立 compiler-comparison.json 为准，不追改历史身份。
 
 同一 `--work` 仅允许同一输入续编。替换库、改 SDK、补丁、宏、profile、LTO 或新增未跟踪模块源码会拒绝续编；应另开目录并保留原现场。只对明确的编译器崩溃有界重试，不重试源码/配置错误。
+
+BUILD-01 后续门禁：非空 `--work` 必须具有可信 BUILD 身份、完整 stage 指纹及匹配的源码根目录。新记录在初始化完成后才标记 `initialization.status=complete`；clone、补丁或链接适配中断留下的 `initializing` 目录拒绝续编，不能仅凭 engine 目录存在跳过补丁。缺少、损坏记录或源码漂移均在写入前拒绝，包括禁止只读 Git 自动刷新 index。旧格式若已有完整 stage 证据仍支持续编，无需事先手工补写字段，获准续编后正常更新 BUILD；被拒绝的目录保留证据并使用新目录，不删除/覆盖现场。
 
 最终产物为配套的 `build/artifacts/godot.js`、`godot.wasm`、`godot.wasm.br` 和符号信息。三个核心文件各自有 SHA256，并校验 Brotli 解压严格等于原 WASM。生成配套文件不是实际渲染验收。不能从现有 WASM 中替换一个 `.a`，不能混用不同构建的 JS 和 WASM。
 

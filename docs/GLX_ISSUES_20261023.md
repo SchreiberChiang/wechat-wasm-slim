@@ -4,6 +4,8 @@
 
 最终目标仍为：可自行构建的配套 Godot JS/WASM 与符号，真机实际 GLX 正常显示，首次启动、小游戏退出重进、结束微信进程后重开及前后台恢复稳定，然后验证裁剪、通用适配和 WASM 分包。作者成品可作静态参照，不能替代这项交付。
 
+后续源码核对：从远端一致的 `e6df5cd` 接续，对照 Losomz 固定提交 `d5f6c787`；主要 GLX 适配已包含，未发现能解释 shader 故障的缺失修复。BUILD-01 已完成本地修复，详见 [源码差异、构建门禁及查询边界](GLX_LOSOMZ_COMPARISON_20261023.md)。本轮没有新引擎包或手机操作，下面的首开/强退失败结果不变。
+
 ## 目前能够确认什么
 
 - 同输入 WebGL 曾有首开、重进正常的真机对照；当前默认继续为 WebGL。
@@ -31,7 +33,9 @@
 | GLX-13 | 尺寸/呈现及生命周期待验收 | 两份实际 JS 的 `godot_js_display_size_update` 都直接返回 0；显式尺寸设置有另一路径。已有离屏 2D 首开可见，未证明 GLX resize polling、旋转、系统帧缓冲最终呈现与恢复始终正确。 | 不凭源码函数存在、swap 增长或电脑 WebGL resize 通过宣布手机 GLX 通过。 |
 | GLX-14 | 最终测试门禁未完成 | 自构建未完成连续 10 次退出重进、3 次前后台恢复，以及冷启动/强退重开、场景切换、触摸、音频和 3D 的完整记录。 | 先修复明确故障再申请有限真机验证；区分返回旧 session 与新进程。不清缓存、不自动回退或重复试开。 |
 | GLX-15 | 裁剪/分包阶段未开始 | 未获得稳定完整自构建 GLX。作者 engine/subpack 目录不是本仓库 WASM 分包；当前作者模板不能直接用 split。 | trim 需要源码重编；split 作用于成品 WASM，但需兼容的 WXGameKit 通用适配、对应符号及采集。先稳定完整包，再裁剪，再重新转换/采集/分包验收。 |
-| BUILD-01 | 本次静态审查新发现，P2，未修 | `trim/lib/build.mjs` 先保存 identity，再 clone/apply patches，最后才保存 `rec.stage`。若应用补丁期间中断，重跑可能因 engine 目录存在跳过补丁、又因 `rec.stage` 缺失跳过比对，将不完整 stage 当基线。 | 暂不续用“engine 已存在但无 stage 基线”的目录，保留现场并使用新目录。后续增加初始化完成门禁/完整补丁核验及故障恢复测试；尚未证明既有成功构建受影响。 |
+| GLX-16 | 受支持查询实现有边界缺陷 | 旧 `glGetShaderSource` 按 `bufSize` 原样复制，不保证安全截断；源码长度查询不含 NUL。类型及源码请求走同步 batch，不是直接认证平台编译器输入。 | 不直接加有风险的 native 源码复制。可在首次编译已失败后查询类型/长度，并设计一次性 JS 返回字符串观察；未实现、未重编或手机验证，不是黑屏原因结论。 |
+| BUILD-01 | 已修，本地合同通过 | 初始化完成前的非空目录缺可信 stage 即拒绝续编；身份、源码及库核验在写日志/记录/适配前执行。完整旧记录兼容，部分补丁现场不自动修补。只读 Git 禁用 index 自动刷新。 | 14 项合同通过，拒绝路径连续 4 次通过，快照包含 Git index。既有完整引擎未续编，历史记录未改，仍未证明旧成功构建曾受此问题影响。 |
+| BUILD-02 | 工程保护差异，非已证实黑屏原因 | Losomz JS 后处理有更严格的 required anchors 和幂等检查；我们部分规则会跳过未匹配锚点，重复处理可能再包装。 | 当前实际产物相关 GLX 路径齐全，无重复处理证据；后续单独增强，不混入 shader 因果对照。 |
 
 共享 ID、shader 命令及源码处理的具体证据见 [GLX_SHADER_ID_COMPAT_20261023.md](GLX_SHADER_ID_COMPAT_20261023.md)。已观察到的 native 源码处理字面量差异不足以支持修改 Godot shader；作者还有并行 shader 等能力差异，不能将整组引擎表现差异归因于唯一 helper。
 
@@ -54,13 +58,17 @@
 ## 已处理的电脑侧问题及残余边界
 
 - 中文 Windows 路径中的 file URL 解码修正；PowerShell Git 调用改为显式 `git.exe`；Windows 链接 response file 适配已保留。
-- 构建身份加入 GLX 库哈希、SDK 关键文件、宿主 Node、源码差异与未跟踪源码；拒绝身份不一致的续编。仍有 BUILD-01 的初始化中断缺口，不称为完整可靠恢复。
+- 构建身份加入 GLX 库哈希、SDK 关键文件、宿主 Node、源码差异与未跟踪源码；拒绝身份不一致的续编。后续已修 BUILD-01：初始化证据不全时保留目录并拒绝，不能自动重建基线。测试范围见新对照文档，不扩大为全部故障恢复可靠性证明。
 - JS、原始 WASM、Brotli WASM 成对校验，源与原件保留；不覆盖旧包。默认 stager 为 WebGL，GLX 显式能力门禁且不静默回退。
 - 公共依赖准备处理了 UTF-8、Python 选择、EMSDK_PYTHON、EXIT_RUNTIME、5120 KiB 栈及冻结 cache 的若干变体；流程见 [engine/BOOTSTRAP.md](../engine/BOOTSTRAP.md)。公开 SDK 安装/缓存及链接探针通过不等于已经用这套新 SDK 完整重编并运行第二份 Godot。
 - 复制的 Windows Python venv 仍依赖原基础解释器，不能当跨机器可搬运工具链。作者构建输入不全，当前可复现的是已记录自构建配方，不能称精确复现作者修复。
 - 官方指南网页被站点安全策略阻止、版本下载曾被 WAF 拒绝，已停止，没有换渠道绕过；这些访问阻断不能当作库不存在或 GLX 不兼容的证据。
 
-## 本次提交前验证
+## Losomz 核对后的本轮验证
+
+修复最终版本再次执行 `node tests/run.mjs`：**75 个汇总项通过，0 失败**，包含构建门禁及 WebGL/GLX 配置与运行时合同。没有传 `--godot`，未重跑 headless、完整引擎构建、开发者工具或手机。BUILD-01 独立合同 14/14，通过后额外重复拒绝现场测试；`git diff --check` 无错误。它们证明电脑侧合同，没有增加任何真机、裁剪或分包验收次数。
+
+## 检查点 e6df5cd 的提交前验证（历史）
 
 本次运行 `node tests/run.mjs`：**75 个汇总项通过，0 失败**；没有传 `--godot`，本轮未重跑 Godot headless。
 
@@ -73,12 +81,12 @@ node tests/loader-terminal-tests.mjs --source <固定作者原版loader绝对路
 node tests/loader-engine-context-tests.mjs --source <固定终态loader绝对路径>
 ```
 
-源码静态审查未发现需要阻止本次快照提交的私钥/实际 AppID/引擎产物；发现 BUILD-01，明确作为待修问题保存。新字体为 41,476-byte 的 Acceptance CJK 子集，附 OFL、NOTICE、来源和修改记录，非作者引擎文件。默认 WebGL 回归合同通过，不由此补记手机 GLX、裁剪或分包验收。
+源码静态审查未发现需要阻止该次快照提交的私钥/实际 AppID/引擎产物；当时发现 BUILD-01，作为待修问题保存，后续修复见上表。新字体为 41,476-byte 的 Acceptance CJK 子集，附 OFL、NOTICE、来源和修改记录，非作者引擎文件。默认 WebGL 回归合同通过，不由此补记手机 GLX、裁剪或分包验收。
 
 ## 记录与接续顺序
 
 1. 先读本表，再读 [自构建记录](GLX_SELFBUILD_20261023.md)、[上下文交接](GLX_HANDOFF_AUDIT_20261023.md)、[shader/ID 核对](GLX_SHADER_ID_COMPAT_20261023.md)。[早期手机记录](GLX_PHONE_VALIDATION_20261022.md) 和 [作者发布包记录](GLX_AUTHOR_RELEASE_VALIDATION_20261023.md) 保留过程状态；其中 building、待授权、尚未预览等段落不能覆盖后续结果及撤回决定。
-2. 电脑侧优先补齐可链接修复库/公开分配合同或受支持的 shader 关联证据；先修 BUILD-01 再依赖异常中断续编。新目录重编完整 JS/WASM/符号，配套及 WebGL 本地回归通过后，另报精确候选和真机方案。不要重复作者成品替换、无依据的 flush/延时/重建或错误源码改写。
+2. Losomz 源码核对已完成、BUILD-01 已修。下一项有区分力的工作是首次失败 shader 的受支持类型及源码返回关联，先完成有界机制和本地检查，再决定独立重编及具体真机方案。新参考仍为同一旧库，不原样重链后称为新修复。不要重复作者成品替换、无依据的 flush/延时/重建或错误源码改写。
 3. 手机新预览、换包、运行及新增云部署逐次明确确认。当前不再重开失败现场，不清缓存。恢复到已接受作者包或 WebGL 也要单独确认换包。
 
 **Git 推送只包含可公开的代码、测试与脱敏索引。** 原始包、引擎、私有配置、云响应、截图、进程及原始反汇编保存在原工具仓库忽略目录，不随提交上传；远端读者不能仅凭此提交取得全部原始真机证据。
@@ -93,3 +101,4 @@ node tests/loader-engine-context-tests.mjs --source <固定终态loader绝对路
 | `.local/glx-handoff-audit-20261023-01/`、`.local/glx-shader-id-audit-20261023-01/` | JS/native 静态审计及缺失输入分析 |
 | `.local/glx-author-pair-cn-20261023-01/` | 撤回候选、静态封存及 `preparation/USER_DECISION.json` |
 | `.local/glx-checkpoint-20261023-01/` | 本次提交前测试、审查与推送核验记录 |
+| `.local/glx-losomz-audit-20261023-01/` | 固定 Losomz 来源、源码/实际产物矩阵、shader 查询合同、BUILD-01 后续测试 |
