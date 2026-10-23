@@ -86,4 +86,6 @@ node trim/trim.mjs build --toolchain .local/glx-full-baseline-20261023-01/toolch
 
 最终若仍指向闭源边界，应提交最小复现和两个具体问题：同一 GLX context 经加载页再交接引擎时要求何种状态隔离；当前 Emscripten 4.0.10 有无经验证的配套库及可核对 SHA256。不能要求用户盲试不匹配归档。
 
-极简 native 对照的具体约束已核查：除三项初始化导出，还需 `_glxCommandBufferFlush` 和库自己的 after-frame hook；采用 `glDrawArrays` 三角形而非仅 clear，因为已生成 glue 只在 drawcall>0 时执行原 swapWindow。不能在主实验里手工拼命令缓冲或额外强制 swap，否则无法判断库的自然提交路径。尚未制作或运行该备选对照。
+极简 native 对照的具体约束已核查：除三项初始化导出，还需 `_glxCommandBufferFlush` 和库自己的 after-frame hook；采用 `glDrawArrays` 三角形而非仅 clear，因为已生成 glue 只在 drawcall>0 时执行原 swapWindow。不能在主实验里手工拼命令缓冲或额外强制 swap，否则无法判断库的自然提交路径。
+
+备选源码和固定输入构建配方见 `examples/glx-native-triangle/`。已通过 C++ 语法、PowerShell 解析、JS 语法和 recipe-only 输入哈希校验；独立复核后修正 Python 选择、pyc 写入及环境覆盖 frozen cache 的问题。未链接、未生成或运行微信包，非 Godot 输出的宿主接线仍未实现；仅在加载页对照不能区分问题时继续，不提前扩大真机实验。
