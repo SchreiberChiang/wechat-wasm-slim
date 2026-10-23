@@ -1,6 +1,8 @@
 # 完整 GLX 引擎的独立自构建
 
-2026-10-24：[首次 shader 失败诊断配方](shader-failure/README.md)完成源码重编、配对/ABI 及本地 WebGL 2D 验证。获批手机两轮为首开 `2c5d1526` 正常、强退重开 `dcd3d486` 黑屏；完整日志捕获顶点请求 35633 / GLX 同步 batch 片元返回 35632，源码完整一致。详见[类型不一致与闭源边界](../docs/GLX_SHADER_TYPE_MISMATCH_20261024.md)。当前没有可据此修复的公开参数错配，本配方尚非稳定 GLX；按钮/3D/resize 和后续裁剪/分包不借用旧结果。
+2026-10-24：[首次 shader 失败诊断配方](shader-failure/README.md)完成源码重编、配对/ABI 及本地 WebGL 2D 验证。获批手机两轮为首开 `2c5d1526` 正常、强退重开 `dcd3d486` 黑屏；完整日志捕获顶点请求 35633 / GLX 同步 batch 经 JS→WASM i32 转换后为片元枚举 35632，源码完整一致。详见[类型不一致与闭源边界](../docs/GLX_SHADER_TYPE_MISMATCH_20261024.md)。当前没有可据此修复的公开参数错配，本配方尚非稳定 GLX；按钮/3D/resize 和后续裁剪/分包不借用旧结果。
+
+后续的[原始 TYPE 返回配方](shader-type-return/README.md)只补一次原始返回观察，不增加 GPU 查询；自构建、审计和验收状态统一记录在[本轮记录](../docs/GLX_SHADER_TYPE_RETURN_20261024.md)。它没有替换库或预编译引擎，原诊断包和默认 WebGL 保留。
 
 最新电脑侧核对：[Losomz 源码差异与 BUILD-01 修复](../docs/GLX_LOSOMZ_COMPARISON_20261023.md)。参考核心适配已包含，静态库相同，没有据此生成新的黑屏修复引擎；当前仍保留强退后失败现场。
 

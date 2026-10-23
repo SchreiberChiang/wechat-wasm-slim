@@ -1,0 +1,207 @@
+{
+  "schema": "wxslim-shader-type-return-desktop-validation-v1",
+  "recordedAt": "2026-10-23T18:34:23.158Z",
+  "branch": "codex/glx-selfbuild-20261023",
+  "priorEvidenceCommit": "5803b1c",
+  "build": {
+    "startedAt": "2026-10-23T17:38:12.115Z",
+    "finishedAt": "2026-10-23T18:29:14.244Z",
+    "processExitCode": 0,
+    "sconsMinutes": 48.56,
+    "attempts": 1,
+    "modules": 46,
+    "fullProfile": true,
+    "resumed": false,
+    "restarted": false
+  },
+  "sourcePin": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "librarySha256": "c70b6255285aa4e5b987f18cf24d59d56227c67d44d60b734755f33f6a8ab33a",
+  "patchSha256": "84204452f43c04ef40ad4efcdd37e132f11ea429a42d029b63f6222d3e781ee6",
+  "outputs": {
+    "godot.js": {
+      "bytes": 443837,
+      "sha256": "6e0ac29e42713b350430910a4f72f3c9eb5da12259352abed7cc5a88df2a7092"
+    },
+    "godot.wasm": {
+      "bytes": 65194098,
+      "sha256": "39f9a90cb4ddd5e384bf47f953647da6608d0d8b971f45c1ed5f1e4260f9c795"
+    },
+    "godot.wasm.br": {
+      "bytes": 8649011,
+      "sha256": "022a71ba85c5608bdf339a27402842dc2f2c75e56879cde66307022829059b5c"
+    }
+  },
+  "pair": {
+    "sha256": "22817d2aef660419abb4135405554cd59d279b1590485ba52062c02fe88ead4d",
+    "files": [
+      "godot.js",
+      "godot.wasm",
+      "godot.wasm.br"
+    ],
+    "brotliDecodesToWasm": true
+  },
+  "audit": {
+    "pair": "pass",
+    "abiPassed": 61,
+    "abiFailed": 0,
+    "imports": 759,
+    "exports": 31,
+    "sourceTests": 3
+  },
+  "tests": {
+    "toolAggregatePassed": 84,
+    "toolAggregateFailed": 0,
+    "jsObserverPassed": 12,
+    "stagerPassed": 10,
+    "oldNativePassed": 10,
+    "typeNativePassed": 13,
+    "godotHeadless": "not_run"
+  },
+  "webgl": {
+    "packageId": "shader-type-return-webgl-48a770e53808fd85cbc1",
+    "sessionTag": "a862cca5",
+    "actualMode": "webgl",
+    "deviceFields": "simulator_only_not_phone",
+    "baseLibrary": "3.15.2",
+    "startup": "pass",
+    "direct2D": "visible_and_moving",
+    "offscreen2D": "visible_and_moving",
+    "motionEvidence": "screen-02 and screen-03 identical; screen-04 both dots at different positions",
+    "diagnosticObserverMessages": 0,
+    "knownErrors": [
+      "GLX-10 JSON parse_string unexpected character"
+    ],
+    "button": "not_verified: automation_game_action rejected before input with getCanvasSize returned invalid canvas size",
+    "scene3D": "not_tested",
+    "resize": "not_tested",
+    "audio": "not_tested",
+    "cloudRelay": "disabled"
+  },
+  "glx": {
+    "packageId": "shader-type-return-glx-03fa0871dc99f85cc4a2",
+    "runtime": "not_run",
+    "phone": "not_authorized",
+    "preview": "not_uploaded",
+    "cloudRelay": "disabled",
+    "blackScreenFixed": "not_verified",
+    "purpose": "One raw JS return observation at the existing first-failure TYPE query; no additional GPU queries"
+  },
+  "phoneProposal": {
+    "packageId": "shader-type-return-glx-03fa0871dc99f85cc4a2",
+    "firstOpen": 1,
+    "forceQuitAndReopenOnlyIfFirstNormal": 1,
+    "foregroundSecondsEach": 20,
+    "stopOnFailure": true,
+    "clearCache": false,
+    "cloudCollection": false,
+    "wifiEvidence": "requires_new_confirmation",
+    "failureSiteReopened": false
+  },
+  "evidence": [
+    {
+      "file": "build/BUILD.json",
+      "bytes": 41359,
+      "sha256": "dd3818f4f2b0028e18fd7ecd0b58fdfc2c221c5ad03fe8d29daa5dc6a508ad80"
+    },
+    {
+      "file": "build-driver.log",
+      "bytes": 377,
+      "sha256": "3bb60a95e0b0a91ef1666a7b9ecf8bf2b7244f64b4fc63553b2c89e841ecdcf1"
+    },
+    {
+      "file": "pair-audit.json",
+      "bytes": 63098,
+      "sha256": "4de62e6cc106916f9cc2402743a9d2bee3a706dc55abcd031a1cfd9ea769aa2e"
+    },
+    {
+      "file": "abi-audit-01/abi-audit.json",
+      "bytes": 20211,
+      "sha256": "0520d3025228415f6883dbd93595f51ec973775013b5eca339e663e27faddc3a"
+    },
+    {
+      "file": "abi-audit-01/abi-audit.md",
+      "bytes": 3107,
+      "sha256": "3336aae45ed6a1a42c37e9d79c36aca1dfbb9be6db42a395d7535b26a25eeee3"
+    },
+    {
+      "file": "diagnostic.patch",
+      "bytes": 24303,
+      "sha256": "84204452f43c04ef40ad4efcdd37e132f11ea429a42d029b63f6222d3e781ee6"
+    },
+    {
+      "file": "diagnostic.patch.json",
+      "bytes": 2904,
+      "sha256": "63ded43d5bf2e900339a46bcf5542fd02806b9d5ad86ab1f949623c5a50fbc7c"
+    },
+    {
+      "file": "preserved-inputs-audit.json",
+      "bytes": 19971,
+      "sha256": "8d785bbe05b53fe7b34c404c589b485c1a49d5048c60eec600270122b3dd1f19"
+    },
+    {
+      "file": "native-check/public-runner-01/native-check.json",
+      "bytes": 8062,
+      "sha256": "fd828e2279e3f628fe2a6927b2a483aaad565c935ba8dacadba4d3264ffd98b1"
+    },
+    {
+      "file": "native-check/public-runner-01/type-return-report.json",
+      "bytes": 3581,
+      "sha256": "e8c11b20cf2652386b5d7858351a1682cedd216751aeacc2a2c8917ab317221c"
+    },
+    {
+      "file": "tool-regression-final.log",
+      "bytes": 5630,
+      "sha256": "c5d96b85ff55238a9de375239e62334c3e28bfa37293b54ae4a041b7bfbf2f8f"
+    },
+    {
+      "file": "local-webgl/open.log",
+      "bytes": 229,
+      "sha256": "09f1066f49f036b71a40239fd758c76fbc45438a3940edd3fd1a17fad92c3f6f"
+    },
+    {
+      "file": "local-webgl/console-01.log",
+      "bytes": 164,
+      "sha256": "8b5d42b500aa314377cc9073de3ff6f2aa9d3858f7d9c7e31f6a5ddbc40d0b40"
+    },
+    {
+      "file": "local-webgl/console-02.log",
+      "bytes": 2725,
+      "sha256": "0d56efdc841cd8f0f58a3e4a9d725aa0df701f69ea83f0f833cd24682274316d"
+    },
+    {
+      "file": "local-webgl/errors.log",
+      "bytes": 313,
+      "sha256": "8d77fd9b5074ed134190c239da081d02fc20f33cea067ea60d23ecaf782d04ee"
+    },
+    {
+      "file": "local-webgl/shader-observer.log",
+      "bytes": 164,
+      "sha256": "8b5d42b500aa314377cc9073de3ff6f2aa9d3858f7d9c7e31f6a5ddbc40d0b40"
+    },
+    {
+      "file": "local-webgl/diagnostic-tap.log",
+      "bytes": 536,
+      "sha256": "55f7c8fd64ed151a5f091531e38882c8ff404a79a5cecf3d40375a76e55f5b2e"
+    },
+    {
+      "file": "local-webgl/screen-01.jpg",
+      "bytes": 7331,
+      "sha256": "e91f6ec04ba020201b77dc146fb7d2547019c1564bc6bc6194422ae2bfb4a111"
+    },
+    {
+      "file": "local-webgl/screen-02.png",
+      "bytes": 12233,
+      "sha256": "bba03756026b8d0ed3500e3daecc7314e5aa93f5f2ad2d91f8ade114c4ef6a47"
+    },
+    {
+      "file": "local-webgl/screen-03.png",
+      "bytes": 12233,
+      "sha256": "bba03756026b8d0ed3500e3daecc7314e5aa93f5f2ad2d91f8ade114c4ef6a47"
+    },
+    {
+      "file": "local-webgl/screen-04.png",
+      "bytes": 12249,
+      "sha256": "535fcad54dda2cdf69030e8881362fb28cb8d3e5ddda5fe0a2dede8b6755f744"
+    }
+  ]
+}
