@@ -72,6 +72,8 @@ node trim/trim.mjs build --toolchain .local/glx-full-baseline-20261023-01/toolch
 
 当前尚无本轮新真机验收；未发预览或执行云部署。完整引擎编译完成后，真实转换/verify 和对应产物身份仍需补记。
 
+另已完成默认 WebGL 的真实转换回归：沿用原 balanced JS/WASM，配新验收 PCK，未传 render-mode 或 loading-page，得到 `wxslim-1e112800a6f6a99a3db5`，合同为 webgl/on。verify 38 通过、1 注意、0 失败；注意为未执行官方 split init。此包位于 `.local/glx-engine-audit-20261023/webgl-regression/`，仅作转换器默认行为回归，不是新未裁剪候选或手机验收。
+
 ## 有界对照与验收顺序
 
 目前没有发现可直接解释现象的必要引擎修复缺失，不盲目重新应用补丁或升级不匹配库。
