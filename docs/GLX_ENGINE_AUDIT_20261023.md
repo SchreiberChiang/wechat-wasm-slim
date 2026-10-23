@@ -2,7 +2,7 @@
 
 最终目标是真机实际 GLX 显示与生命周期稳定，配置、初始化返回或 swap 增长不构成验收。2026-10-23 接续点为 `codex/glx-adaptation-20261022` / `d036fd3`，fetch 后与远端一致，工作区干净。仓库及父目录没有 AGENTS.md。默认远端分支是 `feature/wechat-wasm-slim`；不合并或发布。
 
-本轮用户重新明确边界：电脑侧审计、独立候选及本地构建可继续；新手机预览、换包、手机操作及云部署必须说明具体改动后另获确认。此前预览授权不代替这一轮授权。保留全部历史包、原始日志、源码及 WebGL 回退。
+本轮准备时用户重新明确边界：电脑侧审计、独立候选及本地构建可继续；新手机预览、换包、手机操作及云部署必须说明具体改动后另获确认。此前预览授权不代替这一轮授权。随后用户已批准三份完整引擎候选分步手机预览；截至下述阶段已执行 WebGL 和 GLX 加载页开启候选，关闭候选仍未预览。保留全部历史包、原始日志、源码及 WebGL 回退。
 
 ## 已核实的实际构建链
 
@@ -70,7 +70,7 @@ node trim/trim.mjs build --toolchain .local/glx-full-baseline-20261023-01/toolch
 - 新增手动 0.3 秒测试音，无自动播放。切换2D/3D、离屏尺寸和摘要按钮保持。新 PCK 为 `.local/glx-engine-audit-20261023/acceptance-02/glx-smoke.pck`，11,628 bytes，SHA256 `f6772ba180902c656993a9bbf2db67ed2f5ad6574db2752b03ddc6099f39ca32`；旧 PCK 全部保留。它是验收内容更新，不能与旧包混为单因素引擎比较。
 - 工具全套含 Godot headless 为 62 汇总项通过、0 失败；新增配置/身份测试及源码和实际 PCK headless 检查通过。Web缺失接口时显示 Web/unknown，未误标成 Native/headless。均非真机画面、触摸或音频验收。
 
-当前尚无本轮新真机验收；未发预览或执行云部署。完整引擎和真实转换结果见下节。
+上述电脑侧准备完成时尚无本轮新真机验收，彼时未发预览或执行云部署；这是该准备阶段的 not_run 状态。后续已获授权并取得部分真机结果，见下文阶段记录；未执行云部署。完整引擎和真实转换结果见下节。
 
 另已完成默认 WebGL 的真实转换回归：沿用原 balanced JS/WASM，配新验收 PCK，未传 render-mode 或 loading-page，得到 `wxslim-1e112800a6f6a99a3db5`，合同为 webgl/on。verify 38 通过、1 注意、0 失败；注意为未执行官方 split init。此包位于 `.local/glx-engine-audit-20261023/webgl-regression/`，仅作转换器默认行为回归，不是新未裁剪候选或手机验收。
 
@@ -98,7 +98,31 @@ node trim/trim.mjs build --toolchain .local/glx-full-baseline-20261023-01/toolch
 
 最终三包再次 verify，各为 38 通过、1 注意、0 失败；注意仅为官方 split init 未执行，该动作会上传新 WASM，仍需另行授权。GLX 两包 33 个文件逐字节比较，仅 render-config.js、render-config.json、wx-game-kit/config.json 不同；清除包身份/加载页记录差异后配置一致，插件配置只差 `loadingPage.using`。引擎、WASM、PCK、适配器及接口输入哈希一致。`pair-audit.json` 与 `package-seal.json` 保存结果，不能替代手机画面证据。
 
-新增 `summarize-acceptance.mjs` 仅离线读云快照，把会话对应到游戏短码；碰撞、混包、冲突、已知分页/截断时拒绝自动匹配，永远不自动判视觉通过。含新增读取测试的全套本地测试为 65 项通过、0 失败（含 Godot headless）。当前 GLX 稳定性、真机恢复、裁剪和官方分包验收均未完成；下一步只在用户确认后使用 `-02` 内已锁定的候选。
+新增 `summarize-acceptance.mjs` 仅离线读云快照，把会话对应到游戏短码；碰撞、混包、冲突、已知分页/截断时拒绝自动匹配，永远不自动判视觉通过。含新增读取测试的全套本地测试为 65 项通过、0 失败（含 Godot headless）。准备阶段三包真机状态均为 not_run；随后在用户批准的分步预览范围内使用 `-02` 内已锁定候选，取得以下有限结果。完整 GLX 稳定性、真机恢复、裁剪和官方分包验收仍未完成。
+
+### 已授权预览的阶段结果：截止 GLX 第 3 次重进
+
+WebGL 加载页开启包的首次及重进正常证据已记录在[手机验收文档](GLX_PHONE_VALIDATION_20261022.md#2026-10-23未裁剪完整引擎的-webgl-基线)。随后 GLX 加载页开启包 `wxslim-c15c28ef293ab29bff65` 首次 `4dd8578b`、重进 1 `b2ce7e45`、重进 2 `6e3b03dd`、重进 3 `a60bc08d` 均获用户画面正常反馈；四个短码均人工核对到已知同包的实际 GLX/WebGL2、initialized 和新 factory 至 MAIN_RETURNED 启动链。初始化成功本身不作为画面证据，也不证明微信进程级冷启动。
+
+证据边界为 `.local/glx-full-loader-pair-20261023-02/preview/glx-on-round-01.json` 已确认的首次及前 3 次重进，以及 `glx-on-summary-03.json`。快照包含旧 WebGL 会话，全局自动映射已因 mixed_packages 拒绝；只能用已知包版本加用户具体短码人工匹配。云端读到 iPhone 16 Pro（iPhone17,1）、iOS 18.3.1、基础库 3.17.5，微信客户端版本本轮尚未重新核实。
+
+该阶段尚未完成连续 10 次退出重进、前后台恢复、音频、触摸、场景切换或进程级冷启动验收，不能宣布旧间歇黑屏已修复。当时计划保持同包补足 10 次，但随后出现以下失败，已停止该验收。准备阶段历史 not_run 和旧黑屏证据均保留，不回填本阶段为完整通过。
+
+### 后续失败：上滑结束微信再打开
+
+用户又报告 `ae77c73e` 正常，同包实际 GLX 已匹配；随后明确在后台上滑结束微信再打开，小游戏黑屏且看不到短码。新云快照另有 `6746409c`、`e77282a3` 两个同包 GLX 完整启动会话，尚不能与失败一一配对，禁止按时间强配。完整引擎候选的显示稳定性因此失败；这不是新的已确认根因，也不能把之前正常会话全部作废。详见[手机验收失败记录](GLX_PHONE_VALIDATION_20261022.md#2026-10-23完整-glx-包在上滑结束微信后黑屏)。
+
+按用户新要求，后续真机集中在 GLX，保留 WebGL 默认及本地回归。下一步使用已批准、封存的 GLX 加载页关闭候选，唯一实验因素仍为 loadingPage.using；首次确认画面后，以同样的上滑结束微信动作单次对照。未加入延时、额外 flush、上下文替换或新 GPU 查询。该对照不是修复声明；若关闭加载页仍黑屏，再进入同库最小 native 绘制，以分离 Godot 与 GLX 库/宿主呈现边界。
+
+随后已推送该关闭候选 `wxslim-c1c46013faf605d4fb56`，预览返回成功，首次画面待反馈。推送前两包各 33 文件和 seal 再次独立复核一致；没有新构建或包内改动。具体收据及失败配对边界见手机验收文档。
+
+用户后续截图显示关闭候选黑屏并弹“资源下载失败 / i is not a function”，云端该包两会话均在观察到 Godot factory 前失败，actualContext=null。因此本次加载页呈现对照未成立，不能据此排除加载页交接，也不能宣称是与之前初始化后黑屏相同的故障。停止手机重试，先核对关闭加载页启动合同；截图、云摘要和未能逐会话配对的边界已单独记录在手机验收文档。
+
+本地官方启动文档/固定转换器模板未记载 using=false 所需的额外入口或回调，不据此猜补函数。已补现有失败摘要丢失异常定位的具体缺口，并构建只改变有界失败位置记录的 GLX-off 候选 `wxslim-53e8af0a5e2932c1db82`：全套本地 64/64、转换 verify 38/1/0，未改引擎、PCK 或加载策略。新包尚未预览，需用户确认；具体字节差异和证据见手机文档。该诊断修正不代表 GLX 呈现根因已解决。
+
+随后用户明确确认，已将 `53e8af0a5e2932c1db82` 推送手机预览（CLI success=true，推送前 seal 复核通过）。当前等待单次打开的画面和云端异常定位；没有再次构建、改服务或把预览成功改记为 GLX 通过。
+
+定位包随后仍报资源下载失败并黑屏。唯一新增候选会话 `9ccf27ff` 先发失败摘要、约 2509 ms 后才出现 FACTORY_START；仍无 WASM 实例化或实际 GLX 上下文证据。栈位置仅到微信 WAGameSubContext.js，不能定位 `i(f)`。因此停止关闭加载页支线，不将它作为原呈现故障的有效对照。主复现基线恢复为未改动的 `c15c28ef293ab29bff65`，手机换回待用户确认；电脑侧推进固定同库极简 native 绘制，以减少 Godot/加载器变量。原包正常会话与结束微信后黑屏均不抹去。
 
 ## 有界对照与验收顺序
 
@@ -114,4 +138,4 @@ node trim/trim.mjs build --toolchain .local/glx-full-baseline-20261023-01/toolch
 
 极简 native 对照的具体约束已核查：除三项初始化导出，还需 `_glxCommandBufferFlush` 和库自己的 after-frame hook；采用 `glDrawArrays` 三角形而非仅 clear，因为已生成 glue 只在 drawcall>0 时执行原 swapWindow。不能在主实验里手工拼命令缓冲或额外强制 swap，否则无法判断库的自然提交路径。
 
-备选源码和固定输入构建配方见 `examples/glx-native-triangle/`。已通过 C++ 语法、PowerShell 解析、JS 语法和 recipe-only 输入哈希校验；独立复核后修正 Python 选择、pyc 写入及环境覆盖 frozen cache 的问题。未链接、未生成或运行微信包，非 Godot 输出的宿主接线仍未实现；仅在加载页对照不能区分问题时继续，不提前扩大真机实验。
+备选源码和固定输入构建配方见 `examples/glx-native-triangle/`。已通过 C++ 语法、PowerShell 解析、JS 语法和 recipe-only 输入哈希校验；独立复核后修正 Python 选择、pyc 写入及环境覆盖 frozen cache 的问题。随后依据完整引擎实际链接参数对齐 get-proc-address、优化/thin LTO 和 EXIT_RUNTIME，独立目录 `.local/glx-native-triangle-build-20261023-05/` 已成功生成 JS/WASM，状态为 `compiled-not-run`，此前失败目录全部保留。静态审计确认 91 项函数 imports、27 项 exports、四项 GLX 导出，以及初始化注册 after-frame、flush 调用异步 batch 的路径；产物哈希和剩余参数差异见该示例 README。未执行产物、未生成微信包，非 Godot 输出的宿主接线仍未实现，不构成实际显示或真机验收。

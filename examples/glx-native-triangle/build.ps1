@@ -41,10 +41,16 @@ FROZEN_CACHE = True
 "@
 [IO.File]::WriteAllText($privateConfig, $privateConfigText, [Text.UTF8Encoding]::new($false))
 $argsList = @(
-    $sourcePath, $libraryPath, '-O2', '-std=c++17', '-fexceptions',
+    # Match the audited full baseline's size optimization/thin LTO library variant.
+    $sourcePath, $libraryPath, '-Os', '-flto=thin', '-Wl,--thinlto-jobs=1', '-std=c++17', '-fexceptions',
     '-sSUPPORT_LONGJMP=emscripten', '-sCHECK_NULL_WRITES=0',
     '-sMIN_WEBGL_VERSION=2', '-sMAX_WEBGL_VERSION=2', '-sOFFSCREEN_FRAMEBUFFER=0',
-    '-sALLOW_MEMORY_GROWTH=1', '-sINITIAL_MEMORY=33554432',
+    # Matches the full baseline's detect.py:352 and provenance tmp0ro2obs8.lnk.
+    # main.cpp/strict-post.js do not use emscripten_webgl_get_proc_address.
+    '-sGL_ENABLE_GET_PROC_ADDRESS=0',
+    # The baseline uses EXIT_RUNTIME=1; main keeps the runtime alive with its
+    # emscripten_set_main_loop(..., true), rather than relying on a natural return.
+    '-sEXIT_RUNTIME=1', '-sALLOW_MEMORY_GROWTH=1', '-sINITIAL_MEMORY=33554432',
     '-sEXPORTED_FUNCTIONS=["_main","_malloc","_free","_glxInit","_glxInitBufferDataAndGlState","_glxUpdateContextId","_glxCommandBufferFlush"]',
     '-sEXPORTED_RUNTIME_METHODS=["ccall","cwrap","stringToUTF8","lengthBytesUTF8"]',
     '--post-js', $patchPath, '--post-js', (Join-Path $PSScriptRoot 'strict-post.js'),
@@ -64,27 +70,46 @@ if (!$Build) { Write-Output "Validated pinned inputs; recipe saved in $outputPat
 Copy-Item -LiteralPath (Join-Path $sdkPath 'upstream/emscripten/cache') -Destination $cachePath -Recurse
 New-Item -ItemType Directory -Path $tempPath | Out-Null
 $configOverrides = @('EM_FROZEN_CACHE', 'EM_LLVM_ROOT', 'EM_BINARYEN_ROOT', 'EM_NODE_JS', 'EM_LLVM_ADD_VERSION', 'EM_CLANG_ADD_VERSION', 'EM_COMPILER_WRAPPER', 'EM_PORTS')
-$names = @('EM_CONFIG', 'EM_CACHE', 'EMCC_TEMP_DIR', 'TEMP', 'TMP', 'PYTHONDONTWRITEBYTECODE', 'EMCC_CORES', 'BINARYEN_CORES') + $configOverrides
-$saved = @{}
-foreach ($name in $names) { $saved[$name] = [Environment]::GetEnvironmentVariable($name, 'Process') }
-try {
-    # Emscripten gives these variables priority over the private config.
-    foreach ($name in $configOverrides) { [Environment]::SetEnvironmentVariable($name, $null, 'Process') }
-    $env:EM_CONFIG = $privateConfig; $env:EM_CACHE = $cachePath
-    $env:EMCC_TEMP_DIR = $tempPath; $env:TEMP = $tempPath; $env:TMP = $tempPath
-    $env:PYTHONDONTWRITEBYTECODE = '1'; $env:EMCC_CORES = '1'; $env:BINARYEN_CORES = '1'
-    # em++.bat uses Python -E, which ignores PYTHONDONTWRITEBYTECODE and
-    # selects Python through ambient state. Pin it and disable bytecode explicitly.
-    $versionOutput = & $python -B -E $emcc --version 2>&1
-    $versionOutput | Set-Content -LiteralPath (Join-Path $outputPath 'compiler-version.txt')
-    if ($LASTEXITCODE -ne 0 -or ($versionOutput -join "`n") -notmatch 'emcc.*4\.0\.10') { throw 'Compiler version check failed' }
-    & $python -B -E $emcc @argsList 2>&1 | Tee-Object -FilePath (Join-Path $outputPath 'compile.log')
-    if ($LASTEXITCODE -ne 0) { throw 'Compile/link failed; retain output and logs' }
-    $manifest.status = 'compiled-not-run'
-    $manifest.outputs = @(Get-ChildItem -LiteralPath $outputPath -File | Where-Object { $_.Extension -in '.js', '.wasm' } | ForEach-Object {
-        @{ name = $_.Name; sha256 = (Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant() }
-    })
-    $manifest | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $outputPath 'BUILD.json') -Encoding utf8
-} finally {
-    foreach ($name in $names) { [Environment]::SetEnvironmentVariable($name, $saved[$name], 'Process') }
+function Invoke-IsolatedCompiler([string[]]$CompilerArguments) {
+    $start = [Diagnostics.ProcessStartInfo]::new()
+    $start.FileName = $python
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    $start.RedirectStandardOutput = $true
+    $start.RedirectStandardError = $true
+    foreach ($argument in (@('-B', '-E', $emcc) + $CompilerArguments)) { $start.ArgumentList.Add($argument) }
+    # Remove child keys explicitly: PowerShell/.NET null assignments may leave empty
+    # environment entries, which Emscripten 4.0.10 cannot validate as paths.
+    foreach ($name in $configOverrides) { [void]$start.Environment.Remove($name) }
+    $start.Environment['EM_CONFIG'] = $privateConfig
+    $start.Environment['EM_CACHE'] = $cachePath
+    $start.Environment['EMCC_TEMP_DIR'] = $tempPath
+    $start.Environment['TEMP'] = $tempPath
+    $start.Environment['TMP'] = $tempPath
+    $start.Environment['PYTHONDONTWRITEBYTECODE'] = '1'
+    $start.Environment['EMCC_CORES'] = '1'
+    $start.Environment['BINARYEN_CORES'] = '1'
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $start
+    try {
+        [void]$process.Start()
+        # Drain both pipes concurrently to avoid deadlock on compiler diagnostics.
+        $stdout = $process.StandardOutput.ReadToEndAsync()
+        $stderr = $process.StandardError.ReadToEndAsync()
+        $process.WaitForExit()
+        return @{ ExitCode = $process.ExitCode; Output = $stdout.GetAwaiter().GetResult() + $stderr.GetAwaiter().GetResult() }
+    } finally { $process.Dispose() }
 }
+# em++.bat uses Python -E, which ignores PYTHONDONTWRITEBYTECODE and
+# selects Python through ambient state. Pin it and disable bytecode explicitly.
+$version = Invoke-IsolatedCompiler -CompilerArguments @('--version')
+$version.Output | Set-Content -LiteralPath (Join-Path $outputPath 'compiler-version.txt')
+if ($version.ExitCode -ne 0 -or $version.Output -notmatch 'emcc.*4\.0\.10') { throw 'Compiler version check failed' }
+$compiled = Invoke-IsolatedCompiler -CompilerArguments $argsList
+$compiled.Output | Tee-Object -FilePath (Join-Path $outputPath 'compile.log')
+if ($compiled.ExitCode -ne 0) { throw 'Compile/link failed; retain output and logs' }
+$manifest.status = 'compiled-not-run'
+$manifest.outputs = @(Get-ChildItem -LiteralPath $outputPath -File | Where-Object { $_.Extension -in '.js', '.wasm' } | ForEach-Object {
+    @{ name = $_.Name; sha256 = (Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant() }
+})
+$manifest | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $outputPath 'BUILD.json') -Encoding utf8

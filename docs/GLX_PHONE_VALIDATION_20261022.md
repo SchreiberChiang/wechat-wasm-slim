@@ -260,3 +260,73 @@ draw/read/pack 绑定仍为 unobserved：即使增加数字零/非零分类，�
 结论更新：本包再次复现连续重进黑屏，不能将上一轮原包回放正常视为修复。绑定“无法识别”的诊断歧义已解决，最终显示黑屏的具体原因仍未查明；当前优先排查 GLX 原生绘制/提交到显示画布的交接边界。继续诊断需先确认正常轮映射，并验证画布导出对正常 GLX 画面是否有效；不将 JS 查询缺失或透明 PNG 当成自动修复触发条件。此轮只读取现有云日志并更新证据，未再次推包、改默认 WebGL、赛车、服务器或合 main。
 
 后续用户确认记不清具体时刻。本轮正常画面与五个 cloud session 的一一对应关系最终保留为未知，不再要求回忆或强行配对；仍保留“首次正常、随后三次黑屏”的人工反馈。2026-10-23 后续工作转入[引擎溯源与独立候选](GLX_ENGINE_AUDIT_20261023.md)，新候选增加可见会话标记。本轮旧透明 PNG 不作为已配对的正常/失败对照。
+
+## 2026-10-23：未裁剪完整引擎的 WebGL 基线
+
+用户批准新候选预览后，先推送已封存的 `wxslim-b72eb259cb375ea4a221`（WebGL、加载页开启）。预览成功，10,357,579 bytes；来自 `.local/glx-full-loader-pair-20261023-02/webgl-on/minigame`，预览前完整核对 33 个文件与 seal 一致。构建/时间戳统一过程及最终文件树 SHA256 见引擎核对文档。没有清缓存、运行官方分包 init、改服务器或部署云函数。
+
+| 操作 | 可见会话短码 | 人工画面反馈 | 云端对应 |
+| --- | --- | --- | --- |
+| 首次打开 | `68ff9df2` | 用户：首次正常 | 同包、实际 WebGL2、initialized、无 failureReason |
+| 退出后重新进入 1 | `868cdc60` | 用户：重新进入正常 | 同包、实际 WebGL2、initialized、无 failureReason |
+
+两条短码均与现有云 relay session 精确匹配，不依赖时间回忆。第二次查询取得 3 批/9 条/1 会话，第三次取得 6 批/18 条/2 会话；两会话均有 FACTORY_START、WASM_INSTANTIATED、GODOT_RUNTIME_READY、FS_READY、PACK_READY_WAITING_LOADER_MAIN、CALL_MAIN、MAIN_RETURNED。这是两次引擎启动的证据，不等于已验证微信进程级冷启动。首次查询在预览后进行，当时为零记录，未冒充预览前基线。
+
+云端实际设备为 iPhone 16 Pro（iPhone17,1）、iOS 18.3.1、基础库 3.17.5。微信客户端版本本轮尚未重新读取；旧记录 8.0.75 不能自动当作本轮已核实值。未在此轮验收前后台恢复、场景切换、触摸、音频或 10 次重进，也未推导 GLX 通过。
+
+证据保存在 `.local/glx-full-loader-pair-20261023-02/preview/` 的 `webgl-auto-preview-01.json`、`webgl-cloud-01/02/03.json`、`webgl-summary-02/03.json` 及 `webgl-round-01.json`。离线摘要中的 visibleRendering 仍为 not_verified；表中通过仅来自用户明确反馈与相同短码的人工配对。下一步按已批准顺序使用 GLX 加载页开启候选。
+
+## 2026-10-23：完整引擎 GLX 加载页开启，截止第 3 次重进
+
+在用户批准的分步预览范围内，随后推送同一封存候选 `wxslim-c15c28ef293ab29bff65`（GLX、加载页开启），预览成功，10,357,572 bytes。候选来自 `.local/glx-full-loader-pair-20261023-02/glx-on/minigame`，文件树 seal 为 `f08bd3e1d053d5b362866353d29af9bf421413884e3cfab09864dc4f392fc266`。以下只记录首次及前 3 次退出重进这一阶段，不包含正在继续的后续轮次。
+
+| 操作 | 用户提供的可见短码 | 人工画面反馈 | 云端对应 |
+| --- | --- | --- | --- |
+| 首次打开 | `4dd8578b` | 正常 | 已知同包、实际 GLX/WebGL2、initialized、新 factory 启动链 |
+| 退出后重新进入 1 | `b2ce7e45` | 正常 | 已知同包、实际 GLX/WebGL2、initialized、新 factory 启动链 |
+| 退出后重新进入 2 | `6e3b03dd` | 正常 | 已知同包、实际 GLX/WebGL2、initialized、新 factory 启动链 |
+| 退出后重新进入 3 | `a60bc08d` | 正常 | 已知同包、实际 GLX/WebGL2、initialized、新 factory 启动链 |
+
+`glx-on-summary-03.json` 对应快照共有 15 批、54 条、6 个会话，分页元数据为 Offset=0、Limit=100、Total=15，hasMore=false、truncated=false；其中也包含前述两个 WebGL 会话。因此全局自动映射因 mixed_packages 被拒绝，只按**已知包版本及用户逐次提供的具体短码**人工匹配这四轮，不按快照记录顺序或时间猜测操作。四个 GLX 会话合计 9 批、36 条、dropped=0；完整采集仍未获证明，摘要的 completeness、visibleRendering 和 audio 保持 not_verified。
+
+四轮云日志各有 FACTORY_START、WASM_INSTANTIATED、GODOT_RUNTIME_READY、FS_READY、PACK_READY_WAITING_LOADER_MAIN、CALL_MAIN、MAIN_RETURNED，且实际 GLX、initialized、bufferInitialization=returned、无 failureCode。glxInit 和 buffer init 各返回一次、contextId 更新返回两次。这证明各轮重新执行过引擎启动链；画面正常单独来自表中用户反馈，不能从初始化返回推出画面或微信原生进程级冷启动通过。
+
+本阶段云读设备仍为 iPhone 16 Pro（iPhone17,1）、iOS 18.3.1、基础库 3.17.5；微信客户端版本本轮未重新核实。原始证据为同目录 `glx-on-auto-preview-01.json`、`glx-on-cloud-01/02/03.json`、`glx-on-summary-03.json` 和 `glx-on-round-01.json`。本节仅以最后一份台账中已确认的首次及重进 1–3 为边界。
+
+**该阶段仅确认完整 GLX 加载页开启包首次及 3 次重进画面正常，尚未达到连续 10 次重进验收，也未完成恢复、音频、触摸、场景切换或进程级冷启动验收。** 当时计划保持同包继续至 10 次；后续出现下节黑屏，该连续验收计划已停止。此前正常结果不能宣称旧间歇黑屏已经修复，也不能归因于完整引擎或加载页策略。
+
+## 2026-10-23：完整 GLX 包在上滑结束微信后黑屏
+
+用户在第 4–6 次重进的合并问题中回复“ae77c73e正常，但是我把微信关了重新打开就黑屏了”，随后明确操作是**在手机后台上滑结束微信，再打开微信进入小游戏**，黑屏时没有任何可见短码。不能把该动作等同于此前的小游戏内退出重进，也没有 OS 进程/PID 证据可宣布真正冷启动已测通。
+
+`ae77c73e` 精确匹配同包 `wxslim-c15c28ef293ab29bff65`，实际 GLX/WebGL2、initialized、完整新 factory 至 MAIN_RETURNED 链。它是新增的正常画面证据，但合并回答没有逐项报告 4、5、6 的次数，不能补成三次通过。失败报告独立保存为上滑结束微信后黑屏，**当前候选的显示稳定性验收失败**；前面正常会话仍有效，但覆盖不足。
+
+只读云快照 `glx-on-cloud-04.json` 共 21 批、81 条、9 个会话，分页 Total=21、Offset=0、Limit=100，无已知截断。除 `ae77c73e` 外另出现 `6746409c`、`e77282a3` 两个同包 GLX 会话；它们均完成同样的启动链、native init/buffer/context 更新返回 1/1/2 次、上下文匹配、failureReason=null，无新 error。**这两个短码均未与人工画面配对，不能按时间或先后猜定为黑屏。** 启动完成不证明实际呈现，阶段耗时差异也不能解释黑屏。云采集仍有边界，不将没有错误或没有后续日志当作成功。
+
+原快照、摘要和私有台账均保留；更新前台账另存 `glx-on-round-01-before-failure.json`。停止该包反复重进，不清缓存、不通过重试抹除失败。用户要求后续真机尽量只测 GLX；下一步按已批准的候选方案，仅使用相同引擎/PCK/云接入的 GLX 加载页关闭包，先确认首次画面，再单独执行一次上述上滑结束微信的相同操作。若仍失败，可排除“开启加载页”是必要条件，再进入同库极简 native 绘制对照；若正常，只说明该有限对照有区分，不能直接宣布修复。默认 WebGL 保持，电脑侧回归与已有正常包保留。
+
+随后已在原批准范围内推送 GLX 加载页关闭包 `wxslim-c1c46013faf605d4fb56`，CLI 返回 success=true。预览前独立核对两包各 33 个文件与 seal 一致，差异仍仅包身份和加载页字段；off 文件树 SHA256 为 `690120448176e58c097eec95bb24a51bbccc263865facfd67165d90a75b8595d`。收据为 `glx-off-auto-preview-01.json`，私有台账为 `glx-off-round-01.json`，预览前云基线为 `glx-on-cloud-04.json`。首次画面尚待用户反馈，预览成功不计为 GLX 验收通过。
+
+## 2026-10-23：关闭加载页候选在引擎前失败，对照未成立
+
+用户随后回复“黑屏”并提供截图：游戏区域黑色，微信原生弹窗标题为“资源下载失败”，详情为 `i is not a function. (In 'i(f)', 'i' is undefined)`。FPS 浮层和 vConsole 按钮可见，不是 Godot 画面正常的证据；弹窗标题也不足以认定网络下载失败。截图副本与 SHA256 记录在私有 `glx-off-phone-failure-01.jpg` / `glx-off-round-01.json`，不提交图片或私有日志。
+
+只读快照 `glx-off-cloud-01.json` 相对预览前基线新增 `0cb7955e`、`3c143f31` 两个会话，均对应关闭加载页包 `wxslim-c1c46013faf605d4fb56`。每个会话只有 PHONE_LOG_START 和约 275 ms 后的 `WXSLIM_RENDER_BOOT_FAILED` 摘要：initialization=failed、actualContext=null、observationStatus=not_observed、native={}，未观察到 FACTORY_START 或任何后续 Godot 启动阶段。25 批/85 条/11 会话，Total=25、无已知截断；截图无可见短码，两个会话不能逐条与人工操作强配。云摘要未收录具体 `i(f)` 调用栈，不能据此指定源码位置。
+
+**这次是关闭加载页候选的启动/加载失败，尚未到 GLX 初始化或最终呈现；加载页 on/off 的呈现对照未成立。** 因此不能使用此失败排除加载页交接假设，也不能与此前 initialized / MAIN_RETURNED 后黑屏直接合并成同一根因。停止该包手机重试，先电脑侧核对关闭加载页的官方入口和回调合同；没有添加延时、flush、强制上下文重建或再次推送。
+
+电脑侧复核本地留存官方 LaunchProcess 文档及已 pin 的 1.0.35 转换器模板：using 表示是否启用封面，visible 表示是否显示；入口仍为 setModuleFunctionHandler → loader.start，没有记载 using=false 要另补模块/资源回调。文档未证明插件关闭分支没有实现缺陷，当前也没有具体 `i(f)` 调用对象。未用空回调掩盖错误。
+
+发现当前诊断边界会丢弃被捕获异常的栈，遂仅补一次性失败定位：白名单异常类别、最多 6 个白名单文件及行列，拒绝原文、函数名、URL 参数、目录、动态文件名及未知错误代码；保留首错和既有单次摘要。未增加逐帧或 GPU 操作。针对性运行时测试 37/37，全套本地 64/64（本轮未跑 Godot headless，Godot 场景/源码未改）；独立转换 verify 38 通过、1 注意、0 失败，注意仍为未经授权的官方 split init 未运行。
+
+可审查的新候选为 `wxslim-53e8af0a5e2932c1db82`，目录 `.local/glx-loader-error-20261023-02/glx-off/minigame`，文件树 SHA256 `8ac0589f4756cc06b0d3b64b0fa286229f02200f85d4ed35677c0706dec7ab7c`。对失败 off 包的 33 文件比较，仅 render-runtime.js 与记录身份的 render-config.js/json 不同；引擎、WASM、PCK、加载配置和云接口字节相同，转换时间戳按原包统一并记录前后哈希。该包仅为定位加载失败，尚未推送或真机验证；新预览待用户确认。初版未推送候选 `wxslim-9d6b1b679f9d90d0c611` 保留并标为 superseded_before_preview，独立复核发现的错误标题误判和错误代码透传已在最终候选修正。
+
+用户随后明确确认本定位包预览。推送前再次独立核对 33 文件及文件树 seal 一致，读取现有云基线为 25 批/85 条/11 会话，尚无新候选包记录；之后 auto_preview 返回 success=true，无待确认 CLI 任务。证据为 `.local/glx-loader-error-20261023-02/preview/` 下 `cloud-before-preview.json`、`auto-preview-01.json`、`round-01.json`。本轮只安排打开一次约 20 秒，等待实际画面及有界异常位置，不安排连续重进，不把推送成功计为显示通过。
+
+### 定位包结果：停止关闭加载页支线，回到原 GLX 复现
+
+用户报告定位包“依旧资源下载失败且黑屏”，并询问为何不用此前 GLX 包。后续快照 `cloud-after-open-01.json` 为 28 批/88 条/12 会话（Total=28，无已知截断），唯一新增的已知候选包会话短码为 `9ccf27ff`。人工没有读到可见短码，只按预览、预览前快照和该候选唯一新会话关联，不冒充用户短码精确配对。
+
+该会话按 seq 为 PHONE_LOG_START（0 ms）→ failed 摘要（1720 ms）→ FACTORY_START（4229 ms）。**工厂入口在失败后约 2509 ms 出现**，不能称为 factory 内部失败；仍无 WASM_INSTANTIATED、实际上下文或 native 初始化返回。错误位置只有 `WAGameSubContext.js:1:63146`、`:1:63372`，errorName=unavailable；这些位置不足以定位 `i(f)`，投影中的 scope=package 也不证明文件属于本项目。没有将弹窗标题认定为网络故障。
+
+此两轮关闭加载页实验均未建立引擎实际呈现对照，继续围绕它扩展手机诊断会偏离原 GLX 黑屏问题，故停止该支线。原封存 `wxslim-c15c28ef293ab29bff65`（加载页开启）的正常画面、实际 GLX 及上滑结束微信后黑屏记录仍保留，恢复为主要复现基线。已请求用户确认原样恢复该手机预览，尚未执行换包；电脑侧继续同一 GLX 库的极简 native 绘制候选，不再增加 off 开关或无依据延时。

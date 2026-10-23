@@ -15,6 +15,23 @@ const count = value => Number.isSafeInteger(value) && value >= 0 ? value : null;
 function select(source, keys, accept = string) {
   return Object.fromEntries(keys.filter(key => accept(source?.[key]) !== null).map(key => [key, accept(source[key])]));
 }
+// Revalidate the runtime's already-redacted location. Cloud input is not trusted,
+// and neither arbitrary basenames nor raw stack/message/path fields are copied.
+const errorNames = new Set(['Error', 'TypeError', 'ReferenceError', 'RangeError', 'SyntaxError', 'URIError', 'EvalError', 'AggregateError', 'RuntimeError', 'CompileError', 'LinkError', 'unavailable']);
+const locationFiles = new Set(['game.js', 'framework.js', 'index.js', 'render-runtime.js', 'render-observer.js', 'godot-bridge.js', 'custom-package.js', 'single-entry.js', 'WAGame.js', 'WAGameSubContext.js', 'WAService.js', 'WAServiceMainContext.js', 'WAWorker.js', 'WAWebview.js', 'game.wasm', 'framework.wasm', 'godot.wasm']);
+const position = value => Number.isInteger(value) && value > 0 && value <= 2147483647;
+function failureLocation(value) {
+  if (!object(value)) return null;
+  const frames = [];
+  for (const frame of (Array.isArray(value.frames) ? value.frames.slice(0, 64) : [])) {
+    if (!object(frame) || !locationFiles.has(frame.file) || !['plugin', 'package', 'wasm'].includes(frame.scope) || !position(frame.line)) continue;
+    if (frame.file.endsWith('.wasm') !== (frame.scope === 'wasm')) continue;
+    if (frame.column !== undefined && !position(frame.column)) continue;
+    frames.push({scope: frame.scope, file: frame.file, line: frame.line, ...(frame.column === undefined ? {} : {column: frame.column})});
+    if (frames.length === 6) break;
+  }
+  return {errorName: errorNames.has(value.errorName) ? value.errorName : 'unavailable', status: frames.length ? 'available' : 'unavailable', frames};
+}
 function renderEvidence(source) {
   const result = select(source, ['packageVersion', 'requestedMode', 'observationStatus', 'initialization', 'bufferInitialization']);
   result.versions = select(source.versions, ['godot', 'transformer', 'wxGameKit']);
@@ -22,6 +39,8 @@ function renderEvidence(source) {
   if (typeof source.actualContext?.webgl2 === 'boolean') result.actualContext.webgl2 = source.actualContext.webgl2;
   result.failureCode = /^WXSLIM_[A-Z0-9_]{1,64}$/.test(source.failureReason?.code || '') ? source.failureReason.code : null;
   result.failureReported = source.failureReason != null;
+  const location = failureLocation(source.failureReason?.location);
+  if (location) result.failureLocation = location;
   result.lifecycle = select(source.lifecycle, ['hide', 'show', 'resize'], count);
   if (['not_verified', 'not_observed'].includes(source.lifecycle?.recovery)) result.lifecycle.recovery = source.lifecycle.recovery;
   result.native = {};

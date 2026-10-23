@@ -70,6 +70,34 @@ for (const patch of [{total: 5}, {pager: {Offset: 1, Limit: 1, Total: 1}}, {hasM
 }
 assert.equal(result.coverage.completeness, 'not_verified');
 
+// Only the bounded diagnostic coordinates survive; arbitrary fields in a cloud
+// record must not turn this projection into a raw stack or account-data export.
+const located = batch();
+const locations = [
+  {scope: 'plugin', file: 'index.js', line: 1, column: 230, path: 'PRIVATE_PATH', functionName: 'PRIVATE_FN'},
+  {scope: 'package', file: 'framework.js', line: 12},
+  {scope: 'package', file: 'PRIVATE_TOKEN.js', line: 1, column: 2},
+  {scope: 'plugin', file: 'https://PRIVATE_HOST/index.js', line: 1},
+  {scope: 'PRIVATE_SCOPE', file: 'index.js', line: 1},
+  {scope: 'wasm', file: 'framework.js', line: 1},
+  {scope: 'package', file: 'game.wasm', line: 1},
+  {scope: 'plugin', file: 'index.js', line: 0},
+  {scope: 'plugin', file: 'index.js', line: 1, column: -1},
+  {scope: 'plugin', file: 'index.js', line: 2147483648},
+  ...Array.from({length: 20}, (_, i) => ({scope: 'package', file: 'game.js', line: 100 + i, column: 2}))
+];
+located.entries = [entry({...render(), initialization: 'failed', failureReason: {code: 'WXSLIM_RENDER_BOOT_FAILED', message: 'PRIVATE_MESSAGE', stack: 'PRIVATE_STACK', location: {errorName: 'TypeError', status: 'available', frames: locations, raw: 'PRIVATE_RAW'}}})];
+const locatedOutput = summarizeAcceptance(cloud([located]));
+const safeLocation = locatedOutput.runs[0].renderSummaries[0].failureLocation;
+assert.equal(safeLocation.errorName, 'TypeError');
+assert.equal(safeLocation.status, 'available');
+assert.equal(safeLocation.frames.length, 6);
+assert.deepEqual(safeLocation.frames.slice(0, 2), [{scope: 'plugin', file: 'index.js', line: 1, column: 230}, {scope: 'package', file: 'framework.js', line: 12}]);
+assert.doesNotMatch(JSON.stringify(locatedOutput), /PRIVATE_/);
+assert.equal(result.runs[0].renderSummaries[1].failureLocation, undefined);
+located.entries = [entry({...render(), failureReason: {location: {errorName: 'PRIVATE_NAME', status: 'available', frames: [null, {scope: 'plugin', file: 'index.js', line: '1'}]}}})];
+assert.deepEqual(summarizeAcceptance(cloud([located])).runs[0].renderSummaries[0].failureLocation, {errorName: 'unavailable', status: 'unavailable', frames: []});
+
 // CLI creates a new output and refuses to overwrite it; errors do not echo raw input.
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wxslim-acceptance-test-'));
 try {

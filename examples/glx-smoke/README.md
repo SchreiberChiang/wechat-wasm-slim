@@ -85,6 +85,8 @@ node examples/glx-smoke/diagnostic-engine.mjs --input <原始引擎godot.js> --o
 
 仅转发 PHONE_LOG_START、WXSLIM_BOOT、WXSLIM_RENDER_SUMMARY、WXSLIM_FRAME_PROBE 和下述 WXSLIM_PRESENTATION / WXSLIM_CANVAS_EXPORT；其他 console/error 不上传。复用现有协议的设备平台、型号、系统和基础库字段，服务端按既有身份校验存储。上报在 60 秒后停止，后台冻结可能延迟定时器执行；未成功发送的队列不会保存到存储。按唯一 build 查询现有 phone_log_batches，必须看到云端实际返回记录才能声称上报成功。2026-10-23 用户已明确批准本轮最小诊断包接入现有云日志及手机预览，未授权更改赛车或服务器。
 
+启动失败时，转换器的一次性 WXSLIM_RENDER_SUMMARY 可携带 `failureReason.location`：固定异常类别、最多 6 个已知 JS/WASM 文件名及行列位置。原始错误文本、函数名、完整路径、URL 参数及任意动态文件名均不上传；无法安全解析时为 unavailable，不猜调用点。`summarize-acceptance.mjs` 再次按白名单投影为 `failureLocation`。这些位置只用于定位异常，不证明 GLX 上下文或实际显示成功；启动前失败也不能作为加载页交接后的呈现对照。旧包没有该字段，读取器不会补造。
+
 ### 帧缓冲与呈现查询诊断
 
 在独立输出目录使用原始 JS（不是已经带帧探针的 JS）：

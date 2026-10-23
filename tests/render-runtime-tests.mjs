@@ -236,6 +236,114 @@ test('WebGL native behavior stays on the existing wrapper including its error ha
   assert.equal(h.api.read().initialization, 'initialized');
 });
 
+test('boot failure location supports JSC and V8 frames without exposing their paths or functions', () => {
+  const h = harness();
+  h.api.fail({name: 'TypeError', message: 'secret message', stack: [
+    'TypeError: secret message',
+    'global code@plugin://private-session/index.js:17:200',
+    '@weapp:///private/package/game.js:19:21',
+    '    at privateFunction (https://private.example/private/framework.js:22:23)',
+    '    at C:\\private\\render-runtime.js:24:25',
+    '    at https://private.example/__plugin__/index.js:26',
+    '    at weapp:///private/godot.wasm:27:28'
+  ].join('\n')});
+  assert.deepEqual(plain(h.api.read().failureReason.location), {
+    errorName: 'TypeError', status: 'available', frames: [
+      {file: 'index.js', line: 17, column: 200, scope: 'plugin'},
+      {file: 'game.js', line: 19, column: 21, scope: 'package'},
+      {file: 'framework.js', line: 22, column: 23, scope: 'package'},
+      {file: 'render-runtime.js', line: 24, column: 25, scope: 'package'},
+      {file: 'index.js', line: 26, scope: 'plugin'},
+      {file: 'godot.wasm', line: 27, column: 28, scope: 'wasm'}
+    ]
+  });
+  assert.doesNotMatch(JSON.stringify(h.api.read()) + h.logs.join(''), /private|secret|https:|weapp:|plugin:|Function/);
+  assert.equal(summaryLines(h).length, 1);
+  assert.deepEqual(h.forbiddenCalls, []);
+});
+
+test('unknown, forged query, eval, offset and invalid frames remain unavailable', () => {
+  const h = harness();
+  h.api.fail({name: 'PrivateError-session', message: 'token=SECRET', stack: [
+    'PrivateError-session: token=SECRET',
+    'secret@https://private/0123456789abcdef0123456789abcdef.js:1:2',
+    'secret@https://private/asset.js?next=/framework.js:3:4',
+    'secret@https://private/framework.js?token=SECRET:5:6',
+    'secret@https://private/framework.js#session:7:8',
+    '    at eval (eval at secret (https://private/framework.js:9:10))',
+    '    at secret (wasm://wasm/01234567:wasm-function[12]:0xab)',
+    '    at native',
+    '    at evil://private/index.js:1:2',
+    'global code@custom-protocol://private/index.js:1:2',
+    '    at https://private/game.js:0:2',
+    '    at https://private/game.js:1:0',
+    '    at https://private/game.js:12345678:2',
+    'not-a-frame https://private/game.js:1:2'
+  ].join('\n')});
+  assert.deepEqual(plain(h.api.read().failureReason.location), {errorName: 'unavailable', status: 'unavailable', frames: []});
+  assert.doesNotMatch(JSON.stringify(h.api.read()) + h.logs.join(''), /PrivateError|SECRET|private|012345|token|wasm-function/);
+});
+
+test('error headers containing location-like text are never interpreted as JSC frames', () => {
+  for (const stack of ['TypeError: user@framework.js:123:456\nnot a frame', 'PRIVATE_ERROR: user@index.js:1:2']) {
+    const h = harness();
+    h.api.fail({name: 'TypeError', stack});
+    assert.deepEqual(plain(h.api.read().failureReason.location), {errorName: 'TypeError', status: 'unavailable', frames: []});
+    assert.doesNotMatch(h.logs.join(''), /PRIVATE_ERROR|user@|123|456/);
+  }
+});
+
+test('catch boundary accepts only fixed internal render failure codes', () => {
+  for (const wxslimRenderCode of ['PRIVATE_SENTINEL', 'WXSLIM_PRIVATE_SENTINEL', {toString() { throw Error('PRIVATE_COERCION'); }}]) {
+    const h = harness();
+    assert.doesNotThrow(() => h.api.fail({wxslimRenderCode}));
+    assert.equal(h.api.read().failureReason.code, 'WXSLIM_RENDER_BOOT_FAILED');
+    assert.doesNotMatch(h.logs.join(''), /PRIVATE/);
+  }
+  const h = harness();
+  h.api.fail({wxslimRenderCode: 'WXSLIM_RENDER_PIN_CHANGED'});
+  assert.equal(h.api.read().failureReason.code, 'WXSLIM_RENDER_PIN_CHANGED');
+});
+
+test('error locations cap frames, scanned lines and stack length and preserve the first failure', () => {
+  const h = harness();
+  h.api.fail({name: 'RangeError', stack: Array.from({length: 12}, (_, i) => `fn@https://secret/game.js:${i + 1}:2`).join('\n')});
+  const first = plain(h.api.read().failureReason);
+  assert.equal(first.location.frames.length, 6);
+  h.api.fail({name: 'TypeError', stack: 'fn@plugin://secret/index.js:99:100'});
+  assert.deepEqual(plain(h.api.read().failureReason), first);
+  assert.deepEqual(JSON.parse(summaryLines(h)[0].slice('[WXSLIM_RENDER_SUMMARY] '.length)).failureReason, first);
+  assert.equal(summaryLines(h).length, 1);
+  for (const stack of ['ignored\n'.repeat(64) + 'fn@https://secret/game.js:1:2', 'x'.repeat(32768) + '\nfn@https://secret/game.js:1:2', null]) {
+    const bounded = harness();
+    bounded.api.fail({name: 'Error', stack});
+    assert.equal(bounded.api.read().failureReason.location.status, 'unavailable');
+  }
+});
+
+test('unreadable error location properties do not disrupt failure handling', () => {
+  for (const field of ['name', 'stack', 'message', 'wxslimRenderCode']) {
+    const h = harness(), error = {message: 'private'};
+    Object.defineProperty(error, field, {get() { throw Error('PRIVATE_GETTER'); }});
+    assert.doesNotThrow(() => h.api.fail(error));
+    assert.equal(h.api.read().failureReason.location.status, 'unavailable');
+    assert.doesNotMatch(h.logs.join(''), /private|PRIVATE_GETTER/);
+  }
+});
+
+test('native failure captures the original safe location before its outer catch', () => {
+  const h = harness({mode: 'glx', capability: true});
+  assert.throws(() => h.api.nativeCall('glxInit', () => {
+    throw {name: 'TypeError', message: 'PRIVATE_NATIVE', stack: 'secret@plugin://private/index.js:11:12'};
+  }), /WXSLIM_GLX_NATIVE_FAILED/);
+  h.api.fail({name: 'Error', stack: 'outer@weapp:///private/game.js:20:30'});
+  assert.deepEqual(plain(h.api.read().failureReason.location), {
+    errorName: 'TypeError', status: 'available', frames: [{file: 'index.js', line: 11, column: 12, scope: 'plugin'}]
+  });
+  assert.equal(summaryLines(h).length, 1);
+  assert.doesNotMatch(h.logs.join(''), /PRIVATE_NATIVE|private|secret|outer/);
+});
+
 test('GLX native init or context update left unobserved cannot report initialized', () => {
   for (const omitted of ['glxInit', 'glxUpdateContextId']) {
     const h = harness({mode: 'glx', capability: true}), observer = installObserver(h);
