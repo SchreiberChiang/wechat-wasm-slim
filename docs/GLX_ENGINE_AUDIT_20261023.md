@@ -19,6 +19,8 @@
 
 历史 BUILD.json 没保存全部编译器二进制哈希及最终 link response，不能倒造当时的位级重建证明。当前库字节、源码 patch、构建日志与包输入形成可追溯链；新构建应保存本次实际输入及输出哈希。审计原始数据放 `.local/glx-engine-audit-20261023/provenance/`，不提交原引擎或赛车私有文件。
 
+上述 CLI 以外，固定源码 detect.py 还为 GLX 构建加入 `WECHAT_GLX_EXPERIMENTAL`、`CHECK_NULL_WRITES=0`、C++ exceptions、`SUPPORT_LONGJMP=emscripten` 和所需导出，并关闭 OFFSCREEN_FRAMEBUFFER。新基线保持这些既有选项；保留不代表已经证明相关 workaround 的内存安全或长期稳定性。
+
 ## 公开材料差异核对
 
 | 合同 | 结果 |
@@ -81,3 +83,5 @@ node trim/trim.mjs build --toolchain .local/glx-full-baseline-20261023-01/toolch
 5. 最小完整包稳定后才进行裁剪与官方分包；新 WASM 的 init/采集/upload 均需另获授权，本地测试不替代这些验收。失败保留，不通过重试抹除。
 
 最终若仍指向闭源边界，应提交最小复现和两个具体问题：同一 GLX context 经加载页再交接引擎时要求何种状态隔离；当前 Emscripten 4.0.10 有无经验证的配套库及可核对 SHA256。不能要求用户盲试不匹配归档。
+
+极简 native 对照的具体约束已核查：除三项初始化导出，还需 `_glxCommandBufferFlush` 和库自己的 after-frame hook；采用 `glDrawArrays` 三角形而非仅 clear，因为已生成 glue 只在 drawcall>0 时执行原 swapWindow。不能在主实验里手工拼命令缓冲或额外强制 swap，否则无法判断库的自然提交路径。尚未制作或运行该备选对照。
