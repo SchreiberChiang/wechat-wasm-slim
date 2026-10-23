@@ -1,2 +1,4 @@
 # 引擎补丁要以 LF 换行应用到引擎源码上，不能被 Windows 的 autocrlf 转成 CRLF
 *.patch text eol=lf
+# 固定补丁输入逐字节参与身份校验，Windows checkout 也必须保持 LF。
+engine/shader-failure/** text eol=lf

@@ -1,0 +1,103 @@
+{
+  "schema": "wxslim-sanitized-glx-shader-evidence-v1",
+  "scope": "Tracked diagnostic excerpt and original log hashes; raw phone logs, screenshots, pairing and device routes remain private",
+  "packageId": "shader-diagnostic-glx-1c5b24923c49bbe61e5d",
+  "enginePairSha256": "fa4afcf4bfda337e4848e92f3bc1ce0931973b73cc3be936a10dea0e66b18154",
+  "sourcePin": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "diagnosticPatchSha256": "fff071e50459bb5434b3a14c2d38927d655f632044f4ec0dba96369e8d50fd3b",
+  "glxLibrarySha256": "c70b6255285aa4e5b987f18cf24d59d56227c67d44d60b734755f33f6a8ab33a",
+  "device": {
+    "model": "iPhone 16 Pro",
+    "os": "iOS 18.3.1",
+    "wechat": "8.0.75",
+    "baseLibrary": "3.17.5"
+  },
+  "first": {
+    "session": "2c5d1526",
+    "visualResult": "normal_user_report_and_wifi_screenshot",
+    "actualMode": "glx",
+    "originalLogSha256": "3dae42c372d71efdac561365c5cd03722c34070117bec36d66706a8cad4f7242",
+    "originalLogBytes": 3873,
+    "diagnosticCount": 0
+  },
+  "reopen": {
+    "session": "dcd3d486",
+    "operation": "user_reports_terminated_WeChat_then_reopened",
+    "visualResult": "black_user_report",
+    "actualMode": "glx",
+    "originalLogSha256": "1bf54fbd68dfeb0265b47190192df09e0f1a8e153142d14399e7ccafb9b01c69",
+    "originalLogBytes": 10101,
+    "diagnosticLine": 80,
+    "diagnosticCount": 1,
+    "newPidAndScreenshot": "not_obtained_wifi_preflight_timeout"
+  },
+  "diagnostic": {
+    "version": 1,
+    "program": 1,
+    "shader": 1,
+    "expectedType": 35633,
+    "variant": 0,
+    "specializationLo": 0,
+    "specializationHi": 0,
+    "contextAtFailure": 1,
+    "GODOT_ORIGINAL": {
+      "label": "GODOT_ORIGINAL",
+      "available": true,
+      "sourceBytes": 1268,
+      "source": {
+        "text": "#version 300 es\n\n#define MODE_SIMPLE_COPY\n\n#define samplerExternalOES sampler2D\n#ifdef USE_MULTIVIEW\n#if defined(GL_OVR_multiview2)\n#extension GL_OVR_multiview2 : require\n#elif defined(GL_OVR_multiview)\n#extension GL_OVR_multiview : require\n#endif\nlayout(num_views=2) in;\n#define ViewIndex gl_ViewID_OVR\n#define MAX_VIEWS 2\n#else\n#define ViewIndex uint(0)\n#define MAX_VIEWS 1\n#endif\nprecision highp float;\nprecision highp int;\nprecision highp sampler2D;\nprecision highp samplerCube;\nprecision highp sampler2DArray;\nprecision highp sampler3D;\n\nlayout(location = 0) in vec2 vertex_attrib;\n\nout vec2 uv_interp;\n/* clang-format on */\n\n#if defined(USE_COPY_SECTION) || defined(MODE_GAUSSIAN_BLUR)\n// Defined in 0-1 coords.\nuniform highp vec4 copy_section;\n#endif\n#if defined(MODE_GAUSSIAN_BLUR) || defined(MODE_COPY_FROM)\nuniform highp vec4 source_section;\n#endif\n\nvoid main() {\n\tuv_interp = vertex_attrib * 0.5 + 0.5;\n\tgl_Position = vec4(vertex_attrib, 1.0, 1.0);\n\n#if defined(USE_COPY_SECTION) || defined(MODE_GAUSSIAN_BLUR)\n\tgl_Position.xy = (copy_section.xy + uv_interp.xy * copy_section.zw) * 2.0 - 1.0;\n#endif\n#if defined(MODE_GAUSSIAN_BLUR) || defined(MODE_COPY_FROM)\n\tuv_interp = source_section.xy + uv_interp * source_section.zw;\n#endif\n}\n\n/* clang-format off */\n\n",
+        "retainedUtf8Bytes": 1268,
+        "jsLength": 1268,
+        "truncated": false
+      }
+    },
+    "GLX_BATCH_RETURN": {
+      "label": "GLX_BATCH_RETURN",
+      "rawType": "string",
+      "rawNull": false,
+      "convertedType": "string",
+      "available": true,
+      "source": {
+        "text": "#version 300 es\n\n#define MODE_SIMPLE_COPY\n\n#define samplerExternalOES sampler2D\n#ifdef USE_MULTIVIEW\n#if defined(GL_OVR_multiview2)\n#extension GL_OVR_multiview2 : require\n#elif defined(GL_OVR_multiview)\n#extension GL_OVR_multiview : require\n#endif\nlayout(num_views=2) in;\n#define ViewIndex gl_ViewID_OVR\n#define MAX_VIEWS 2\n#else\n#define ViewIndex uint(0)\n#define MAX_VIEWS 1\n#endif\nprecision highp float;\nprecision highp int;\nprecision highp sampler2D;\nprecision highp samplerCube;\nprecision highp sampler2DArray;\nprecision highp sampler3D;\n\nlayout(location = 0) in vec2 vertex_attrib;\n\nout vec2 uv_interp;\n/* clang-format on */\n\n#if defined(USE_COPY_SECTION) || defined(MODE_GAUSSIAN_BLUR)\n// Defined in 0-1 coords.\nuniform highp vec4 copy_section;\n#endif\n#if defined(MODE_GAUSSIAN_BLUR) || defined(MODE_COPY_FROM)\nuniform highp vec4 source_section;\n#endif\n\nvoid main() {\n\tuv_interp = vertex_attrib * 0.5 + 0.5;\n\tgl_Position = vec4(vertex_attrib, 1.0, 1.0);\n\n#if defined(USE_COPY_SECTION) || defined(MODE_GAUSSIAN_BLUR)\n\tgl_Position.xy = (copy_section.xy + uv_interp.xy * copy_section.zw) * 2.0 - 1.0;\n#endif\n#if defined(MODE_GAUSSIAN_BLUR) || defined(MODE_COPY_FROM)\n\tuv_interp = source_section.xy + uv_interp * source_section.zw;\n#endif\n}\n\n/* clang-format off */\n\n",
+        "retainedUtf8Bytes": 1268,
+        "jsLength": 1268,
+        "truncated": false
+      }
+    },
+    "PLATFORM_ACTUAL_COMPILE_INPUT": {
+      "available": false,
+      "reason": "opaque platform boundary"
+    },
+    "contextAtError": 1,
+    "errorBytes": 218,
+    "error": {
+      "text": "ERROR: 0:26: Invalid use of layout 'location'\nERROR: 0:40: Use of undeclared identifier 'vertex_attrib'\nERROR: 0:41: Use of undeclared identifier 'gl_Position'\nERROR: 0:41: Use of undeclared identifier 'vertex_attrib'\n",
+      "retainedUtf8Bytes": 218,
+      "jsLength": 218,
+      "truncated": false
+    },
+    "sourceArmCount": 1,
+    "sourceImportCount": 1,
+    "queryObservationCount": 1,
+    "batchReturnedType": 35632,
+    "batchReturnedSourceLength": 1268,
+    "contextAfterQueries": 1,
+    "publicContextChanged": false
+  },
+  "sourceAttribution": {
+    "description": "Godot generated GLES3 CopyShader source, retained verbatim from caller and GLX return",
+    "repository": "https://github.com/citizenll/godot",
+    "commit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+    "path": "drivers/gles3/shaders/copy.glsl",
+    "license": "MIT"
+  },
+  "conclusions": {
+    "typeQueryMismatch": true,
+    "sourceUtf8BytesEqual": true,
+    "sourceBytes": 1268,
+    "platformActualCompileInput": "unavailable",
+    "sharedIdCollision": "not_proven",
+    "blackScreenFixed": false
+  },
+  "evidenceLimit": "One diagnostic per Module covers only the first shader failure; public handles and returned source do not identify the platform compilation object"
+}

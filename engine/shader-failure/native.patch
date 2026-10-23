@@ -1,0 +1,97 @@
+--- a/drivers/gles3/shader_gles3.cpp
++++ b/drivers/gles3/shader_gles3.cpp
+@@ -32,6 +32,10 @@
+ 
+ #ifdef GLES3_ENABLED
+ 
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
++#include "wxslim_shader_failure.h"
++#endif
++
+ #include "core/io/dir_access.h"
+ #include "core/string/string_builder.h"
+ #include "drivers/gles3/rasterizer_util_gles3.h"
+@@ -324,10 +328,16 @@
+ 
+ 		glGetShaderiv(spec.vert_id, GL_COMPILE_STATUS, &status);
+ 		if (status == GL_FALSE) {
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
++			WxslimShaderFailure wxslim_failure(spec.id, spec.vert_id, GL_VERTEX_SHADER, p_variant, p_specialization, cstr, cstr_len);
++#endif
+ 			GLsizei iloglen;
+ 			glGetShaderiv(spec.vert_id, GL_INFO_LOG_LENGTH, &iloglen);
+ 
+ 			if (iloglen < 0) {
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
++				wxslim_failure.compiler_log(nullptr, 0, 0);
++#endif
+ 				glDeleteShader(spec.vert_id);
+ 				glDeleteProgram(spec.id);
+ 				spec.id = 0;
+@@ -338,14 +348,24 @@
+ 					iloglen = 4096; // buggy driver (Adreno 220+)
+ 				}
+ 
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
++				const int wxslim_log_capacity = iloglen;
++#endif
+ 				char *ilogmem = (char *)Memory::alloc_static_zeroed(iloglen + 1);
+ 				glGetShaderInfoLog(spec.vert_id, iloglen, &iloglen, ilogmem);
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
++				wxslim_failure.compiler_log(ilogmem, iloglen, wxslim_log_capacity);
++#endif
+ 
+ 				String err_string = name + ": Vertex shader compilation failed:\n";
+ 
+ 				err_string += ilogmem;
+ 
+ 				_display_error_with_code(err_string, builder_string);
++
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
++				wxslim_failure.queries_after_error_display();
++#endif
+ 
+ 				Memory::free_static(ilogmem);
+ 				glDeleteShader(spec.vert_id);
+@@ -372,10 +392,16 @@
+ 
+ 		glGetShaderiv(spec.frag_id, GL_COMPILE_STATUS, &status);
+ 		if (status == GL_FALSE) {
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
++			WxslimShaderFailure wxslim_failure(spec.id, spec.frag_id, GL_FRAGMENT_SHADER, p_variant, p_specialization, cstr, cstr_len);
++#endif
+ 			GLsizei iloglen;
+ 			glGetShaderiv(spec.frag_id, GL_INFO_LOG_LENGTH, &iloglen);
+ 
+ 			if (iloglen < 0) {
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
++				wxslim_failure.compiler_log(nullptr, 0, 0);
++#endif
+ 				glDeleteShader(spec.frag_id);
+ 				glDeleteProgram(spec.id);
+ 				spec.id = 0;
+@@ -386,14 +412,24 @@
+ 					iloglen = 4096; // buggy driver (Adreno 220+)
+ 				}
+ 
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
++				const int wxslim_log_capacity = iloglen;
++#endif
+ 				char *ilogmem = (char *)Memory::alloc_static_zeroed(iloglen + 1);
+ 				glGetShaderInfoLog(spec.frag_id, iloglen, &iloglen, ilogmem);
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
++				wxslim_failure.compiler_log(ilogmem, iloglen, wxslim_log_capacity);
++#endif
+ 
+ 				String err_string = name + ": Fragment shader compilation failed:\n";
+ 
+ 				err_string += ilogmem;
+ 
+ 				_display_error_with_code(err_string, builder_string);
++
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
++				wxslim_failure.queries_after_error_display();
++#endif
+ 
+ 				Memory::free_static(ilogmem);
+ 				glDeleteShader(spec.frag_id);
