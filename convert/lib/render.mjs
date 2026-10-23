@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import {fileURLToPath} from 'node:url';
-import {sha, normalizeRenderMode} from './inputs.mjs';
+import {sha, normalizeRenderMode, normalizeLoadingPage} from './inputs.mjs';
 
 export const RENDER_SCHEMA = 'wxslim-render-config-v1';
 const asset = name => fs.readFileSync(new URL('../assets/' + name, import.meta.url), 'utf8');
@@ -14,6 +14,7 @@ export function instrumentRender(js) {
 }
 export function renderManifest({renderMode, js, wasm, pck, godotVersion, transformerVersion, pluginVersion, runtimeOptions = {}}) {
   const requestedMode = normalizeRenderMode(renderMode);
+  runtimeOptions = {...runtimeOptions, loadingPage: normalizeLoadingPage(runtimeOptions.loadingPage)};
   // Content identity, including uncommitted adapter edits. No input paths or account data.
   const adapterSha256 = sha(Buffer.concat(['../convert.mjs', './inputs.mjs', './render.mjs', '../assets/godot-bridge.js', '../assets/render-runtime.js', '../assets/render-observer.js', '../assets/asset-gate.js', '../assets/custom-package.js', '../assets/single-entry.js', '../assets/wx-compat.js', '../../godot-addon/addons/wx_split/wx_split.js', '../../split/assets/wxslim-timing.js']
     .map(name => fs.readFileSync(fileURLToPath(new URL(name, import.meta.url))))));

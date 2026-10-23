@@ -36,6 +36,18 @@ export function normalizeRenderMode(value = 'webgl') {
   return value;
 }
 
+/** 只供显式加载页对照实验；默认保持官方加载页。 */
+export function normalizeLoadingPage(value = 'on') {
+  if (!['on', 'off'].includes(value)) throw Error(`--loading-page 只能是 on 或 off，现在是 ${JSON.stringify(value)}`);
+  return value;
+}
+
+export function configureLoadingPage(cfg, value) {
+  const mode = normalizeLoadingPage(value);
+  if (typeof cfg.loadingPage?.using !== 'boolean') throw Error('转换器产物缺少布尔 loadingPage.using，拒绝猜测加载页配置');
+  cfg.loadingPage.using = mode === 'on';
+}
+
 /** 官方 wx-transformer 的配置（convert 和 doctor 共用）。AppID 用占位符，转换后再填。 */
 export function transformerConfig({jsFile, wasmFile, symbolsFile, outputDir, appID, appName, engineVersion, orientation, renderMode}) {
   const mode = normalizeRenderMode(renderMode);

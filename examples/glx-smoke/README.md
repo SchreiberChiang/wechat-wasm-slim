@@ -2,7 +2,11 @@
 
 开发者工具实际验证见 [WebGL 实测记录](../../docs/GLX_DEVTOOLS_WEBGL_20261022.md)：默认 WebGL 的游戏内摘要已读取成功。CLI 若返回 `canvas not found` / 诊断 null，先核对是否在实际游戏上下文；不要据此判定游戏按钮或渲染失败。
 
-Godot 4.7.2、GL Compatibility、单线程。没有联网、音频、登录、赛车资产或云上报；所有图形由代码生成。
+Godot 4.7.2、GL Compatibility、单线程。没有联网、登录、赛车资产或默认云上报；图形与手动测试音均由代码生成。
+
+顶部验收身份显示 `packageVersion`、实际 `actualContext.mode`（未观察到则为 `unknown`，不能用请求模式代替）及短会话码。短码来自已有 `console.__phoneLogRelay.session`，完整会话在手动 JSON 的 `acceptanceIdentity.cloudSession` 内；接口载入时缓存，relay 停止后仍保持。没有 relay 时明确显示 `local/no cloud`，标识只保留在本次启动内存。接口不创建云会话、存储、canvas、轮询、GPU 查询或额外日志。黑屏读不到可见标签时，人工结果仍未绑定到会话，不能仅凭云记录推定配对成功。
+
+`Play quiet tone (0.3 s, manual)` 只在点击后播放 440 Hz、峰值 8% 的短音，带淡入淡出；请求次数只证明按钮回调，须人工确认触摸和听到声音。原生/headless、脚本测试和播放调用均不能充当真机音频验收。源码修改后需重新导出 PCK 并生成新包身份，旧 PCK 不含这些控件。
 
 - 顶部直接在主视口绘制 2D 色条与移动圆。
 - 中部先显示独立 `SubViewport` 的 2D 纹理；按钮切换到旋转的 3D 立方体。

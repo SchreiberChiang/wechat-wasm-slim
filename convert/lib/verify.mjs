@@ -39,6 +39,13 @@ export function verifyRenderContract(dir, cfg) {
       [['godot', 'transformer', 'wxGameKit'].every(k => typeof manifest.versions?.[k] === 'string' && manifest.versions[k].length > 0), '渲染合同包含 Godot、转换器和 WXGameKit 版本'],
     ];
     for (const [ok, message] of checks) ok ? pass(message) : fail(message + '：不满足');
+    const loadingPage = manifest.runtimeOptions?.loadingPage;
+    if (loadingPage === undefined) {
+      warn('旧渲染合同未记录 loadingPage，无法确认加载页对照身份；请重新 convert');
+      if (cfg?.loadingPage?.using === false) fail('关闭的 loadingPage.using 未被渲染合同记录，请重新 convert');
+    } else if (['on', 'off'].includes(loadingPage) && cfg?.loadingPage?.using === (loadingPage === 'on')) {
+      pass('WXGameKit loadingPage.using 与渲染合同一致：' + loadingPage);
+    } else fail('WXGameKit loadingPage.using 与渲染合同不一致或 loadingPage 不是 on/off');
     const context = cfg?.runtime?.contextConfig;
     if (['webgl', 'glx'].includes(manifest.requestedMode) && context?.contextExt?.enableGLX === (manifest.requestedMode === 'glx') && context?.contextExt?.enableMetal === false && context?.contextType === 2) {
       pass('WXGameKit 渲染配置与请求模式一致，Metal 关闭，contextType=2');

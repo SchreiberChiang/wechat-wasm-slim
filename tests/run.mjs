@@ -20,7 +20,7 @@ for (const rel of ['convert/assets/godot-bridge.js', 'convert/assets/render-runt
   results.push({name: 'node --check ' + rel, ok: r.status === 0, error: (r.stderr || '').slice(0, 400)});
 }
 results.push(...runContracts({godot, flowLogs}));
-const renderTests = spawnSync(process.execPath, ['--test', 'tests/config-tests.mjs', 'tests/render-config-tests.mjs', 'tests/render-runtime-tests.mjs', 'tests/glx-frame-probe-tests.mjs', 'tests/glx-cloud-interfaces-tests.mjs', 'tests/glx-presentation-tests.mjs', 'tests/glx-canvas-export-tests.mjs'], {cwd: root, encoding: 'utf8', timeout: 120000});
+const renderTests = spawnSync(process.execPath, ['--test', 'tests/config-tests.mjs', 'tests/render-config-tests.mjs', 'tests/render-runtime-tests.mjs', 'tests/glx-frame-probe-tests.mjs', 'tests/glx-cloud-interfaces-tests.mjs', 'tests/glx-smoke-identity-tests.mjs', 'tests/glx-presentation-tests.mjs', 'tests/glx-canvas-export-tests.mjs'], {cwd: root, encoding: 'utf8', timeout: 120000});
 results.push({name: '配置与 WebGL/GLX 运行时合同', ok: renderTests.status === 0, error: (renderTests.stdout || '') + (renderTests.stderr || '')});
 
 for (const x of results) console.log(x.ok ? 'PASS' : 'FAIL', x.name, x.ok ? '' : '\n    ' + x.error.replace(/\n/g, '\n    '));

@@ -47,8 +47,11 @@ node convert/convert.mjs verify  --project <新目录>/minigame
 | `--orientation portrait\|landscape` | portrait | 屏幕方向（写进 game.json） |
 | `--locale <xx>` | en | 传给 Godot `initConfig` 的 locale |
 | `--render-mode webgl\|glx` | webgl | 同 `game.renderMode`；GLX 是显式实验，无自动降级。重新生成新 WebGL 目录回退，详见 [适配说明](../docs/GLX_ADAPTATION.md) |
+| `--loading-page on\|off` | on | 仅 CLI 显式对照实验；off 只设置官方 `loadingPage.using=false`，保留 `visible`、`hideAfterCallMain` 等原策略。不提供统一 JSON 配置键 |
 | `--name <名字>` | PCK 文件名 | 项目名、数据包名 |
 | `--toolchain <json>` | `convert/convert.toolchain.json` | 换转换器路径 |
+
+加载页单因素对照应使用同一引擎、PCK、接口和其余参数，分别输出到两个不存在的新目录，仅第二次加 `--loading-page off`。选择会记录在 `render-config.{json,js}` 的 `runtimeOptions.loadingPage`，参与 `packageVersion`；`verify` 核对最终插件的 `loadingPage.using`。不要在生成后手改配置。默认 on 保留既有加载行为；off 是官方配置开关的本地实验，插件内部如何处理 canvas/加载页仍需宿主实测，不能据此声称黑屏已修复。
 
 输出（`--out` 必须是不存在的目录，工具不覆盖任何东西）：
 

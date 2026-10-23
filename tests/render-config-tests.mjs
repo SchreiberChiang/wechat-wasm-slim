@@ -10,7 +10,7 @@ import {spawnSync} from 'node:child_process';
 import {verifyRenderContract, verifyProject, PLACEHOLDER_APPID} from '../convert/lib/verify.mjs';
 import {renderManifest} from '../convert/lib/render.mjs';
 import {FORMAT} from '../lib/game-config.mjs';
-import {MODULE_TAIL, sha, md5} from '../convert/lib/inputs.mjs';
+import {MODULE_TAIL, sha, md5, normalizeLoadingPage, configureLoadingPage, transformerConfig} from '../convert/lib/inputs.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const asset = name => fs.readFileSync(new URL('../convert/assets/' + name, import.meta.url), 'utf8');
@@ -36,7 +36,7 @@ function fixture(t, mode = 'webgl') {
   write('godot-data/render-runtime.js', asset('render-runtime.js'));
   write('game.js', "import './godot-data/render-config';\nimport './godot-data/render-runtime';\nimport './wx-game-kit/index';\n");
   write('framework.js', asset('render-observer.js') + asset('godot-bridge.js').replace('__WXSLIM_RENDER_MODE__', JSON.stringify(mode)).replace('__WXSLIM_LOCALE__', '"en"'));
-  const cfg = {runtime: {contextConfig: {contextType: 2, contextExt: {enableGLX: mode === 'glx', enableMetal: false}}}};
+  const cfg = {loadingPage: {using: true}, runtime: {contextConfig: {contextType: 2, contextExt: {enableGLX: mode === 'glx', enableMetal: false}}}};
   return {dir, cfg, manifest, read, write, saveManifest, verify: () => verifyRenderContract(dir, cfg)};
 }
 const failures = result => result.filter(([level]) => level === 'FAIL').map(([, message]) => message);
@@ -117,8 +117,47 @@ test('packageVersion 随运行选项和接口内容变化，相同输入保持�
   const runtimeOptions = {orientation: 'portrait', locale: 'en', name: 'smoke', compat: true, timing: true, interfacesSha256: sha('interface v1')};
   const version = renderManifest({...input, runtimeOptions}).packageVersion;
   assert.equal(renderManifest({...input, runtimeOptions: {...runtimeOptions}}).packageVersion, version);
-  for (const patch of [{orientation: 'landscape'}, {locale: 'zh'}, {name: 'other'}, {compat: false}, {timing: false}, {interfacesSha256: sha('interface v2')}]) {
+  assert.equal(renderManifest({...input, runtimeOptions: {...runtimeOptions, loadingPage: 'on'}}).packageVersion, version);
+  for (const patch of [{orientation: 'landscape'}, {locale: 'zh'}, {name: 'other'}, {compat: false}, {loadingPage: 'off'}, {timing: false}, {interfacesSha256: sha('interface v2')}]) {
     assert.notEqual(renderManifest({...input, runtimeOptions: {...runtimeOptions, ...patch}}).packageVersion, version, JSON.stringify(patch));
+  }
+});
+
+test('加载页默认 on；off 只改变 using，默认 WebGL 配置保持原合同', () => {
+  assert.equal(normalizeLoadingPage(), 'on');
+  assert.equal(manifestFor('webgl').runtimeOptions.loadingPage, 'on');
+  const cfg = {loadingPage: {using: true, visible: true, hideAfterCallMain: true, iconConfig: {visible: false}}, runtime: {sentinel: true}};
+  const original = structuredClone(cfg);
+  configureLoadingPage(cfg);
+  assert.deepEqual(cfg, original);
+  configureLoadingPage(cfg, 'off');
+  assert.deepEqual(cfg, {...original, loadingPage: {...original.loadingPage, using: false}});
+  configureLoadingPage(cfg, 'on');
+  assert.deepEqual(cfg, original);
+  const transformer = transformerConfig({});
+  assert.equal(transformer.enableGLX, false);
+  assert.equal(transformer.enableMetal, false);
+  assert.equal(transformer.webglVersion, 2);
+  for (const invalid of ['', null, true, 'auto', 'OFF']) assert.throws(() => normalizeLoadingPage(invalid), /--loading-page/);
+  assert.throws(() => configureLoadingPage({}, 'off'), /loadingPage.using/);
+});
+
+test('verify 拒绝加载页错配、缺失和非法实验值；on/off 两种匹配均通过', t => {
+  for (const mode of ['webgl', 'glx']) {
+    const f = fixture(t, mode);
+    f.cfg.loadingPage.using = false;
+    expectFailure(f.verify(), /loadingPage.using 与渲染合同不一致/);
+    f.saveManifest({...f.manifest, runtimeOptions: {loadingPage: 'off'}});
+    assert.deepEqual(failures(f.verify()), []);
+    f.cfg.loadingPage.using = true;
+    expectFailure(f.verify(), /loadingPage.using 与渲染合同不一致/);
+    delete f.cfg.loadingPage;
+    expectFailure(f.verify(), /loadingPage.using 与渲染合同不一致/);
+    f.saveManifest({...f.manifest, runtimeOptions: {loadingPage: 'auto'}});
+    expectFailure(f.verify(), /loadingPage 不是 on\/off/);
+    f.saveManifest({...f.manifest, runtimeOptions: {}});
+    f.cfg.loadingPage = {using: false};
+    expectFailure(f.verify(), /未被渲染合同记录/);
   }
 });
 
@@ -215,6 +254,17 @@ test('CLI 渲染模式优先级：命令行 > private > public > webgl 默认', 
     assert.equal(result.stderr, '');
   };
   expectMode('webgl');
+  for (const [value, args] of [['on', []], ['on', ['--loading-page', 'on']], ['off', ['--loading-page', 'off']], ['off', ['--loading-page=off']]]) {
+    const result = run(...args);
+    assert.equal(result.status, 1);
+    assert.match(result.stdout, new RegExp('官方加载页：' + value + '（'));
+    assert.equal(result.stderr, '');
+  }
+  for (const args of [['--loading-page'], ['--loading-page', '--render-mode=glx'], ['--loading-page='], ['--loading-page=auto'], ['--loading-page=OFF'], ['--loading-page', 'off', '--loading-page=on']]) {
+    const result = run(...args);
+    assert.equal(result.status, 1); assert.match(result.stderr, /--loading-page/);
+    assert.doesNotMatch(result.stdout, /请求渲染模式：/);
+  }
   pub.game.renderMode = 'glx'; writeJson(config, pub); expectMode('glx');
   writeJson(privateFile, {game: {renderMode: 'webgl'}}); expectMode('webgl');
   expectMode('glx', '--render-mode', 'glx');

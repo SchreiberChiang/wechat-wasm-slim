@@ -9,6 +9,10 @@ var texture_view: TextureRect
 var status_label: Label
 var lifecycle_label: Label
 var diagnostic_text: TextEdit
+var identity_label: Label
+var audio_label: Label
+var audio_player: AudioStreamPlayer
+var audio_requests := 0
 var show_3d := false
 var small_buffer := false
 var draw_callback_seen := false
@@ -104,6 +108,8 @@ func _build_ui() -> void:
 	column.add_theme_constant_override("separation", 10)
 	margins.add_child(column)
 	_add_label(column, "WXSLIM rendering smoke", 30)
+	identity_label = _add_label(column, "Native/headless | local/no cloud | actual context: unknown", 18)
+	_refresh_identity()
 	_add_label(column, "Direct 2D: six bars + moving white circle", 20)
 	var direct_pattern := Pattern2D.new()
 	direct_pattern.custom_minimum_size = Vector2(0, 120)
@@ -120,6 +126,10 @@ func _build_ui() -> void:
 	column.add_child(buttons)
 	_add_button(buttons, "Switch 2D / 3D", _toggle_3d)
 	_add_button(buttons, "Resize buffer", _resize_buffer)
+	_add_button(column, "Play quiet tone (0.3 s, manual)", _play_test_tone)
+	audio_label = _add_label(column, "Audio: not verified; tap and confirm by listening", 16)
+	audio_player = AudioStreamPlayer.new()
+	add_child(audio_player)
 	status_label = _add_label(column, "Waiting for Godot draw callback", 18)
 	lifecycle_label = _add_label(column, "Godot notifications: none", 16)
 	_add_button(column, "Read rendering diagnostic (manual)", _read_diagnostic)
@@ -190,6 +200,7 @@ func _on_frame_post_draw() -> void:
 
 
 func _read_diagnostic() -> void:
+	_refresh_identity()
 	var result := "Diagnostic unavailable: this native/headless run has no WeChat startup bridge."
 	if OS.has_feature("web"):
 		var bridge := JavaScriptBridge.get_interface("WxSlimGlxSmoke")
@@ -199,3 +210,32 @@ func _read_diagnostic() -> void:
 			result = str(bridge.readDiagnosticJson())
 	diagnostic_text.text = result
 	print("[GLX_SMOKE_MANUAL_DIAGNOSTIC] " + result)
+
+
+func _refresh_identity() -> void:
+	if OS.has_feature("web"):
+		identity_label.text = "Web | identity unavailable | actual context: unknown"
+		var bridge := JavaScriptBridge.get_interface("WxSlimGlxSmoke")
+		if bridge != null:
+			identity_label.text = str(bridge.readIdentityText())
+
+
+func _play_test_tone() -> void:
+	# Generated only on an explicit button press. No imported asset or autoplay.
+	var sample_rate := 22050
+	var frame_count := int(sample_rate * 0.3)
+	var samples := PackedByteArray()
+	samples.resize(frame_count * 2)
+	for frame in range(frame_count):
+		var envelope := minf(1.0, minf(float(frame) / 220.0, float(frame_count - 1 - frame) / 220.0))
+		var value := int(sin(TAU * 440.0 * frame / sample_rate) * 32767.0 * 0.08 * envelope)
+		samples.encode_s16(frame * 2, value)
+	var tone := AudioStreamWAV.new()
+	tone.format = AudioStreamWAV.FORMAT_16_BITS
+	tone.mix_rate = sample_rate
+	tone.stereo = false
+	tone.data = samples
+	audio_player.stream = tone
+	audio_player.play()
+	audio_requests += 1
+	audio_label.text = "Tone requested: %d | audible result requires human listening" % audio_requests

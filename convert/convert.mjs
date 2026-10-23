@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Godot 4 Web 导出 → 微信小游戏通用适配（WXGameKit）工程。用法见 ../README.md 的“转换（convert）”。
 import fs from 'node:fs';import path from 'node:path';import zlib from 'node:zlib';import {spawnSync} from 'node:child_process';
-import {sha, md5, MODULE_TAIL, FRAMEWORK_ANCHORS as FA, GAMEJS_ANCHORS as GA, transformerConfig, normalizeRenderMode, locateInputs, checkInputs} from './lib/inputs.mjs';
+import {sha, md5, MODULE_TAIL, FRAMEWORK_ANCHORS as FA, GAMEJS_ANCHORS as GA, transformerConfig, normalizeRenderMode, normalizeLoadingPage, configureLoadingPage, locateInputs, checkInputs} from './lib/inputs.mjs';
 import {instrumentRender, renderManifest} from './lib/render.mjs';
 import {verifyProject, PLACEHOLDER_APPID} from './lib/verify.mjs';
 import {FORMAT, treatAsGameConfig, loadGameConfig, convertArgs} from '../lib/game-config.mjs';
@@ -18,6 +18,13 @@ function requestedRenderMode() {
   if (inline.length) return normalizeRenderMode(inline[0].slice('--render-mode='.length));
   if (argv.includes('--render-mode') && argOpt('render-mode') === undefined) throw Error('--render-mode 缺少值，只能是 webgl 或 glx');
   return normalizeRenderMode(opt('render-mode'));
+}
+function requestedLoadingPage() {
+  const inline = argv.filter(a => a.startsWith('--loading-page='));
+  if (inline.length + argv.filter(a => a === '--loading-page').length > 1) throw Error('--loading-page 不能重复指定');
+  if (inline.length) return normalizeLoadingPage(inline[0].slice('--loading-page='.length));
+  if (argv.includes('--loading-page') && argOpt('loading-page') === undefined) throw Error('--loading-page 缺少值，只能是 on 或 off');
+  return normalizeLoadingPage(argOpt('loading-page'));
 }
 const cfgArgs = () => fromCfg ??= game ? convertArgs(game) : {args: {}, flags: {}};
 const opt = k => argOpt(k) ?? (game ? cfgArgs().args[k] : undefined);
@@ -52,9 +59,10 @@ const commands = {
   // 检查输入是否是合规的 Godot Web 导出（微信分支引擎、单线程、有 PCK），以及官方转换器是否就位。
   async check() {
     const inp = inputs(), r = checkInputs(inp);
-    const renderMode = requestedRenderMode();
+    const renderMode = requestedRenderMode(), loadingPage = requestedLoadingPage();
     try { instrumentRender(fs.readFileSync(inp.js, 'utf8')); } catch (e) { r.ok = false; r.problems.push(e.message); }
     console.log('请求渲染模式：' + renderMode + (renderMode === 'glx' ? '（实验；宿主能力与真实初始化须运行时验证）' : '（默认）'));
+    console.log('官方加载页：' + loadingPage + (loadingPage === 'off' ? '（显式对照实验）' : '（默认）'));
     console.log('输入：\n' + ['js', 'wasm', 'pck', 'symbols'].map(k => `  ${k.padEnd(8)}${inp[k] || '（无）'}`).join('\n'));
     console.log(`引擎 JS ${mb(r.facts.jsBytes)}，WASM ${mb(r.facts.wasmBytes)}，PCK ${mb(r.facts.pckBytes)}（Godot ${r.facts.godotVersion ?? '?'}），符号表 ${r.facts.symbols ? '有' : '无'}，微信运行时约定 ${r.facts.wechatRuntime ? '有' : '无'}`);
     report(r);
@@ -65,7 +73,7 @@ const commands = {
 
   // 生成新的通用适配工程：<out>/minigame（小游戏工程）、<out>/webgl/symbols.json（符号表）、<out>/convert-work（中间文件和转换器日志）。
   async convert() {
-    const renderMode = requestedRenderMode();
+    const renderMode = requestedRenderMode(), loadingPage = requestedLoadingPage();
     const tc = toolchain(), inp = inputs(), out = need('out');
     if (fs.existsSync(out)) throw Error('输出目录已存在，不覆盖：' + out);
     const r = checkInputs(inp); report(r); if (!r.ok) throw Error('输入检查没通过（见上面 ✗）');
@@ -81,7 +89,7 @@ const commands = {
     const work = path.join(out, 'convert-work'); fs.mkdirSync(work, {recursive: true});
     const originalJs = fs.readFileSync(inp.js, 'utf8'), js = instrumentRender(originalJs), at = js.lastIndexOf(MODULE_TAIL);
     const rendering = renderManifest({renderMode, js: originalJs, wasm: fs.readFileSync(inp.wasm), pck: fs.readFileSync(inp.pck), godotVersion: r.facts.godotVersion, transformerVersion: tc.transformerVersion, pluginVersion: tc.plugin.version,
-      runtimeOptions: {orientation, locale, name, compat, timing: !flag('no-timing'), interfacesSha256: sha(interfaces ? fs.readFileSync(interfaces) : asset('local-interfaces.js'))}});
+      runtimeOptions: {orientation, locale, name, compat, loadingPage, timing: !flag('no-timing'), interfacesSha256: sha(interfaces ? fs.readFileSync(interfaces) : asset('local-interfaces.js'))}});
     const bridged = path.join(work, 'godot-bridged.js');
     const bridge = replaceOnce(replaceOnce(asset('godot-bridge.js'), '__WXSLIM_LOCALE__', JSON.stringify(locale), 'locale'), '__WXSLIM_RENDER_MODE__', JSON.stringify(renderMode), 'render mode');
     fs.writeFileSync(bridged, js.slice(0, at) + '\n' + bridge);
@@ -152,6 +160,7 @@ const commands = {
 
     // 7. 配置：AppID、项目名；关掉开发期性能弹窗和默认 Unity 图标。
     cfg.project.app.appID = appid; cfg.project.app.name = name;
+    configureLoadingPage(cfg, loadingPage);
     Object.assign(cfg.develop.monitor, {enable: false, showSuggestModal: false, showResultAfterLaunch: false}); cfg.develop.hideTimeLogModal = true; cfg.loadingPage.iconConfig.visible = false;
     writeJson(cfgFile, cfg);
     const pc = readJson(f('project.config.json')); pc.appid = appid; pc.projectname = name; pc.compileType = 'game';
