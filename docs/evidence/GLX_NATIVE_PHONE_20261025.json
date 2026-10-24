@@ -1,0 +1,37 @@
+{
+  "schema": "glx-native-phone-evidence-index-v1",
+  "date": "2026-10-25",
+  "packageId": "native-glx-validation-57ccb8dd415854427515",
+  "actualSdkVersion": "3.17.5",
+  "glxLibrarySha256": "c70b6255285aa4e5b987f18cf24d59d56227c67d44d60b734755f33f6a8ab33a",
+  "records": [
+    {
+      "stage": "first",
+      "bytes": 5278,
+      "sha256": "76d99fc2b1f39776223fe96eb212d176d59fdde470652dd0a7a53bcc40c6484e"
+    },
+    {
+      "stage": "warm",
+      "bytes": 4858,
+      "sha256": "a97a53e985f0a49ea5b655e952a0b4a22e3fb1f76eb015992933542a962f3975"
+    },
+    {
+      "stage": "forcequit",
+      "bytes": 4858,
+      "sha256": "3044f37e0bc73c6ab4a37b8024ca83a319542199afdaa4e929ae26d08137c133"
+    },
+    {
+      "stage": "resume",
+      "bytes": 6120,
+      "sha256": "c6145a6e2a44dc083029d8f62ce92d9d318358ec4d864a5ed80d23d8ed97eee3"
+    }
+  ],
+  "result": "first/normal reentry/forcequit/background visible once each",
+  "backgroundAnimation": "not verified",
+  "limits": [
+    "public query return is not platform object/input proof",
+    "no TYPE query after background recovery",
+    "3 hide/show pairs are not 3 acceptance runs",
+    "no repeated stability or Godot repair claim"
+  ]
+}

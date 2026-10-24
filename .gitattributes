@@ -3,3 +3,4 @@
 # 固定补丁输入逐字节参与身份校验，Windows checkout 也必须保持 LF。
 engine/shader-failure/** text eol=lf
 engine/shader-type-return/** text eol=lf
+examples/glx-native-validation/** text eol=lf

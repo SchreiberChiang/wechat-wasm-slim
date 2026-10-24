@@ -3,6 +3,7 @@ param(
     [Parameter(Mandatory)][string]$GlxLibrary,
     [Parameter(Mandatory)][string]$ContextPatch,
     [Parameter(Mandatory)][string]$OutputDirectory,
+    [string]$SourceFile,
     [switch]$Build
 )
 $ErrorActionPreference = 'Stop'
@@ -22,10 +23,11 @@ if ((Get-FileHash -LiteralPath $patchPath -Algorithm SHA256).Hash.ToLowerInvaria
 if (!(Test-Path -LiteralPath $emcc) -or !(Test-Path -LiteralPath $configPath) -or !(Test-Path -LiteralPath $python) -or !(Test-Path -LiteralPath $node)) { throw 'Explicit SDK is incomplete' }
 $versionFile = Join-Path $sdkPath 'upstream/emscripten/emscripten-version.txt'
 if ((Get-Content -LiteralPath $versionFile -Raw).Trim().Trim('"') -ne '4.0.10') { throw 'Requires Emscripten 4.0.10' }
+$sourcePath = if ($SourceFile) { (Resolve-Path -LiteralPath $SourceFile).Path } else { Join-Path $PSScriptRoot 'main.cpp' }
+if (!(Test-Path -LiteralPath $sourcePath -PathType Leaf)) { throw 'C++ source file is missing' }
 $outputPath = [IO.Path]::GetFullPath($OutputDirectory)
 if (Test-Path -LiteralPath $outputPath) { throw 'Output directory already exists; choose a fresh path' }
 New-Item -ItemType Directory -Path $outputPath | Out-Null
-$sourcePath = Join-Path $PSScriptRoot 'main.cpp'
 # Freeze a copied cache so a missing library fails instead of building system libraries.
 # The SDK cache is read only; the full-engine build uses its separate EM_CACHE.
 $cachePath = Join-Path $outputPath 'cache'
@@ -63,6 +65,7 @@ $manifest = [ordered]@{
     status = 'recipe-only'; emscripten = '4.0.10'; glxVersionLabel = '0.1.11';
     sdk = $sdkPath; library = $libraryPath; librarySha256 = $expectedLibrary;
     contextPatch = $patchPath; contextPatchSha256 = $expectedPatch;
+    recipeSha256 = (Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash.ToLowerInvariant();
     sourceSha256 = (Get-FileHash -LiteralPath $sourcePath -Algorithm SHA256).Hash.ToLowerInvariant();
     strictPostSha256 = (Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'strict-post.js') -Algorithm SHA256).Hash.ToLowerInvariant();
     interpreter = $python; interpreterArguments = @('-B', '-E'); compiler = $emcc; arguments = $argsList; cache = $cachePath;
