@@ -1,0 +1,113 @@
+{
+  "schema": "wxslim-sanitized-glx-type-raw-return-phone-v1",
+  "recordedAt": "2026-10-24T00:29:09.185Z",
+  "packageId": "shader-type-return-glx-03fa0871dc99f85cc4a2",
+  "enginePairSha256": "22817d2aef660419abb4135405554cd59d279b1590485ba52062c02fe88ead4d",
+  "diagnosticPatchSha256": "84204452f43c04ef40ad4efcdd37e132f11ea429a42d029b63f6222d3e781ee6",
+  "glxLibrarySha256": "c70b6255285aa4e5b987f18cf24d59d56227c67d44d60b734755f33f6a8ab33a",
+  "device": {
+    "model": "iPhone 16 Pro<iPhone17,1>",
+    "system": "iOS 18.3.1",
+    "wechatVersion": "8.0.75",
+    "SDKVersion": "3.17.5"
+  },
+  "first": {
+    "originalName": "vconsole_1792801083251.log",
+    "originalLogBytes": 5181,
+    "originalLogSha256": "e6007cf09de6797af6d704fb0c4821f50d0db0dbe43de3cff5b5664bcc2e1627",
+    "lineCount": 75,
+    "session": "ba727e5d",
+    "entryLine": 2,
+    "actualMode": "glx",
+    "visualResult": "normal_both_dots_moving",
+    "visualEvidence": "user_report",
+    "pidAndScreenshot": "not_collected_this_round",
+    "manualDiagnosticLine": 25,
+    "manualDiagnosticParsed": true,
+    "manualIdentityMatchesSealedCandidate": true,
+    "shaderFailureDiagnosticCount": 0
+  },
+  "reopen": {
+    "originalName": "vconsole_1792801410723.log",
+    "originalLogBytes": 10349,
+    "originalLogSha256": "5daf6fa9c40c3f9370c480e329500d84165195c6805fa74ef4c888126788ce03",
+    "lineCount": 89,
+    "session": "638674f8",
+    "entryLine": 2,
+    "actualMode": "glx",
+    "visualResult": "black",
+    "visualEvidence": "user_report",
+    "pidAndScreenshot": "not_collected_this_round",
+    "operation": "user_reports_force_quit_WeChat_then_reopen",
+    "newSessionObserved": true,
+    "processRestartIndependentlyVerified": false,
+    "sceneLine": 87,
+    "shaderFailureDiagnosticLine": 80,
+    "shaderFailureDiagnosticCount": 1,
+    "diagnosticUtf8Bytes": 3993
+  },
+  "diagnostic": {
+    "program": 1,
+    "shader": 1,
+    "expectedType": 35633,
+    "rawTypeReturn": {
+      "version": 1,
+      "claimed": true,
+      "armCount": 1,
+      "validArmCount": true,
+      "takeCount": 1,
+      "captureCount": 1,
+      "returnObserved": true,
+      "ptr": 16317648,
+      "byteLength": 32,
+      "rawType": "number",
+      "rawNull": false,
+      "numericFinite": true,
+      "numericValue": 35632
+    },
+    "wasmTypeResult": 35632,
+    "sourceReadbackType": "string",
+    "sourceBytes": 1268,
+    "sourceSha256": "579b7feda3b663171d67e4ac59808a2d618d3b0971634d2acc03f2ac941ce64f",
+    "originalAndReturnedSourceEqual": true,
+    "printedBuilderMatchesOriginal": true,
+    "sourceTruncated": false,
+    "errorBytes": 218,
+    "errorSha256": "3c3e58d2de36c23a2ae9d38892f856d4f6094cc293940f07fdc699111883e8eb",
+    "originalPrintedErrorMatchesDiagnostic": true,
+    "errorText": "ERROR: 0:26: Invalid use of layout 'location'\nERROR: 0:40: Use of undeclared identifier 'vertex_attrib'\nERROR: 0:41: Use of undeclared identifier 'gl_Position'\nERROR: 0:41: Use of undeclared identifier 'vertex_attrib'\n",
+    "errorTruncated": false,
+    "contextSamples": [
+      1,
+      1,
+      1
+    ],
+    "sourceArmCount": 1,
+    "sourceImportCount": 1,
+    "queryObservationCount": 1,
+    "platformActualCompileInput": "unavailable"
+  },
+  "conclusions": {
+    "rawFiniteNumber35632Observed": true,
+    "thisJsToWasmConversionChangedType": false,
+    "sourceMismatchObserved": false,
+    "platformShaderIdentity": "not_proven",
+    "sameUnderlyingContext": "not_proven",
+    "sharedIdCollision": "not_proven",
+    "blackScreenFixed": false
+  },
+  "limitations": [
+    "User observations establish visual outcomes; no new screenshot or PID was collected in this round.",
+    "The raw response is from the synchronous batch call, not a direct observation of the platform getter or compiler.",
+    "Returned source and public context handles do not identify actual compilation input or underlying context.",
+    "One diagnostic per Module captures only its first failed shader.",
+    "Known JSON parse error remains in both logs."
+  ],
+  "preservation": {
+    "candidateManifestFilesVerified": 26,
+    "cloudRelay": "disabled",
+    "additionalPhoneActions": "none",
+    "newPreview": "none",
+    "rawLogs": "retained_in_ignored_local_directory"
+  }
+}
