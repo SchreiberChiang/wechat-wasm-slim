@@ -1,0 +1,308 @@
+{
+  "schema": "godot-official-glx-public-checkpoint-v1",
+  "date": "2026-10-26",
+  "repository": "https://github.com/SchreiberChiang/wechat-wasm-slim.git",
+  "branch": "codex/glx-godot-newlib-20261026",
+  "baseCommit": "28c4f2eff2d98451193470a808aba8e1348399c6",
+  "scope": "Existing successful GLX integration checkpoint only; excludes unrun WebGL control, raw evidence, private configuration and third-party payloads. No clean-rebuild claim.",
+  "candidate": {
+    "packageId": "godot-official-glx-026e-a169d60be3d6db10c33c",
+    "manifest": {
+      "bytes": 9714,
+      "sha256": "10157ec424746065718eb0929d91c046e43c045ec09509206416d412dd2ed2d3"
+    },
+    "enginePair": "399b6522bd17f135087a669a9934ac68832efad837ad9fca418208a6dbbc316a",
+    "sourcePin": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+    "librarySha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+    "pckSha256": "0d4eb4b3f94e60468a271f705b177a2223fe9db6745fb254c388cd21d566ef5b",
+    "outputs": {
+      "godot.js": {
+        "bytes": 469508,
+        "sha256": "e9f09402ddc60b0407a803e74b2f8824cc14b05d38e3cce99fb05d06ff573ddb"
+      },
+      "godot.wasm": {
+        "bytes": 65184325,
+        "sha256": "ead64be741dc04a3f11be60f64ff453e214704ccb248d8d9f6935c10f1d7f244"
+      },
+      "godot.wasm.br": {
+        "bytes": 8649514,
+        "sha256": "a3fa7032ace37840021c58bd06b6b49f7b0468c01dde4b9d63a33bc2d2cd82cf"
+      }
+    }
+  },
+  "phoneBoundary": {
+    "ios": {
+      "device": "iPhone 16 Pro",
+      "system": "iOS 18.3.1",
+      "wechat": "8.0.75",
+      "actualLibrary": "3.17.5",
+      "actualMode": "glx",
+      "normalSessions": [
+        "b47bf81d",
+        "9c028fd7",
+        "c61e79e3",
+        "c147a84d",
+        "f4b877bc"
+      ],
+      "threeD": "User reports normal; no precise session attribution added"
+    },
+    "android": {
+      "device": "VCE-AL00",
+      "system": "Android 10",
+      "wechat": "8.0.79",
+      "actualLibrary": "3.17.4",
+      "actualMode": "glx",
+      "session": "7abad961",
+      "twoD": "user-reported-normal",
+      "threeD": "model-not-visible-unresolved"
+    },
+    "jsonParseError": "retained",
+    "floatTextureWarnings": "retained",
+    "rootCause": "not-confirmed",
+    "allDeviceStability": "not-claimed"
+  },
+  "dependencySources": {
+    "godot": {
+      "repository": "https://github.com/citizenll/godot.git",
+      "commit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+      "licenseFile": {
+        "bytes": 1149,
+        "sha256": "b0435e3b3e4e55238f05f4b306f30524a1b2e20147810d436eaa554fa6855c80"
+      }
+    },
+    "patch": {
+      "bytes": 24303,
+      "sha256": "84204452f43c04ef40ad4efcdd37e132f11ea429a42d029b63f6222d3e781ee6"
+    },
+    "patchManifest": {
+      "bytes": 2904,
+      "sha256": "63ded43d5bf2e900339a46bcf5542fd02806b9d5ad86ab1f949623c5a50fbc7c"
+    },
+    "fullProfile": {
+      "bytes": 93,
+      "sha256": "920ca801a58fe5bfb0f56aa39a1d523adae9658233189d6518b17e3c5b98e81b"
+    },
+    "driverNode": {
+      "version": "24.18.0",
+      "bytes": 92534088,
+      "sha256": "9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de",
+      "installerProvenance": "unknown-in-current-records"
+    },
+    "emscripten": {
+      "version": "4.0.10",
+      "commit": "b7dc6e5747465580df5984e723b9d1f10d8e804b",
+      "emsdkRepository": "https://github.com/emscripten-core/emsdk.git",
+      "emsdkCommitFromOriginalInstall": "35ff8a6d150541276abbc6bae512ca90bcfbe220",
+      "releaseBuild": "8103ffedfb0c42d231c6af6859a5a1a832260b43",
+      "sdkNodeVersion": "24.19.0",
+      "sdkPythonVersion": "3.13.3",
+      "recordedDownloadUrls": [
+        "https://storage.googleapis.com/webassembly/emscripten-releases-builds/deps/node-v24.19.0-win-x64.zip",
+        "https://storage.googleapis.com/webassembly/emscripten-releases-builds/deps/python-3.13.3-0-win-amd64.zip",
+        "https://storage.googleapis.com/webassembly/emscripten-releases-builds/win/8103ffedfb0c42d231c6af6859a5a1a832260b43/wasm-binaries.zip"
+      ],
+      "downloadArchiveHashes": "not-proven-for-original-install",
+      "installedKeyFiles": [
+        {
+          "path": ".emscripten",
+          "bytes": 347,
+          "sha256": "19e1a7c839001b3f3dc528e771353460a9af3bb420360efe06517dee269bf86e"
+        },
+        {
+          "path": "upstream/emscripten/emscripten-version.txt",
+          "bytes": 10,
+          "sha256": "ca0f65b7dc4f97d03522346306ff0323f61de41cdb0c00304dd54db3111a4446"
+        },
+        {
+          "path": "upstream/emscripten/emcc.py",
+          "bytes": 37426,
+          "sha256": "4b47445c680acc3ce625312f1d279d4d50347c27661fcde9b5b904a775eae9ec"
+        },
+        {
+          "path": "upstream/emscripten/em++.py",
+          "bytes": 506,
+          "sha256": "017f735c953318fdaaa4af68c8d4bf13936a787ddbd5dad804d532b0223b6c2f"
+        },
+        {
+          "path": "upstream/bin/clang.exe",
+          "bytes": 86481920,
+          "sha256": "2139bce5bdd3ba2648e353d56d9e75654cf89c2dfed10ebfbc56a60979a86c55"
+        },
+        {
+          "path": "upstream/bin/wasm-ld.exe",
+          "bytes": 52444672,
+          "sha256": "3b6db708d4e85e592017832b1ffd245469776bbbc4d9be50d4de9a1f3171e2fc"
+        },
+        {
+          "path": "upstream/bin/wasm-opt.exe",
+          "bytes": 11606528,
+          "sha256": "7d69f7f4a46b208493ab8405309c58226b67e7905c1015069acf9001055b8a33"
+        },
+        {
+          "path": "node/24.19.0_64bit/node.exe",
+          "bytes": 92825416,
+          "sha256": "3602f2bb1a10f2cbab4c36886218a33c1ab3db87290e73b033c46c77147d0237"
+        },
+        {
+          "path": "python/3.13.3_64bit/python.exe",
+          "bytes": 105832,
+          "sha256": "d87063e5597f257004c731b66c59c56c91038861c6877b1a3dca6b8c4e919125"
+        }
+      ]
+    },
+    "buildPython": {
+      "version": "3.14.0",
+      "venvLauncher": {
+        "bytes": 255320,
+        "sha256": "7bcdf892816a8d651e89f008cfc2f1544a41f13089af70a227b9fc54ced8551f"
+      },
+      "baseExecutable": {
+        "bytes": 106328,
+        "sha256": "467014615a5255aca450ae88100dd2caf887da87657f00e3c2171ec44a685aec"
+      },
+      "baseInstallerProvenance": "not-established"
+    },
+    "scons": {
+      "version": "4.11.1",
+      "source": "PyPI",
+      "wheelSha256": "454cef364348053422696e3d2ecb4fa593c96a624f955842eaaea64f95c8d11d",
+      "lock": "engine/requirements-scons.lock"
+    },
+    "acorn": {
+      "version": "8.14.1",
+      "dist": {
+        "bytes": 238400,
+        "sha256": "1a2ecc215e880c7db77add51deca05b9b323d63a650ae0534298352913b202b5"
+      }
+    },
+    "glxAttachment": {
+      "source": "User reports obtained directly from WeChat official support; supplied attachment",
+      "zipSha256": "85c3b2c7163b10131f22a43fd72dc2e8e66135780166a3794a4b6adc62a307c9",
+      "member": "libemscriptenglx.a",
+      "bytes": 3866614,
+      "sha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+      "publicDownloadUrl": null,
+      "redistributionPermission": "not-established",
+      "releaseVersion": "not-established",
+      "embeddedClaims": [
+        "0.1.0",
+        "2026.09.02"
+      ]
+    },
+    "authorHost": {
+      "release": "https://github.com/hao0917/godot-minigame/releases/tag/4.7",
+      "asset": "minigame4.7.0.8.1.tpz",
+      "sha256": "c4673dd16b397be7c6bcd0c9bd038d20008be5b4586cdaea60be552326a50be7",
+      "role": "host assets only; not its precompiled engine",
+      "hostRedistributionPermission": "not-established"
+    },
+    "scene": {
+      "source": "examples/glx-acceptance-ui",
+      "exportEditorRecorded": "4.7.2.stable.steam.ed1daf0bf",
+      "exportEditorHistoricalHash": null,
+      "cleanPckByteReproduction": "not-verified",
+      "pck": {
+        "bytes": 66364,
+        "sha256": "0d4eb4b3f94e60468a271f705b177a2223fe9db6745fb254c388cd21d566ef5b"
+      },
+      "font": {
+        "bytes": 41476,
+        "sha256": "bdde9897ca9bc8b8446bfebea907720e5689d325871b42fc145b56f56347a415"
+      },
+      "fontLicense": {
+        "workingTree": {
+          "bytes": 4393,
+          "sha256": "88f117575237307bdd86a17ef15e21790fc9a662fe4dfb103ca1ca077f0d9982",
+          "scope": "Current checkout bytes; CRLF differs from committed/historical export input"
+        },
+        "committedSource": {
+          "bytes": 4301,
+          "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2",
+          "gitCommit": "28c4f2eff2d98451193470a808aba8e1348399c6",
+          "path": "examples/glx-acceptance-ui/fonts/OFL.txt",
+          "scope": "Git blob also identified in historical export provenance; PCK interior not unpacked again in this review"
+        }
+      },
+      "fontNotice": {
+        "workingTree": {
+          "bytes": 456,
+          "sha256": "24c881c127757895ec8f40485d2921869a9c9040f5f2bbd85b68826e952437ed",
+          "scope": "Current checkout bytes; CRLF differs from committed/historical export input"
+        },
+        "committedSource": {
+          "bytes": 449,
+          "sha256": "0c8bfb7b9371db69b513eed1e636f2b954439d91d5a6e0636de1531d6626ed6b",
+          "gitCommit": "28c4f2eff2d98451193470a808aba8e1348399c6",
+          "path": "examples/glx-acceptance-ui/fonts/NOTICE.txt",
+          "scope": "Git blob also identified in historical export provenance; PCK interior not unpacked again in this review"
+        }
+      }
+    }
+  },
+  "buildParameters": {
+    "common": [
+      "platform=web",
+      "target=template_release",
+      "arch=wasm32",
+      "threads=no",
+      "wasm_simd=no",
+      "dlink_enabled=no",
+      "use_wx_glx=yes",
+      "javascript_eval=yes",
+      "opengl3=yes",
+      "optimize=size",
+      "debug_symbols=no",
+      "use_closure_compiler=no",
+      "initial_memory=32",
+      "stack_size=5120"
+    ],
+    "lto": "thin",
+    "ltoJobs": 2,
+    "symbols": true,
+    "jobs": 4,
+    "modulesEnabledByDefault": true,
+    "cppdefines": "",
+    "linkflags": "--emit-symbol-map -Wl,--thinlto-jobs=2",
+    "errorOnUndefinedSymbols": 0,
+    "fullProfile": {
+      "type": "build_profile",
+      "disabled_classes": [],
+      "disabled_build_options": {}
+    },
+    "windowsAdapterSha256": "11cb75dbfb9e2ddaf13b0754640bad593a3ff18603f2e6637a565bf8b6c7f1fe"
+  },
+  "followupTasks": [
+    {
+      "id": "REPRO-HOST",
+      "task": "Portable historical host generation",
+      "blocksCurrentCheckpoint": false
+    },
+    {
+      "id": "REPRO-TOOLCHAIN",
+      "task": "Exact successful toolchain acquisition recipe",
+      "blocksCurrentCheckpoint": false
+    },
+    {
+      "id": "REPRO-PCK",
+      "task": "Locked clean PCK export environment",
+      "blocksCurrentCheckpoint": false
+    }
+  ],
+  "experienceUpload": {
+    "manualOperation": "你报告已手动上传，后台指向尚未核验",
+    "evidenceType": "user-report",
+    "automaticTaskOutcome": "UNKNOWN after pending then Task not found",
+    "backendVersionPointer": "not-verified",
+    "gitStatusIndependent": true
+  },
+  "backup": {
+    "state": "pending-user-confirmation",
+    "publicPayloads": false,
+    "requiredVerification": "Per-file copy and SHA256 comparison; no backup completion claimed"
+  },
+  "git": {
+    "state": "pending-user-confirmation",
+    "commitPerformed": false,
+    "pushPerformed": false
+  }
+}
