@@ -1,0 +1,11 @@
+{
+  "schema": "native-glx-validation-pinned-pair-v1",
+  "jsSha256": "30886b1631d44733cee730df8e04e7684d2a3864d330c88a6158ccf0ecd047dd",
+  "wasmSha256": "6460a52c742bb5bbea0e5133215c8b82f5e96b4c55cd2ec48c53ee3728723afd",
+  "sourceSha256": "5e4c48f0d6d0abf6ddeaf500754e8c26d7daa2e3cf923262e2b6db3b34a9d09f",
+  "librarySha256": "c70b6255285aa4e5b987f18cf24d59d56227c67d44d60b734755f33f6a8ab33a",
+  "contextPatchSha256": "7f08edb7d3e7f3badc6c8b520b12c7424a9e52b223407ded92ae8f700bc01a0e",
+  "recipeCanonicalSha256": "d8856ca0f4638f5f65f96d99898a9f50a6ebe4122c42803ff261dbd5e58f0f42",
+  "strictPostCanonicalSha256": "14e89715ce013cfccee65fa7c6d5f9fa0ae949f72fd02e040068d329afe1dfe7",
+  "scope": "Reviewed frame 1/61 observation build; same clock/color/submit and GLX library; phone validation pending"
+}

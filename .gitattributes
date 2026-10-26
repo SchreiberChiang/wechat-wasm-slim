@@ -4,3 +4,11 @@
 engine/shader-failure/** text eol=lf
 engine/shader-type-return/** text eol=lf
 examples/glx-native-validation/** text eol=lf
+examples/glx-native-contrast/** text eol=lf
+examples/glx-native-clock/** text eol=lf
+examples/glx-native-framecolor/** text eol=lf
+examples/glx-native-boundary/** text eol=lf
+examples/glx-native-inspector/** text eol=lf
+examples/glx-native-ledger/** text eol=lf
+examples/glx-native-ledger-titles/** text eol=lf
+examples/glx-native-baselib/** text eol=lf

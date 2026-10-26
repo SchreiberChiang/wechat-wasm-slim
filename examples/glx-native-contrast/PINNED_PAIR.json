@@ -1,0 +1,11 @@
+{
+  "schema": "native-glx-validation-pinned-pair-v1",
+  "jsSha256": "bb0c6c827293ae1d60e0fc9693056cb778af4a57df156926f985b6cc474d35f4",
+  "wasmSha256": "b6770adada265d07aab6dab8a608dc46cbb61dd04a93efcd41366d64c7192dac",
+  "sourceSha256": "5a87bd7cb8d76f7c8776d1fe6b2770c22f2caa5644a7a2ebe89018a97221ba74",
+  "librarySha256": "c70b6255285aa4e5b987f18cf24d59d56227c67d44d60b734755f33f6a8ab33a",
+  "contextPatchSha256": "7f08edb7d3e7f3badc6c8b520b12c7424a9e52b223407ded92ae8f700bc01a0e",
+  "recipeCanonicalSha256": "d8856ca0f4638f5f65f96d99898a9f50a6ebe4122c42803ff261dbd5e58f0f42",
+  "strictPostCanonicalSha256": "14e89715ce013cfccee65fa7c6d5f9fa0ae949f72fd02e040068d329afe1dfe7",
+  "scope": "Reviewed blue/green contrast triangle local build only; no device validation"
+}

@@ -3,11 +3,27 @@ import path from 'node:path';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { prepareHost } from './prepare-host.mjs';
-import { options, sha, here } from './audit.mjs';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const baselineDirectory = path.dirname(fileURLToPath(import.meta.url));
+const argv = process.argv.slice(2);
+let variantDirectory = baselineDirectory, variantSeen = false;
+for (let i = 0; i < argv.length; i += 2) {
+    if (argv[i] !== '--variant-dir') continue;
+    assert.ok(!variantSeen && argv[i + 1] && path.isAbsolute(argv[i + 1]), 'Expected one absolute --variant-dir');
+    variantSeen = true;
+    variantDirectory = path.resolve(argv[i + 1]);
+    argv.splice(i, 2); i -= 2;
+}
+assert.ok([baselineDirectory, path.resolve(baselineDirectory, '../glx-native-contrast'),
+    path.resolve(baselineDirectory, '../glx-native-clock'),
+    path.resolve(baselineDirectory, '../glx-native-framecolor')].includes(variantDirectory),
+    'Only the known validation and contrast sibling directories are permitted');
+const { prepareHost } = await import(pathToFileURL(path.join(variantDirectory, 'prepare-host.mjs')).href);
+const { options, sha, here } = await import(pathToFileURL(path.join(variantDirectory, 'audit.mjs')).href);
 
 // Retained, isolated test evidence. Never evaluate generated JS, WASM or adapter.
-const args = options(process.argv.slice(2), ['--build-dir', '--adapter', '--project-dir', '--old-wasm', '--out']);
+const args = options(argv, ['--build-dir', '--adapter', '--project-dir', '--old-wasm', '--out']);
 const output = args['--out'];
 assert.ok(!fs.existsSync(output), 'Choose a new output directory; test evidence is never deleted.');
 fs.mkdirSync(output);
@@ -120,10 +136,24 @@ check('only prelude runs: live heap getter, stdout/stderr and host callback forw
     assert.ok(prelude.endsWith('// BEGIN ORIGINAL TRIANGLE.JS BYTES\n'));
     const forwarded = [], summaries = [], moduleConfig = {}, errorApi = {};
     const session = { host: summary => summaries.push(summary), native: (message, error) => forwarded.push([message, error]) };
-    const root = { __nativeTriangleEvidence: session }, wx = {}, required = [];
+    const root = { __nativeTriangleEvidence: session }, wx = { getSystemInfoSync: () => ({ SDKVersion: '3.17.5' }) }, required = [];
+    let versionChecks = 0, contextChecks = 0;
+    const clockVariant = path.basename(here) === 'glx-native-clock';
+    const colorVariant = path.basename(here) === 'glx-native-framecolor';
+    const gatedVariant = clockVariant || colorVariant;
     const context = vm.createContext({ GameGlobal: root, wx, require(name) {
         required.push(name);
         if (name === './identity.js') return manifest.identity;
+        if (gatedVariant && name === './clock-gates.js') return {
+            requireVersion(receivedWx, callback) {
+                assert.equal(receivedWx, wx); assert.equal(callback, session.host);
+                versionChecks++; return '3.17.5';
+            },
+            requireContext(receivedModule, callback) {
+                assert.equal(receivedModule, moduleConfig); assert.equal(callback, session.host);
+                contextChecks++;
+            }
+        };
         assert.equal(name, './host.js', 'Unexpected module execution');
         return { createHost(receivedRoot, receivedWx, identity, callback) {
             assert.equal(receivedRoot, root); assert.equal(receivedWx, wx);
@@ -142,9 +172,17 @@ check('only prelude runs: live heap getter, stdout/stderr and host callback forw
     const originalError = 'original error ' + 'E'.repeat(5000);
     moduleConfig.print('original stdout'); moduleConfig.printErr(originalError);
     assert.deepEqual(forwarded, [['original stdout', false], [originalError, true]]);
+    if (gatedVariant) {
+        assert.equal(versionChecks, 1);
+        assert.equal(contextChecks, 0, 'Ordinary native output must not trigger context checks');
+        const diagnosticLine = (colorVariant ? '[GLX_TRIANGLE_COLOR]' : '[GLX_TRIANGLE_CLOCK]') + ' {"frame":1}';
+        moduleConfig.print(diagnosticLine);
+        assert.equal(contextChecks, 1);
+        assert.deepEqual(forwarded.at(-1), [diagnosticLine, false]);
+    }
     assert.deepEqual(summaries, [{ status: 'fake-initialization' }]);
     assert.equal(context.WebAssembly, errorApi);
-    assert.deepEqual(required, ['./identity.js', './host.js']);
+    assert.deepEqual(required.slice().sort(), (gatedVariant ? ['./identity.js', './host.js', './clock-gates.js'] : ['./identity.js', './host.js']).sort());
 });
 check('all original build, adapter and project input bytes remain unchanged', () => {
     assert.deepEqual(snapshot(originals), originalHashes);

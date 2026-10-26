@@ -1,0 +1,11 @@
+{
+  "schema": "native-glx-boundary-pinned-candidate-v1",
+  "packageId": "native-glx-validation-9b31f77db008bc37fda1",
+  "parentPackageId": "native-glx-validation-bee48002c945db68649a",
+  "baseJsSha256": "737ea15afbad5c87ee9a09ce2c27ce998f32966533fc74b7ea225aa04d30f3df",
+  "patchedJsSha256": "380cd9e605c753101f2273b919ad65ccfdc595fbd42e6d4ef858fe22f33f6534",
+  "wasmSha256": "c3f7248085bc455ef48bf0c02f31709bd2c9fbf7f2b4cc811e2e2caa88eeaa79",
+  "librarySha256": "c70b6255285aa4e5b987f18cf24d59d56227c67d44d60b734755f33f6a8ab33a",
+  "probeSha256": "52e64def5ab1ab3548189c4a02dd67e982d500bb35a2991aec74ab59c92aaf8e",
+  "scope": "Local-only prepared diagnostic; no generated program execution, phone operation or preview upload"
+}

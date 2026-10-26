@@ -1,0 +1,11 @@
+{
+  "schema": "native-glx-validation-pinned-pair-v1",
+  "jsSha256": "737ea15afbad5c87ee9a09ce2c27ce998f32966533fc74b7ea225aa04d30f3df",
+  "wasmSha256": "c3f7248085bc455ef48bf0c02f31709bd2c9fbf7f2b4cc811e2e2caa88eeaa79",
+  "sourceSha256": "727949698984265093f4ebff39e1a0a517acdd04e98efa7bf7402260b3aeb328",
+  "librarySha256": "c70b6255285aa4e5b987f18cf24d59d56227c67d44d60b734755f33f6a8ab33a",
+  "contextPatchSha256": "7f08edb7d3e7f3badc6c8b520b12c7424a9e52b223407ded92ae8f700bc01a0e",
+  "recipeCanonicalSha256": "d8856ca0f4638f5f65f96d99898a9f50a6ebe4122c42803ff261dbd5e58f0f42",
+  "strictPostCanonicalSha256": "14e89715ce013cfccee65fa7c6d5f9fa0ae949f72fd02e040068d329afe1dfe7",
+  "scope": "Reviewed integer-frame RGB sample; same GLX library/startup/submit; frame numbers are not elapsed time or FPS"
+}
