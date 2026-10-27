@@ -20,6 +20,7 @@ gles3/skip_default_3d_prewarm=true
 | `scene.mjs` | 只新增项目设置的独立场景副本；核对skip-only PCK只有project.binary新增bool true |
 | `stage-derived.mjs` | 依赖明确admission及其SHA，对精确引擎、场景和原宿主进行新目录组包 |
 | `admission-no-prewarm.json` | 本轮固定准入规则；与私有原始规则同SHA，不能替换成任意pass报告 |
+| `full-profile.gdbuild` | 实际成功构建的完整profile原字节；93bytes，SHA256为920ca801a58fe5bfb0f56aa39a1d523adae9658233189d6518b17e3c5b98e81b，不是裁剪profile |
 
 本轮补丁SHA256为 `f275b6634d5949cb00e100ab363dbe9d37e8ad6fb171c20b3d43795d1f01bef2`，准入规则SHA256为 `58d85021af23c438bcb1f2fc8ed471932f31f3841d7338b1496c60fc543e69e9`。旧的公共stage和原库admission规则保持原样。
 
@@ -95,3 +96,5 @@ $out = $env:PREWARM_NEW_CANDIDATE_DIR
 三包各27文件，本轮实际改变7路径，JS未改变，原relay关闭。stage成功只证明精确文件/身份和静态合同，不是手机画面、功能或性能验收。它们均为 `runtime=not_run`、`prewarmRuntimeSkip=NOT_VERIFIED`、`startupTiming=NOT_MEASURED`、未上传；新引擎的首次3D延迟、GLX表现和启动加速均待独立运行验证。完整私有handoff/日志不可当作公开源码附件提交。
 
 上段是封存metadata的初始状态，不回写冻结文件。随后外层组合WebGL实际3.17.5完成普通2D、直接3D和第4页参考，GLX组合仅一次二维码预览成功，手机未运行；实时范围见[夜间清单](../../docs/GLX_NIGHT_HANDOFF_20261028.md)。仍未测量启动改善或认证GLX兼容。
+
+之后用户对该组合预览反馈Android第4项左右正常、第3项半透明仍不显示；iOS观察无异常、体感启动更快，未提供精确计时或本轮运行身份日志。新增有限证据见[反馈归档](../../docs/GLX_COMPAT_PHONE_FEEDBACK_20261028.md)，不追改上段封存状态。跨项目不能只拷测试场景，完整依赖、生命周期接线与剩余复现缺口见[复用指南](../../docs/GLX_REUSE_GUIDE_20261028.md)。

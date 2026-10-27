@@ -1,5 +1,7 @@
 # 完整 GLX 引擎的独立自构建
 
+**2026-10-28当前入口：** [引擎、宿主、导出与私有依赖复用指南](../docs/GLX_REUSE_GUIDE_20261028.md)对应官方026e新库、自主构建引擎、可选关闭默认预热和场景局部兼容。完整profile原字节已保存，原宿主/库仍须合法取得；没有干净克隆或任意新项目PCK已可复现的承诺。下文旧c70b配方和早期黑屏结果按日期保留，不能直接当成当前026e的准备/准入入口。最新有限手机反馈及未解决项见[结果](../docs/GLX_COMPAT_PHONE_FEEDBACK_20261028.md)，下一轮只提出[精简清单](../docs/GLX_ACCEPTANCE_MINIMAL_PLAN_20261028.md)，本轮不改场景或上传。
+
 2026-10-24：[首次 shader 失败诊断配方](shader-failure/README.md)完成源码重编、配对/ABI 及本地 WebGL 2D 验证。获批手机两轮为首开 `2c5d1526` 正常、强退重开 `dcd3d486` 黑屏；完整日志捕获顶点请求 35633 / GLX 同步 batch 经 JS→WASM i32 转换后为片元枚举 35632，源码完整一致。详见[类型不一致与闭源边界](../docs/GLX_SHADER_TYPE_MISMATCH_20261024.md)。当前没有可据此修复的公开参数错配，本配方尚非稳定 GLX；按钮/3D/resize 和后续裁剪/分包不借用旧结果。
 
 后续的[原始 TYPE 返回配方](shader-type-return/README.md)只补一次原始返回观察，不增加 GPU 查询；自构建、审计和验收状态统一记录在[本轮记录](../docs/GLX_SHADER_TYPE_RETURN_20261024.md)。它没有替换库或预编译引擎，原诊断包和默认 WebGL 保留。

@@ -82,7 +82,7 @@
    ```
 
    默认false，仅跳过默认scene shader版本的构造阶段bind，不关初始化、3D或所有shader；首次3D可能更慢。当前手机反馈只有体感更快，没有定量启动改善证明。
-4. 业务若确有同类非透明离屏显示，显式调用局部兼容`configure(普通TextureRect, 已知非透明SubViewport, true, 已观察宿主上下文)`；不能从`ViewportTexture.has_alpha()`推定源是否透明。上下文必须来自本次真实缓存，不能写死Android/GLX。保持原MIX、RGB、UI/父alpha；iOS/WebGL/未知平台、透明源、NinePatch、已有或父材质、自定义脚本等拒绝。换源时按原脚本撤销自己的材质。不要把此候选用作通用alpha修复。
+4. 业务若确有同类非透明离屏显示，先将局部兼容节点加入场景树并保持其生命周期，再显式调用`configure(普通TextureRect, 已知非透明SubViewport, true, 已观察宿主上下文)`；销毁时沿用detach/退出清理。configure只立即检查一次，持续换源/材质门禁依赖_ready注册的frame_pre_draw信号。不能从`ViewportTexture.has_alpha()`推定源是否透明。上下文必须来自本次真实缓存，不能写死Android/GLX。保持原MIX、RGB、UI/父alpha；iOS/WebGL/未知平台、透明源、NinePatch、已有或父材质、自定义脚本等拒绝。换源时按原脚本撤销自己的材质。不要把此候选用作通用alpha修复。
 5. AppID/路径只填在新项目的私有配置。重新生成**新项目身份与精确准入**，核查27文件依赖/新PCK/实际后端；不能沿用50b90ca0或912c的标识。当前`stage-derived.mjs`只接受精确912c父包和本轮两个固定PCK，**会拒绝任意业务PCK**；通用新项目组包入口尚未完成验证，本轮不放宽规则或手工篡改封存metadata。
 
 因此步骤1–4解释已有接入合同，步骤5是其他项目实际落地前仍需完成的明确工作；不是一条已经验证过的跨项目“一键命令”。
