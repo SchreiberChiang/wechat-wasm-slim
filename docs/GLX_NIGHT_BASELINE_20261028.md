@@ -13,3 +13,5 @@
 本机必要回归：`node tests/run.mjs` **111通过、0失败**（未给--godot，默认headless未执行）；内容派生合同8项执行通过，非缺fixture跳过。生成字体/引擎/宿主仍是外部私有输入，见[内容派生说明](../engine/functional-acceptance/README.md)。3D预热guard及局部兼容另开独立提交与候选，不在此基线提前合入。
 
 后续原任务终态核验：只查询已保存的同一taskId一次，返回status=success、detail=execution_success及result.success=true；工具记录上传于北京时间2026-10-28 00:03:03.996完成，总包9268432bytes。上传副本27文件与原冻结manifest逐项SHA再次一致，未重复调用upload。此结果替代上段历史“尚未确认上传完成”，**不证明后台体验版已指向glx912c-20261028**。原pending回执保留，当前任务索引更新为success；查询原件和UPLOAD_COMPLETED私有保存。正式发布未执行，后台指向待用户核对。
+
+最终确认（2026-10-28）：用户本轮明确报告“后台已确认体验版是glx912c-20261028”，据此将当前体验指向记为用户后台已确认；代理没有独立读取后台。直接确认另存私有EXPERIENCE_POINTER_USER_CONFIRMED，原始上传回执和冻结包不改。该确认闭合上段的待核对事项，不改变该基线的场景、预热或兼容状态。用户同时明确“不用关机”，保留电脑和所有窗口，不再上传或操作手机。
