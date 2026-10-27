@@ -1,0 +1,162 @@
+{
+  "runtimeIdentityPolicy": "Read actual package/session/SDK/backend; never replace observed values with expected ones",
+  "automaticVisualPass": false,
+  "visualChoices": [
+    "符合示意",
+    "有异常",
+    "看不清",
+    "未检查"
+  ],
+  "interactionChoices": [
+    "响应正常",
+    "没有响应",
+    "未操作"
+  ],
+  "smoothnessChoices": [
+    "没有明显停顿",
+    "停了一下又恢复",
+    "一直卡住",
+    "没留意"
+  ],
+  "resultDefault": {
+    "visual": "未检查",
+    "interaction": "未操作",
+    "smoothness": "没留意"
+  },
+  "schema": "glx-compatibility-round3",
+  "baselinePackageId": "ios-functional-glx-20c564de30fc8e482fb1",
+  "status": "implementation_pending_desktop",
+  "engineChangePlanned": false,
+  "uploadAuthorizedByThisCatalog": false,
+  "cards": [
+    {
+      "id": "B01-image",
+      "phase": "short_regression",
+      "title": "短回归：普通2D",
+      "reference": "只做一次普通2D短回归，不重测旧九宫格。",
+      "steps": [
+        {
+          "id": "B01-image",
+          "action": "按“左右翻转”，再按一次恢复。",
+          "expected": "编号图片和中文正常；第一次箭头与编号左右镜像，第二次恢复。",
+          "abnormal": "图片缺块、中文缺字，或按键无变化。"
+        }
+      ]
+    },
+    {
+      "id": "B06-texture",
+      "phase": "short_regression",
+      "title": "短回归：直接3D",
+      "reference": "主视口直接3D；与离屏显示问题分别记录。",
+      "steps": [
+        {
+          "id": "B06-texture",
+          "action": "看方块转动，再按“停在正面”。",
+          "expected": "主画面的方块有数字和箭头；按键后停在正面。",
+          "abnormal": "方块不见、纯黑，或按键后仍转。"
+        }
+      ]
+    },
+    {
+      "id": "B07-front",
+      "phase": "comparison",
+      "title": "原13：红片材质对照",
+      "reference": "同一片红色几何，同一位置和灯光；右栏显示启用状态和模式。先记录画面，再记录响应和等待。",
+      "steps": [
+        {
+          "id": "B07-front",
+          "action": "先显示红片，再切“不透明／半透明”。",
+          "expected": "不透明时红片盖住重叠部分；半透明时仍有红色并透出后方格子。",
+          "abnormal": "红片启用后仍看不见，或两种模式没有可辨区别。"
+        }
+      ]
+    },
+    {
+      "id": "D15-alpha",
+      "phase": "comparison",
+      "title": "原15：最终显示混合对照",
+      "reference": "左为原混合，右仅关闭最终Canvas混合；共享同一离屏纹理。源格式、清屏、灯光、库均不改。",
+      "steps": [
+        {
+          "id": "D15-alpha",
+          "action": "对照左右，再按“暂停／继续同一方块”。",
+          "expected": "电脑参考两边均为同一蓝底纹理方块；暂停与继续同时影响两边。",
+          "abnormal": "左右显示不同、缺纹理或异常透底。这里记录差异，不自动判修复。"
+        }
+      ]
+    },
+    {
+      "id": "N01-skin",
+      "phase": "coverage",
+      "title": "新增：两骨骼蒙皮",
+      "reference": "CPU生成带骨骼权重的网格，Skeleton3D加AnimationPlayer；不读取GPU缓冲。",
+      "steps": [
+        {
+          "id": "N01-skin",
+          "action": "看上段弯折，按“暂停骨骼”，再按一次继续。",
+          "expected": "蓝色下端固定；橙色上段绕接点来回弯，接点连续。暂停停住，继续再动。",
+          "abnormal": "整条一起转、上段不动、接点裂开、颜色丢失，或暂停无效。"
+        }
+      ]
+    },
+    {
+      "id": "N02-multimesh",
+      "phase": "coverage",
+      "title": "新增：批量实例",
+      "reference": "一个MultiMesh，共64实例；只检查画面与操作，不作FPS/压力测试结论。",
+      "steps": [
+        {
+          "id": "N02-multimesh",
+          "action": "看八行八列，按“散开／合拢”，再暂停和继续。",
+          "expected": "64个红蓝交错小方块不缺块；间距一起改变，暂停后不再摆动。",
+          "abnormal": "缺块、颜色串成一色、间距没变或按键无响应。"
+        }
+      ]
+    },
+    {
+      "id": "N03-shader",
+      "phase": "coverage",
+      "title": "新增：不透明自定义shader",
+      "reference": "简单Spatial shader，仅写ALBEDO，不写ALPHA；无纹理依赖。",
+      "steps": [
+        {
+          "id": "N03-shader",
+          "action": "看条纹方块，按“切换条纹颜色”。",
+          "expected": "红绿条纹变为蓝黄条纹；方块不透明，转动仍正常。",
+          "abnormal": "材质发黑、条纹缺失、变透明，或切色无效。"
+        }
+      ]
+    },
+    {
+      "id": "N04-texture",
+      "phase": "coverage",
+      "title": "新增：纹理动态更新",
+      "reference": "同一个64×64 RGBA8 ImageTexture.update；更新计数只是程序记录，不证明屏幕或FPS。",
+      "steps": [
+        {
+          "id": "N04-texture",
+          "action": "看白条移动，暂停再继续，再切蓝黄图案。",
+          "expected": "背景轮换、白条移动；暂停停住，继续恢复；切图立即变化。",
+          "abnormal": "只显示第一张、留下旧影、暂停无效，或更新后变黑。"
+        }
+      ]
+    }
+  ],
+  "resultTracks": [
+    "desktop-native",
+    "desktop-webgl",
+    "ios",
+    "android",
+    "unknown"
+  ],
+  "notCovered": [
+    "long-term stability",
+    "new lifecycle rounds",
+    "GPU readback",
+    "particles",
+    "compressed/HDR textures",
+    "trim",
+    "WASM splitting",
+    "racing"
+  ]
+}

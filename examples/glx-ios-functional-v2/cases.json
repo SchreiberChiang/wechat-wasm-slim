@@ -1,0 +1,111 @@
+{
+  "schema": "glx-compatibility-design-v2",
+  "status": "scene_implementation_pending_desktop_acceptance",
+  "baselinePackageId": "ios-functional-glx-54056018e628bef5ebfd",
+  "runtimeIdentityPolicy": "Read actual package/session/SDK/backend; never replace observed values with expected ones",
+  "automaticVisualPass": false,
+  "engineChangePlanned": false,
+  "uploadAuthorizedByThisCatalog": false,
+  "visualChoices": ["符合示意", "有异常", "看不清", "未检查"],
+  "interactionChoices": ["响应正常", "没有响应", "未操作"],
+  "smoothnessChoices": ["没有明显停顿", "停了一下又恢复", "一直卡住", "没留意"],
+  "resultDefault": {"visual": "未检查", "interaction": "未操作", "smoothness": "没留意"},
+  "cards": [
+    {
+      "id": "B01", "phase": "basic", "title": "图片、中文和半透明", "runtimePath": "CanvasItem, font, texture alpha",
+      "reference": "固定示意：四角分别标1、2、3、4，上箭头朝上；中文标准句；红色半透明圆覆盖黑白棋盘。示意图不由待测GLX生成。",
+      "steps": [
+        {"id": "B01-image", "action": "对照小样图，查看四个编号和向上箭头。", "expected": "四个编号位置一致，箭头朝上，图片没有缺块。", "abnormal": "编号缺失、位置颠倒，或图片变成黑块。"},
+        {"id": "B01-text", "action": "读出测试框里的“中文测试，123！”，再按“大字”。", "expected": "每个字和标点都能看见，放大后不缺字、不被切掉。", "abnormal": "出现空白、方框、乱码，或字的上半截被切掉。"},
+        {"id": "B01-alpha", "action": "把红圆拖到黑白棋盘中央。", "expected": "红圆里的黑格和白格仍能分清；圆外的棋盘不变。", "abnormal": "红圆变成完全不透明，或透明区域出现黑边、旧影子。"}
+      ]
+    },
+    {
+      "id": "B02", "phase": "basic", "title": "图形不能跑出白框", "runtimePath": "clip_contents and touch input",
+      "reference": "白框内移动条纹，框外独立黄色圆点用于检查是否误裁剪。",
+      "steps": [
+        {"id": "B02-clip", "action": "拖动滑块到左右两端，让条纹越过白框边界。", "expected": "条纹只在白框里出现；框外的黄点始终可见。", "abnormal": "条纹跑出白框，黄点消失，或滑块拖动没有反应。"}
+      ]
+    },
+    {
+      "id": "B03", "phase": "basic", "title": "面板变大，四角大小不变", "runtimePath": "NinePatchRect STRETCH",
+      "reference": "并排小面板与可变尺寸大面板，四角各有不同颜色和编号；固定角标轮廓作大小参照。",
+      "steps": [
+        {"id": "B03-horizontal", "action": "拖“宽度”滑块，从小到大再拖回。", "expected": "四个彩角始终一样大；横边和中心变长，没有裂缝。", "abnormal": "彩角被拉成长条、缺角，或角和边之间裂开。"},
+        {"id": "B03-vertical", "action": "拖“高度”滑块，从矮到高再拖回。", "expected": "彩角大小不变；竖边和中心变高，没有裂缝。", "abnormal": "彩角被拉高、边框丢失，或中心没有铺满。"}
+      ]
+    },
+    {
+      "id": "B04", "phase": "basic", "title": "边框的小砖怎样重复", "runtimePath": "NinePatchRect TILE and TILE_FIT",
+      "reference": "上下两个同源面板。上：保持砖大小，末端可有半砖。下：铺满完整砖，砖宽可以略变。边与中心均采用无缝图案。",
+      "steps": [
+        {"id": "B04-width", "action": "把两个面板的宽度拖到标记A，再拖到标记B。", "expected": "上框砖块大小不变，末端可以有半块；下框每块完整，大小可以略变。四角都不重复。", "abnormal": "边框只剩一块长砖、图案消失，或四角也跟着重复。"},
+        {"id": "B04-height", "action": "按“变高”，同时查看竖边和中间的格子。", "expected": "竖边和中心按同样规则增加重复图案；角与边连接。", "abnormal": "只有横边变化，中心空白，或出现明显接缝。"}
+      ]
+    },
+    {
+      "id": "B05", "phase": "basic", "title": "面板透明、换图后不留旧影", "runtimePath": "NinePatchRect draw_center, alpha border, texture replacement",
+      "reference": "底层固定棋盘；透明外沿加指示箭头；两套边框使用数字角标和字母角标，避免只靠颜色识别。",
+      "steps": [
+        {"id": "B05-center", "action": "按“隐藏中心”，再按“显示中心”。", "expected": "隐藏时中心完整露出棋盘；显示时中心重新出现图案，边框一直保留。", "abnormal": "中心变黑、边框一起消失，或切回后没有恢复。"},
+        {"id": "B05-texture", "action": "按“换一套边框”，再拖大面板。", "expected": "四个数字角标都换成字母；外沿仍透出棋盘，没有旧数字残留。", "abnormal": "只换了一部分、旧边框残留，或透明外沿变成黑条。"}
+      ]
+    },
+    {
+      "id": "B06", "phase": "basic", "title": "主画面的立体方块", "runtimePath": "Root viewport direct 3D, BoxMesh, texture UV, DirectionalLight3D",
+      "reference": "固定相机、编号各面和向上箭头；UI用CanvasLayer，不能用SubViewport绕回离屏路径。",
+      "steps": [
+        {"id": "B06-texture", "action": "看方块转动，再按“停在正面”。", "expected": "方块持续转动；停下后正面的数字和箭头与示意相同，没有反字或缺面。", "abnormal": "方块不见、一直不转、贴图倒置，或某个面黑掉。"},
+        {"id": "B06-light", "action": "按“灯移到右边”，再按“灯回左边”。", "expected": "被箭头标出的面按示意先变亮再变暗，数字仍能看清。", "abnormal": "灯换了但指定面一直不变，或整块变成纯黑、纯白。"}
+      ]
+    },
+    {
+      "id": "B07", "phase": "basic", "title": "谁在前，谁被挡住", "runtimePath": "Root viewport fixed camera, alpha blending and depth occlusion",
+      "reference": "固定正面相机与分开的深度位置，避免共面或相交透明几何。红片在前，方块居中，蓝片在后；独立简图标出应被挡住的蓝片区域。",
+      "steps": [
+        {"id": "B07-front", "action": "按“加上前面的红片”。", "expected": "透过红片仍能看见方块的格子；红片没有把后面的东西完全盖住。", "abnormal": "红片变实心、方块消失，或红片跑到方块后面。"},
+        {"id": "B07-back", "action": "按“显示后面的蓝片”，再按“暂时移开方块”。", "expected": "方块在原位时，蓝片中间被挡住；移开方块后，原来挡住的蓝片部分出现。", "abnormal": "蓝片从方块中间穿出来，或移开方块后蓝片仍缺一块。"}
+      ]
+    },
+    {
+      "id": "B08", "phase": "basic", "title": "两个小窗口各管各的", "runtimePath": "Two independent SubViewports with own worlds/cameras, ViewportTexture into UI, resize",
+      "reference": "左蓝底L，右紫底R，编号方块；操作某侧前自动暂停另一侧，避免把其正常动画误判为串图。",
+      "steps": [
+        {"id": "B08-left", "action": "按“只换左边”，把左窗在文字和方块之间切换。", "expected": "只有左窗内容改变；右窗暂停在原画面，左右背景和标记不串位。", "abnormal": "右边也变了、左右变成同一张图，或左窗黑掉。"},
+        {"id": "B08-right", "action": "按“只转右边”。", "expected": "只有右侧方块转动；左侧暂停在原画面。", "abnormal": "两侧一起转、右边不动，或左边变黑。"},
+        {"id": "B08-resize", "action": "按“放大右窗”，再按“恢复大小”。", "expected": "右窗清晰显示完整方块并继续更新，边框外没有旧画面；左窗保持。", "abnormal": "右窗只放大旧截图、缺一块、停止更新，或影响左边。"}
+      ]
+    },
+    {
+      "id": "S01", "phase": "stability", "title": "持续动，不是只显示一张图", "runtimePath": "Existing scene draw/input loop; observation interval is not GPU timing",
+      "reference": "保持双窗口方块转动与可见运动标记；计时结束仅提示观察结束，不自动判通过。",
+      "steps": [
+        {"id": "S01-run", "action": "按“开始观察”，保持前台看两分钟，再拖动右侧方块。", "expected": "两边持续运动；结束后拖动仍有反应。请另外记录有无停顿。", "abnormal": "中途冻结、黑屏、闪烁，或结束后触摸无反应。"}
+      ]
+    },
+    {
+      "id": "S02", "phase": "stability", "title": "回到桌面，再回来", "runtimePath": "Real host hide/show plus user-visible recovery; no automatic app control",
+      "reference": "沿用同一包同一会话；不强退微信、不清缓存。单独关联hide/show和恢复后动作。",
+      "steps": [
+        {"id": "S02-resume", "action": "回手机桌面约10秒，再切回小游戏；拖动方块并点一次换图。", "expected": "回来后画面继续动，拖动和换图都有效；再观察约20秒。", "abnormal": "只剩旧画面、画面黑了、持续卡住，或按钮没有反应。"}
+      ]
+    },
+    {
+      "id": "S03", "phase": "stability", "title": "内容清空后能重新出现", "runtimePath": "Scene subtree destroy/recreate, not process restart, no GPU reclamation claim",
+      "reference": "最多三组，初次和每次重建分开编号；动画停止和进入停顿分开记录。",
+      "steps": [
+        {"id": "S03-recreate", "action": "按“清空内容”，确认只剩提示；约2秒后按“重新创建”。按提示最多做三组。", "expected": "每次清空后内容消失，重建后方块重新出现并继续动。画面正常与卡不卡分别选择。", "abnormal": "旧画面残留、恢复后黑屏、不再转动，或按钮失灵。"}
+      ]
+    }
+  ],
+  "laterCoverage": [
+    {"topic": "CPU生成ArrayMesh顶点、法线、UV和索引", "status": "later_separate_case_no_GPU_readback"},
+    {"topic": "GPU缓冲读回", "status": "known_open_GLX19_not_automatically_retested"},
+    {"topic": "阴影、PBR、法线贴图、骨骼、粒子、Canvas/Spatial自定义shader", "status": "later_rendering_expansion"},
+    {"topic": "纹理压缩/mipmap/浮点格式与精度", "status": "later_format_matrix_warnings_preserved"},
+    {"topic": "真正场景切换、微信菜单重进、强退和冷启动", "status": "separate_lifecycle_authorization_reuse_existing_evidence"},
+    {"topic": "旋转屏幕、安全区变化、低内存和资源泄漏", "status": "not_proven_by_resize_or_node_counts"},
+    {"topic": "音频、输入法、存储、网络", "status": "host_compatibility_not_GLX_rendering_acceptance"},
+    {"topic": "Android 3D、其他设备、裁剪和WASM分包", "status": "separate_tracks_not_covered_by_iOS_pass"}
+  ]
+}
