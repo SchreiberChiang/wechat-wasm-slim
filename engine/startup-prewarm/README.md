@@ -93,3 +93,5 @@ $out = $env:PREWARM_NEW_CANDIDATE_DIR
 | 同兼容场景 / WebGL | `selfbuild-no-prewarm-compat-webgl-bbd878778ad0703b5d7b` | `e169c6d6a93aa4cb413b9419208748353b1a1ed826dc1d304bfc8e90d38702a6` |
 
 三包各27文件，本轮实际改变7路径，JS未改变，原relay关闭。stage成功只证明精确文件/身份和静态合同，不是手机画面、功能或性能验收。它们均为 `runtime=not_run`、`prewarmRuntimeSkip=NOT_VERIFIED`、`startupTiming=NOT_MEASURED`、未上传；新引擎的首次3D延迟、GLX表现和启动加速均待独立运行验证。完整私有handoff/日志不可当作公开源码附件提交。
+
+上段是封存metadata的初始状态，不回写冻结文件。随后外层组合WebGL实际3.17.5完成普通2D、直接3D和第4页参考，GLX组合仅一次二维码预览成功，手机未运行；实时范围见[夜间清单](../../docs/GLX_NIGHT_HANDOFF_20261028.md)。仍未测量启动改善或认证GLX兼容。
