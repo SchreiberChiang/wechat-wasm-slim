@@ -1,0 +1,2 @@
+# Exact-build admission fingerprints use original bytes, including line endings.
+* -text

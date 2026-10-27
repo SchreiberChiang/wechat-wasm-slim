@@ -1,0 +1,106 @@
+{
+  "schema": "startup-prewarm-derived-admission-v1",
+  "sourcePin": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "parent": {
+    "packageId": "ios-functional-glx-912c537585a6f3a07ef5",
+    "manifestSha256": "fa54b3f15d4fbb989bed9bf9a9c67743a1283e803684f17cb5598bf193938215"
+  },
+  "handoffSha256": "1777774cb7558e60a02dbe8d5b54ba6c8ed726761b5012ace903fc43f44735a8",
+  "parentBuildSha256": "d2e324538417b829cdd555a03e90847e4a03d556e357daf2871196b741bff85c",
+  "patchSha256": "f275b6634d5949cb00e100ab363dbe9d37e8ad6fb171c20b3d43795d1f01bef2",
+  "buildSha256": "0adc405e8cc53c6d6b7656f02aa271c1e7a8d15b7f3d189c7c8c66972c97acbc",
+  "incrementalSha256": "1aed55be7b8a9059ee3079cb2784c59141fd80ecf76a2e0978fd1dd7353d1418",
+  "buildIdentitySha256": "b51249df2a245ec4fc202d43dbe85818df349d9f92e0befcc51da876606e2c8a",
+  "buildStageSha256": "e365ad6f593672a80cf1e60c508f5645c5d95a03035676172d30eff459d957d6",
+  "outputs": {
+    "godot.js": {
+      "bytes": 469508,
+      "sha256": "e9f09402ddc60b0407a803e74b2f8824cc14b05d38e3cce99fb05d06ff573ddb"
+    },
+    "godot.wasm": {
+      "bytes": 65185272,
+      "sha256": "859fc92cb76dad0837f293d73250db347975ace35b71fdfa18f38e36138d8402"
+    },
+    "godot.wasm.br": {
+      "bytes": 8646741,
+      "sha256": "6c9e9a731c3769457d721b383c80017254f21ee7c1c390d329428792d12baee5"
+    }
+  },
+  "pairSha256": "694e90b98c7953f3d35b81b465a53f3c586d2044d4097dc7225e6209a14e30b6",
+  "audits": {
+    "pairSha256": "38f0290fe9bae1aefcf257d1a95813237e02279a99e01620347f6525769caf12",
+    "abiSha256": "652fc2b1d1539e2ce3baa072c5674e88154f0b7b90c61d591d65e66e0853310f",
+    "linkageSha256": "0a6701c09a671fbc10588c3604e703f57f3db11c0b3aa5845ead3fb0b10f1e9b",
+    "diagnosticAbiChecks": 64
+  },
+  "dependencies": [
+    {
+      "name": "incremental.mjs",
+      "bytes": 14687,
+      "sha256": "14e1527ef58fc667aef0b0a6626515886e59b25ae1620be4f737fb70b3593cc7"
+    },
+    {
+      "name": "patch.mjs",
+      "bytes": 1728,
+      "sha256": "79f6641c88958c206c13fd93e56e1dd442f776f46d01420318c7e41e6cd3775a"
+    },
+    {
+      "name": "skip-default-3d-prewarm.patch",
+      "bytes": 1359,
+      "sha256": "f275b6634d5949cb00e100ab363dbe9d37e8ad6fb171c20b3d43795d1f01bef2"
+    },
+    {
+      "name": "finalize.mjs",
+      "bytes": 9079,
+      "sha256": "c7632da9d0791433d9c2302a7201048633129990624e0d9f4b63cecb2a1893f5"
+    },
+    {
+      "name": "build.mjs",
+      "bytes": 21184,
+      "sha256": "ea0a5a08d642627fe6a81221d9bbe98a8e51020f2d086672a1aaf6bd576e32da"
+    },
+    {
+      "name": "stage.mjs",
+      "bytes": 12073,
+      "sha256": "23a610c2e21f4314ed8a18c97e7574dfb99456d35bc419f1795f508463803b44"
+    },
+    {
+      "name": "audit-pair.mjs",
+      "bytes": 4383,
+      "sha256": "dab8bb894d2364c2499053acdc0be690e58e4e37dc376ee61def6682f3fd143a"
+    },
+    {
+      "name": "audit-diagnostic-abi.cjs",
+      "bytes": 18714,
+      "sha256": "9ac122646f854c649418e390e6b9d7572062592dfb2e001142502a55fac6f5ab"
+    },
+    {
+      "name": "audit-linkage.cjs",
+      "bytes": 25186,
+      "sha256": "3b4ba26ff4291249d9cdd07bfb24e81514df84c899c3bb5781b69e730a7729c3"
+    }
+  ],
+  "sourceChanges": [
+    {
+      "path": "drivers/gles3/rasterizer_scene_gles3.cpp",
+      "beforeSha256": "6d0719c9cd2caf685a9825028183bdf058081d7bc92d4b27ed2587f39b081221",
+      "afterSha256": "43de37286c8f88cfb0291d1b61ff85d5155ea556b0ef570db22fb6127e231a46"
+    },
+    {
+      "path": "main/main.cpp",
+      "beforeSha256": "2fa6ef2736aa28e2feced47ca872bce1a95e3e6c56bb6002a96660a008df8992",
+      "afterSha256": "b7b331069d048a86e1edf744737794c665bce18cd68538aed1c8151e83f64ff9"
+    }
+  ],
+  "sconsArgsSha256": "9d2b1f4adb6ec6221b58875b1ba525d163e0c1cbc126f187c905358ae0887ac0",
+  "scenes": {
+    "skip-only": {
+      "pckSha256": "3324d9741e29d31d6ce9aa4843b55cb26814c74a086515f74eeb5c1a0c182f5b",
+      "sourceManifestSha256": "52735732134b8f23df28b92cf79e78bffe53227a17a9e146d896972eac48048b"
+    },
+    "compat": {
+      "pckSha256": "2b162f432d28821c1ab177dbb0910345b99c07961336b833964ddaaa1b09f895",
+      "sourceManifestSha256": "58ff7f294e2603f1e47fc983eba9f5dc823aeff35a61892f582920579defe59d"
+    }
+  }
+}

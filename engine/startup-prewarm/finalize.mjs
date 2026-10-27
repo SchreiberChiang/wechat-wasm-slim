@@ -1,0 +1,45 @@
+// Static audits and exact handoff material only; no candidate packaging or engine execution.
+import fs from 'node:fs';import path from 'node:path';import {spawnSync} from 'node:child_process';import {fileURLToPath} from 'node:url';
+import {hash,json,readTree,manifest as treeManifest,verifyParent} from '../functional-acceptance/stage.mjs';
+import {BASELINE} from './audit.mjs';import {PINS,manifest,dryRunGate} from './incremental.mjs';
+import {resolveToolchain,buildIdentity,sourceState,assertStageInputs} from '../../trim/lib/build.mjs';
+const here=path.dirname(fileURLToPath(import.meta.url)),repo=path.resolve(here,'../..'),need=(ok,msg)=>{if(!ok)throw Error(msg);};
+const fid=p=>{const b=fs.readFileSync(p);return {path:p,bytes:b.length,sha256:hash(b)};};
+export async function finalize({root,base,toolchain,host}){
+  root=path.resolve(root);base=path.resolve(base);host=path.resolve(host);const state=path.join(root,'INCREMENTAL.json'),rec=JSON.parse(fs.readFileSync(state)),work=path.join(root,'work'),tc=resolveToolchain(JSON.parse(fs.readFileSync(toolchain)),toolchain);
+  need(rec.phase==='artifacts-complete','Fresh completed build required');need(path.resolve(rec.base)===base,'Parent drift');
+  need(rec.events.length===3&&rec.events.every(x=>x.code===0&&!x.timedOut),'Three original source tests must pass');rec.sourceTestsPass=true;
+  rec.actualBuildPlan=dryRunGate(fs.readFileSync(path.join(root,'logs','build.log'),'utf8'));
+  rec.rawOutputManifest=manifest(path.join(root,'raw'));
+  need(fs.readFileSync(path.join(work,'artifacts','godot.wasm')).includes(Buffer.from('startup/gles3/skip_default_3d_prewarm')),'Compiled project setting string missing');
+  rec.prewarmPolicy={setting:'startup/gles3/skip_default_3d_prewarm',compiledStringPresent:true,projectDefault:false,scope:'Web constructor default scene-shader version bind only; initialization/version allocation retained',runtimeSkip:'NOT_VERIFIED',startupTiming:'NOT_MEASURED'};
+  const linkerObservation=path.join(root,'evidence','ACTUAL_LINKER_OBSERVATION.json');if(fs.existsSync(linkerObservation))rec.linkerObservation=fid(linkerObservation);
+  const optimizerObservation=path.join(root,'evidence','ACTUAL_OPTIMIZER_OBSERVATION.json');if(fs.existsSync(optimizerObservation)){const observed=JSON.parse(fs.readFileSync(optimizerObservation,'utf8').replace(/^\uFEFF/,''));rec.optimizerObservation={...fid(optimizerObservation),actualFlags:observed.commandLine.match(/(?:^|\s)-O[0-3sz](?=\s|$)/g)?.map(x=>x.trim())||[],note:'Original sizeFlag probe checked only -Oz; actual optimize=size invocation uses -Os. The raw command line is retained.'};need(rec.optimizerObservation.actualFlags.includes('-Os'),'Expected actual size optimization flag missing');}
+  const hostFiles=readTree(host);verifyParent(hostFiles,'glx',{dir:host,...BASELINE});
+  const original=JSON.parse(fs.readFileSync(path.join(base,'BUILD.json')));need(fid(path.join(base,'BUILD.json')).sha256===PINS.build,'Parent BUILD changed');
+  const live=await buildIdentity({tc,profileFile:path.join(base,'profile.gdbuild'),stage:path.join(base,'engine'),lto:'thin',symbols:true,ltoJobs:2});need(JSON.stringify(live)===JSON.stringify(original.identity),'Parent SDK/input drift');assertStageInputs(rec.stage,await sourceState(path.join(work,'engine')));
+  const saved=JSON.parse(fs.readFileSync(path.join(root,'evidence','parent-engine-manifest.json')));need(JSON.stringify(saved)===JSON.stringify(manifest(path.join(base,'engine'))),'Parent full tree changed');
+  const auditRoot=path.join(root,'audits');need(!fs.existsSync(auditRoot),'Audit root exists');fs.mkdirSync(auditRoot);fs.mkdirSync(path.join(work,'logs'));
+  // The existing linkage scanner intentionally scans BUILD/logs. Copy the completed logs only.
+  for(const item of fs.readdirSync(path.join(root,'logs')))fs.copyFileSync(path.join(root,'logs',item),path.join(work,'logs',item),fs.constants.COPYFILE_EXCL);
+  const sdkNode=path.join(tc.emsdk,'node','24.19.0_64bit','node.exe');need(fs.existsSync(sdkNode),'Existing fixed linkage-audit SDK Node missing');
+  const commands=[
+    {name:'syntax',exe:process.execPath,args:['--check',path.join(work,'artifacts','godot.js')],expected:0},
+    {name:'pair',exe:process.execPath,args:[path.join(repo,'engine/audit-pair.mjs'),'--build-dir',work,'--out',path.join(auditRoot,'PAIR_AUDIT.json')],expected:0},
+    {name:'diagnostic-abi',exe:process.execPath,args:[path.join(repo,'engine/official-glx-library/audit-diagnostic-abi.cjs'),'--build-dir',work,'--sdk',tc.emsdk,'--out',path.join(auditRoot,'abi')],expected:0},
+    {name:'linkage',exe:sdkNode,args:[path.join(repo,'engine/official-glx-library/audit-linkage.cjs'),'--build-dir',work,'--sdk',tc.emsdk,'--baseline-build',base,'--host-dir',host,'--out',path.join(auditRoot,'linkage')],expected:1}
+  ];
+  rec.auditCommands=[];for(const cmd of commands){const r=spawnSync(cmd.exe,cmd.args,{windowsHide:true,encoding:'utf8',timeout:120000,maxBuffer:16*1024*1024});fs.writeFileSync(path.join(auditRoot,cmd.name+'.stdout.log'),r.stdout||'',{flag:'wx'});fs.writeFileSync(path.join(auditRoot,cmd.name+'.stderr.log'),r.stderr||'',{flag:'wx'});const row={...cmd,exitCode:r.status,error:r.error?.message||null,expectedExitReason:cmd.name==='linkage'?'Known unbound nowPolyfill in engine-only audit, required to close in exact unchanged host':'All checks must pass'};rec.auditCommands.push(row);fs.writeFileSync(state,json(rec));need(!r.error&&r.status===cmd.expected,'Audit exit unexpected: '+cmd.name);}
+  const pair=JSON.parse(fs.readFileSync(path.join(auditRoot,'PAIR_AUDIT.json'))),abi=JSON.parse(fs.readFileSync(path.join(auditRoot,'abi','abi-audit.json'))),link=JSON.parse(fs.readFileSync(path.join(auditRoot,'linkage','linkage-audit.json')));
+  need(abi.pass&&abi.checks.every(x=>x.pass),'Diagnostic ABI failure');need(link.pureEnginePass===false&&link.hostClosure.staticSpecifiedHostPass===true,'Exact original host closure required');
+  const unresolved=link.audit.resolvedImports.filter(x=>!x.resolved);need(unresolved.length===1&&unresolved[0].reason==='unbound nowPolyfill','Unexpected unresolved imports');for(const f of ['missingLinkPlaceholders','allPlaceholderDefinitions','linkWarnings'])need(link.audit[f].length===0,'Link implementation missing: '+f);need(link.audit.callbacks.every(x=>x.pass),'Callback ABI failure');
+  need(link.host.manifestSha256===BASELINE.manifestSha256&&link.host.packageId===BASELINE.packageId,'Host identity differs');need(JSON.stringify(pair.outputs)===JSON.stringify(rec.outputs),'Pair metadata differs');
+  rec.audits={pair:fid(path.join(auditRoot,'PAIR_AUDIT.json')),abi:fid(path.join(auditRoot,'abi','abi-audit.json')),linkage:fid(path.join(auditRoot,'linkage','linkage-audit.json')),diagnosticAbiPass:true,diagnosticAbiChecks:abi.checks.length,importCount:link.audit.importCount,exportCount:link.audit.exportCount,pureEnginePass:false,staticSpecifiedHostPass:true,hostManifestSha256:BASELINE.manifestSha256,missingLinkPlaceholders:0,allPlaceholderDefinitions:0,linkWarnings:0,scope:'Static only; WASM Module validation but no instantiation or target glue execution'};
+  rec.phase='static-audited';rec.parentPreservation=true;rec.auditedAt=new Date().toISOString();fs.writeFileSync(state,json(rec));
+  const build=fid(path.join(work,'BUILD.json')),fresh=JSON.parse(fs.readFileSync(build.path)),dependencies=[...['incremental.mjs','patch.mjs','skip-default-3d-prewarm.patch','finalize.mjs'].map(n=>path.join(here,n)),...['trim/lib/build.mjs','engine/functional-acceptance/stage.mjs','engine/audit-pair.mjs','engine/official-glx-library/audit-diagnostic-abi.cjs','engine/official-glx-library/audit-linkage.cjs'].map(n=>path.join(repo,n))].map(fid);
+  const admission={schema:'startup-prewarm-exact-build-handoff-v1',scope:'Exact static handoff material, no candidate staged',parentBuildSha256:PINS.build,patchSha256:PINS.patch,incremental:fid(state),build,buildDir:work,buildIdentitySha256:hash(JSON.stringify(fresh.identity)),buildStageSha256:hash(JSON.stringify(fresh.stage)),sourceChanges:rec.sourceChanges,sconsArgs:rec.sconsArgs,outputs:rec.outputs,pairSha256:rec.pairing.sha256,raw:rec.raw,audits:rec.audits,host:{...BASELINE,files:treeManifest(hostFiles)},dependencies,runtime:'not_run',phone:'not_run',upload:'not_uploaded'};
+  const out=path.join(root,'EXACT_HANDOFF.json');fs.writeFileSync(out,json(admission),{flag:'wx'});console.log(json({phase:rec.phase,audits:rec.audits,outputs:rec.outputs,pairing:rec.pairing,exactHandoff:fid(out)}));return admission;
+}
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
+  try{const a=process.argv.slice(2),o={};for(let i=0;i<a.length;i+=2){need(['--root','--base','--toolchain','--host'].includes(a[i])&&a[i+1]&&!o[a[i]],'Expected --root ROOT --base BUILD --toolchain FILE --host EXACT_BASELINE');o[a[i]]=a[i+1];}need(Object.keys(o).length===4,'Four arguments required');await finalize({root:o['--root'],base:o['--base'],toolchain:o['--toolchain'],host:o['--host']});}catch(e){console.error('Incremental static audit refused: '+e.stack);process.exitCode=1;}
+}

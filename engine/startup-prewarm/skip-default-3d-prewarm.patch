@@ -1,0 +1,31 @@
+diff --git a/main/main.cpp b/main/main.cpp
+--- a/main/main.cpp
++++ b/main/main.cpp
+@@ -1078,6 +1078,7 @@
+ 	// decrease performance if this is enabled.
+ 	GLOBAL_DEF_RST("application/run/flush_stdout_on_print", false);
+ 	GLOBAL_DEF_RST("application/run/flush_stdout_on_print.debug", true);
++	GLOBAL_DEF_RST("startup/gles3/skip_default_3d_prewarm", false);
+ 
+ 	MAIN_PRINT("Main: Parse CMDLine");
+ 
+diff --git a/drivers/gles3/rasterizer_scene_gles3.cpp b/drivers/gles3/rasterizer_scene_gles3.cpp
+--- a/drivers/gles3/rasterizer_scene_gles3.cpp
++++ b/drivers/gles3/rasterizer_scene_gles3.cpp
+@@ -4615,7 +4615,15 @@
+ 		}
+ 		material_storage->shaders.scene_shader.initialize(global_defines);
+ 		scene_globals.shader_default_version = material_storage->shaders.scene_shader.version_create();
+-		material_storage->shaders.scene_shader.version_bind_shader(scene_globals.shader_default_version, SceneShaderGLES3::MODE_COLOR);
++#ifdef WEB_ENABLED
++		const bool skip_default_3d_prewarm = bool(GLOBAL_GET("startup/gles3/skip_default_3d_prewarm"));
++#else
++		const bool skip_default_3d_prewarm = false;
++#endif
++		// Retain shader initialization and RID lifetime; defer only the default bind.
++		if (!skip_default_3d_prewarm) {
++			material_storage->shaders.scene_shader.version_bind_shader(scene_globals.shader_default_version, SceneShaderGLES3::MODE_COLOR);
++		}
+ 	}
+ 
+ 	{
