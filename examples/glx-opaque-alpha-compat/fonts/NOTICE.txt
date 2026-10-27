@@ -1,0 +1,7 @@
+Acceptance CJK is a UI-character subset of Noto Sans SC Regular 2.002.
+Original copyright: Copyright 2014-2020 Adobe (http://www.adobe.com/).
+Original authors include Ryoko Nishizuka, Paul D. Hunt and Sandoll Communications.
+
+This derivative retains the SIL Open Font License, Version 1.1; see OFL.txt.
+It is renamed Acceptance CJK and is not a complete Chinese font.
+See FONT.json and ../build_font.py for source identity and reproducible changes.

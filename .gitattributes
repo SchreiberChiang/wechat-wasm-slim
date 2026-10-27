@@ -3,3 +3,6 @@
 # 固定补丁输入逐字节参与身份校验，Windows checkout 也必须保持 LF。
 engine/shader-failure/** text eol=lf
 engine/shader-type-return/** text eol=lf
+# Preserve exact new scene/PCK source bytes; its admission includes line endings.
+examples/glx-opaque-alpha-compat/** -text
+engine/opaque-viewport-compat/** -text
