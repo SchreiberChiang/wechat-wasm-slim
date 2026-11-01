@@ -1,0 +1,69 @@
+{
+  "schema": "alpha-restore-checkpoint-v1",
+  "recordDate": "2026-11-01",
+  "candidateId": "selfbuild-94181-autoplay-glx-a8cff356315bd4f2deac",
+  "version": "alpha-auto-20261101",
+  "parentCandidateId": "selfbuild-94181-alpha-restore-glx-39d3461feba9b344bb1e",
+  "sceneParentId": "selfbuild-autodemo-noeval-glx-94181c2f3adb3b027eb5",
+  "donorCandidateId": "claude-early-026e-engine-original-scene-e4b7b92489ff7e68",
+  "sourcePin": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "librarySha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+  "patchSha256": "24e7d2f318f87b09ad585354e4d6006e010e7c5f2de21f629e05829cfdf0a514",
+  "launchSha256": "dfc2d3ef0204afe663795b03fc53054f1c997fd0bd6331e9650932b2d0c7be32",
+  "engineJsSha256": "d65d751899b46b3292a46cd48ee4a39b6aa63e03176a90f28f153ef1407c1a2a",
+  "wasmSha256": "6f18df40f98682df8dd28bc47039fef034f40fb06bfa88f780155c69d076f8a6",
+  "brSha256": "9d642dedceaa2e05df0f52208dfe4e7701b37ce11f7309ab52625a3b732beac3",
+  "pckSha256": "ce3521ab4835036cc67771d5b1907c09fe30cf4127bd387848e3e144baafa0b7",
+  "manifestSha256": "ec9320ede58dbef18d3005797be526a6eaef047f6976304de4d2f048ce81b749",
+  "globalIdCheck": "return 0",
+  "viewportCapOverride": false,
+  "localAlphaCompat": false,
+  "nativeDrawDiagnostics": "UNAVAILABLE_EXPORTS_ABSENT",
+  "offline": {
+    "launchCases": 14,
+    "passed": 14,
+    "renderValidation": false
+  },
+  "priorPhoneEvidence": {
+    "packageId": "selfbuild-94181-alpha-restore-glx-39d3461feba9b344bb1e",
+    "sessionTag": "e8101cbd",
+    "device": {
+      "model": "VCE-AL00",
+      "system": "Android 10",
+      "wechatVersion": "8.0.79",
+      "SDKVersion": "3.17.5"
+    },
+    "actualMode": "glx",
+    "globalIdRuntimeObserved": false,
+    "sourceSha256": "d77e0cb3365dcf3e1554e0bce73b38df48d7ca2b9762bd136d78aa569f6028d4",
+    "statesReached": [
+      "no_red",
+      "opaque",
+      "transparent48",
+      "offscreen_compare"
+    ],
+    "manualFeedback": "画面正常",
+    "warnings": [
+      "Image format RGBAFloat not supported by hardware, converting to RGBAHalf (4 occurrences)"
+    ]
+  },
+  "latestExperience": {
+    "upload": "SUCCESS",
+    "uploadAttempts": 1,
+    "backendPointer": "USER_CONFIRMED",
+    "backendIndependentlyQueried": false,
+    "manualFeedback": "体验版已经确认，自动演示和第3、4项画面都正常。",
+    "visualResult": "USER_REPORTED_PASS_CASE3_CASE4",
+    "autoplay": "USER_REPORTED_PASS",
+    "newRawLogProvided": false,
+    "currentDeviceAndSDK": "NOT_REOBSERVED_FOR_LATEST_FEEDBACK"
+  },
+  "cloudTest": "NOT_RUN_BY_CODEX; USER_PLANS_TO_TEST",
+  "limits": [
+    "Compatibility patch; exact compiler/GLX/driver root cause not proven",
+    "Not a shader-only delta against 94181 diagnostic engine; donor lacks native diagnostic exports",
+    "Not all features, devices, shadows, multiple lights, or long-term stability validated",
+    "No new raw log supporting the latest experience feedback",
+    "Clean clone full reproduction not verified"
+  ]
+}

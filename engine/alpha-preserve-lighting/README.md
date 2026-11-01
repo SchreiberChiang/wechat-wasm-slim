@@ -1,0 +1,40 @@
+# Alpha恢复补丁与默认自动演示保存点
+
+此目录保存2026-11-01实际验证版本的补丁原件和启动脚本，不包含引擎产物、官方静态库、宿主私有配置或原始手机日志。
+
+## 引擎补丁
+
+`scene-alpha-restore.patch` 原样来自Claude独立工作区，SHA256为 `24e7d2f318f87b09ad585354e4d6006e010e7c5f2de21f629e05829cfdf0a514`。
+
+固定Godot源码提交为 `df3cdd9bc9941a20cb5575d781cde6f937637bcb`，实际引擎打印 `4.7.2.rc.custom_build.df3cdd9bc`。补丁以已有微信适配源码为底，不替代那套适配。Emscripten 4.0.10、官方库026e、原构建参数保留；本次组合包没有重编引擎。
+
+补丁保存材质处理后的alpha，在灯光段后恢复，未硬编码1。仅对非深度通道且没有 `USE_SHADOW_TO_OPACITY`、`LIGHT_CODE_USED` 的变体生效；不是Android/GLX专属门禁。RGB光照、队列及混合状态没有新增修改。
+
+原补丁注释提及inout返回0，是作者当时的解释，不是已经直接测量到函数内部值的证据。既有读回发生在纹理路径；保存/恢复也可能影响编译优化。准确根因、其他阴影/多灯/自定义材质与长期稳定性仍未知。
+
+Godot相关代码按随附 `LICENSE.godot.txt` 保存其MIT许可。官方GLX库和作者引擎二进制不在此提交范围。
+
+## 启动规则
+
+`launch-query.js` 与体验候选中的文件逐字节相同：
+
+- 成功读取启动信息且缺少autotest参数：默认开启，`activationSource=default`。
+- `autotest=1`：开启；`autotest=0`：关闭，来源均为query。
+- 非法参数、接口不可用或异常：关闭并记录实际原因。
+- 原始参数值保留，不把默认开启伪装成Query传入了1。
+
+继续通过 `Engine.start` 用户参数传给现有两项PCK，不执行eval，不更改渲染。依赖94181已有的启动参数接线及场景逻辑；仅复制这一个脚本不能替代完整宿主适配。
+
+本目录独立检查：`node engine/alpha-preserve-lighting/launch-query.test.cjs`。只验证启动数据，不运行引擎或模拟GLX成功。
+
+## 配套与边界
+
+当前体验版 `alpha-auto-20261101`，候选 `selfbuild-94181-autoplay-glx-a8cff356315bd4f2deac`。
+
+场景取自正确94181两项版，PCK保持原字节；引擎取自Claude补丁配套JS/WASM，派生JS只保留官方全局ID判断 `return 0`。未叠加UI alpha兼容、32768覆盖、RGBA8实验或源方块诊断分支。
+
+不能只替换WASM：两套引擎的压缩导入/导出名不同，必须保持JS/WASM配对。Claude引擎缺少94181的两个原生诊断导出，原宿主会报告 `native_export_missing` 并返回。这不是绘制查询通过，也不证明画面失败；相对94181不是仅8行shader的严格单变量。
+
+全部关键哈希、手机与人工反馈边界见 `docs/evidence/GLX_ALPHA_RESTORE_CHECKPOINT_20261101.json`。已确认的体验版指向来自用户反馈，未独立查询后台。云测结果待用户提供。
+
+这是保存现有成果的最小源码范围，不是干净克隆即可重建并运行的完整发布套件。既有两项场景、宿主诊断及组包历史仍有未提交文件，不能把它们默认归入本检查点。
