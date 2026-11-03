@@ -139,8 +139,16 @@
   "experienceUpload": {
     "version": "glx-clean-20261104",
     "attempts": 1,
-    "status": "PENDING_USER_TOOL_CONFIRMATION",
-    "backendPointer": "NOT_VERIFIED"
+    "status": "SUCCESS; original task terminal execution_success",
+    "backendPointer": "VERIFIED; version/upload time/package remark match"
   },
-  "cloud": "NOT_SUBMITTED; coordinated thread waiting for upload terminal result"
+  "cloud": {
+    "status": "PARTIAL_SUCCESS",
+    "evidence": "GLX_SIMPLE_CLOUD_20261104.json",
+    "taskId": "CBgAAoXp1TsxekKV5NeSzSs0",
+    "androidLogIdentityAndGlxMatches": 9,
+    "androidSdk": "3.16.3",
+    "ios15": "FAIL; out-of-bounds; Console unavailable",
+    "sampledImages": "All 10 contain scene features; cannot override iOS failure or prove sustained runtime"
+  }
 }

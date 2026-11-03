@@ -1,6 +1,6 @@
 # 完整 GLX 引擎的独立自构建
 
-**2026-11-04 新交付：** [简单场景的双流程](alpha-preserve-lighting/DELIVERY.md)已完成单份新源码和新 SDK/缓存的完整构建，JS/WASM/BR 与成功引擎相同，配套审计及简单场景电脑 WebGL2 检查通过。新体验版等待工具人工确认，云测未开始；见[本轮执行记录](../docs/GLX_SIMPLE_DELIVERY_EXECUTION_20261104.md)。四补丁、026e、ThinLTO、完整 profile 和宿主生成链均锁定，不放宽旧门禁。下文按日期保留历史配方。
+**2026-11-04 新交付：** [简单场景的双流程](alpha-preserve-lighting/DELIVERY.md)已完成单份新源码和新 SDK/缓存的完整构建，JS/WASM/BR 与成功引擎相同，配套审计及简单场景电脑 WebGL2 检查通过。体验版指向已核验；新包9台安卓的身份/GLX日志/采样画面符合预期（SDK 3.16.3），iPhone 13 mini／iOS 15记录内存越界，仍未通过；见[本轮执行记录](../docs/GLX_SIMPLE_DELIVERY_EXECUTION_20261104.md)。四补丁、026e、ThinLTO、完整 profile 和宿主生成链均锁定，不放宽旧门禁。下文按日期保留历史配方。
 
 **2026-10-28当前入口：** [引擎、宿主、导出与私有依赖复用指南](../docs/GLX_REUSE_GUIDE_20261028.md)对应官方026e新库、自主构建引擎、可选关闭默认预热和场景局部兼容。完整profile原字节已保存，原宿主/库仍须合法取得；没有干净克隆或任意新项目PCK已可复现的承诺。下文旧c70b配方和早期黑屏结果按日期保留，不能直接当成当前026e的准备/准入入口。最新有限手机反馈及未解决项见[结果](../docs/GLX_COMPAT_PHONE_FEEDBACK_20261028.md)，下一轮只提出[精简清单](../docs/GLX_ACCEPTANCE_MINIMAL_PLAN_20261028.md)，本轮不改场景或上传。
 

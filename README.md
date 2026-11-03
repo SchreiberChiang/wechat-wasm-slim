@@ -1,6 +1,6 @@
 # wechat-wasm-slim：把 Godot 游戏做成微信小游戏，并让引擎变小、开局更快
 
-**2026-11-04 简单场景交付入口：** [现成配对引擎与固定源码重建](engine/alpha-preserve-lighting/DELIVERY.md)。单份新源码、全新 SDK/缓存的完整构建与配套审计已通过，JS/WASM/BR 与成功引擎完全一致；简单场景的电脑 WebGL2 画面已检查。新体验版仍等开发者工具人工确认，云测未开始；不把历史云测代替本轮验收。历史多项验收场景不进入默认示例。
+**2026-11-04 简单场景交付入口：** [现成配对引擎与固定源码重建](engine/alpha-preserve-lighting/DELIVERY.md)。单份新源码、全新 SDK/缓存的完整构建与配套审计已通过，JS/WASM/BR 与成功引擎完全一致；简单场景的电脑 WebGL2 画面已检查。体验版指向已核验。本轮9台安卓的候选身份、GLX日志及采样画面符合预期（实际SDK 3.16.3）；iPhone 13 mini／iOS 15记录内存越界，不能记为通过。详见[本轮结果与边界](docs/GLX_SIMPLE_DELIVERY_EXECUTION_20261104.md)。历史多项验收场景不进入默认示例。
 
 以下通用转换/裁剪/分包说明及默认 WebGL 入口保留，不能直接当成上述修复版的重建配方。2026-10-23 [问题总表](docs/GLX_ISSUES_20261023.md)和 2026-10-24 [暂停记录](docs/GLX_PAUSED_HANDOFF_20261024.md)是历史现场，不代表当前修复版状态。后续最新补丁和验证边界见[交付记录](docs/GLX_LIGHTING_CHECKPOINT_20261103.md)。
 
