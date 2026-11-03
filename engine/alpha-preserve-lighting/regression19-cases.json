@@ -1,0 +1,42 @@
+{
+  "schema": "alpha-regression19-v1",
+  "manualHold": true,
+  "automaticVisualPass": false,
+  "groups": [
+    {"id":"R01","title":"原第3/4项短回归","states":[
+      {"id":"opaque","title":"不透明红片","kind":"red","opaque":true,"goal":"红片必须可见，并遮住后方图案。下一阶段看同一红片能否透出图案。"},
+      {"id":"transparent48","title":"48%半透明红片","kind":"red","opaque":false,"goal":"红色仍然可见，同时能透过红片看见方块图案。整片消失或完全遮挡都不正常。"},
+      {"id":"offscreen","title":"同源纹理 · 左右对照","kind":"offscreen","goal":"左右方块都有颜色、数字和白色箭头。左边不能只剩背景；右边禁混合只是参照。"}
+    ]},
+    {"id":"R02","title":"透明度与叠层","states":[
+      {"id":"gradient","title":"五档透明度并排","kind":"gradient","goal":"从左到右：无红色→淡红→较浓→很浓→遮住图案。0%消失是正确效果。"},
+      {"id":"layers","title":"红片在前 · 绿片在后","kind":"layers","goal":"错开的红片、绿片都可见；交叠处出现两种颜色混合，后方图案仍有透出。"}
+    ]},
+    {"id":"R03","title":"多种灯光","states":[
+      {"id":"directional2","title":"红蓝两盏方向光","kind":"lights","light":"directional2","goal":"方块和地面都有红、蓝光的贡献；不能只剩一种灯的颜色，物体不能消失。"},
+      {"id":"omni","title":"点光 · 距离衰减","kind":"lights","light":"omni","goal":"靠近灯的地面较亮，远处较暗，变化连续。方块与半透明红片仍可见。"},
+      {"id":"spot","title":"聚光 · 照射范围","kind":"lights","light":"spot","goal":"地面有集中照亮的区域，外侧较暗。不是整块地面一律亮或一律黑。"}
+    ]},
+    {"id":"R04","title":"方向光阴影","states":[
+      {"id":"shadow_off","title":"阴影关闭","kind":"shadow","shadow":false,"goal":"先记住地面的亮度：没有方块投影。切换后应新增投影，而不是整块地面变暗。"},
+      {"id":"shadow_on","title":"阴影开启","kind":"shadow","shadow":true,"goal":"方块右侧地面新增灰色投影，其他受光区域仍亮。请与下方同阶段参考对照。"}
+    ]},
+    {"id":"R05","title":"离屏背景透明","states":[
+      {"id":"background_opaque","title":"不透明蓝底","kind":"background","transparent":false,"goal":"只看左边：方块外面是完整蓝底，挡住后方棋盘。右边只作参照。"},
+      {"id":"background_transparent","title":"透明背景","kind":"background","transparent":true,"goal":"只看左边：蓝底消失并露出棋盘，方块本身仍完整。右边不验收背景透明。"}
+    ]},
+    {"id":"R06","title":"UI自身与父级淡出","states":[
+      {"id":"self","title":"自身淡出 · 三档并排","kind":"fade","target":"self","goal":"方块和蓝底依次完整、半透明、消失；三个橙色角标都保持明亮，棋盘不变。"},
+      {"id":"parent","title":"父级淡出 · 三档并排","kind":"fade","target":"parent","goal":"方块、蓝底和橙色角标一起依次变淡、消失；后方棋盘和档位文字不变。"}
+    ]},
+    {"id":"R07","title":"镂空材质","states":[
+      {"id":"scissor30","title":"阈值30% · 保留后三列","kind":"scissor","threshold":0.3,"goal":"橙色图案从左数第一列镂空，后三列保留且不透明。后方方块仍正常。"},
+      {"id":"scissor60","title":"阈值60% · 保留后两列","kind":"scissor","threshold":0.6,"goal":"与上一阶段相比再少一列：前两列镂空，只保留后两列；边界清晰。"}
+    ]},
+    {"id":"R08","title":"自定义灯光","states":[
+      {"id":"directional1","title":"单蓝光 · 不开阴影","kind":"custom","light":"directional1","shadow":false,"goal":"左方块不透明、右方块48%半透明；两者都有蓝光和白色图案，不能整体透底消失。"},
+      {"id":"directional2","title":"红蓝双光 · 不开阴影","kind":"custom","light":"directional2","shadow":false,"goal":"两盏灯都有可见贡献，左方块仍不透明，右方块仍能透出后方；不能丢掉一种灯。"},
+      {"id":"shadow2","title":"红蓝双光 · 开启阴影","kind":"custom","light":"directional2","shadow":true,"goal":"地面出现投影，同时保持灯光颜色与方块透明度；半透明物体不要求投射半透明阴影。"}
+    ]}
+  ]
+}

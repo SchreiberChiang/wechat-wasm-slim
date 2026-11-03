@@ -1,0 +1,9 @@
+{
+  "source": "Noto Sans SC Regular 2.002; existing installed source; unmodified full font",
+  "sha256": "a2b93e6c2db05d6bbbf6f27d413ec73269735b7b679019c8a5aa9670ff0ffbf2",
+  "bytes": 8482020,
+  "subset": false,
+  "newSoftwareInstalled": false,
+  "license": "OFL.txt",
+  "reason": "New Chinese UI coverage without adding a font subsetting dependency"
+}

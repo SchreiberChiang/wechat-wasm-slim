@@ -1,0 +1,10 @@
+# These source bytes are pinned by the scene/PCK manifests. Do not normalize them.
+regression19-*.gd -text
+regression19-*.gdshader -text
+regression19-*.tscn -text
+regression19-cases.json -text
+regression19-project.godot -text
+regression19-export-presets.cfg -text
+regression19-font-NOTICE.txt -text
+regression19-font.json -text
+regression-checker.gd -text

@@ -1,0 +1,1187 @@
+{
+  "schema": "regression19-closeout-v1",
+  "recordDate": "2026-11-03",
+  "gitCheckpoint": "c957f7ba80b0326dbac699230e0f5467392e8221",
+  "sourcePin": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "engineRuntime": "Godot 4.7.2.rc.custom_build.df3cdd9bc",
+  "exportEditor": "Godot 4.7.2.stable.steam.ed1daf0bf",
+  "emscripten": "4.0.10",
+  "node": "24.18.0",
+  "enginePair": {
+    "scheme": "SHA256(UTF8(JSON.stringify([jsSha256,wasmSha256,brSha256])))",
+    "sha256": "061e635589db96b6454c62877a91740648aeae39f0c10a680dce638b5cd9d07e",
+    "js": "d65d751899b46b3292a46cd48ee4a39b6aa63e03176a90f28f153ef1407c1a2a",
+    "wasm": "e7b88edf517c66b20a176443e8baec63aaefcfa011d9777b89ea0a2e7ba577c3",
+    "br": "fed5ba84faa05499d1a01ca0a0d1b11e027a0e1d07a68d796761d9690505dacb"
+  },
+  "librarySha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+  "globalIdCheck": "return 0",
+  "viewportCapOverride": false,
+  "localAlphaCompat": false,
+  "engineRebuiltForTheseScenes": false,
+  "candidates": {
+    "baseline": {
+      "id": "selfbuild-alpha-regression19-glx-6096c12a3ef5cda65ffd",
+      "parent": "claude-alpha-light-cloud-glx-10914e3e21ab144c",
+      "pckSha256": "3a6ae0f4da0db1e1951fc46d800d16d55f67f289d8c982a38339b38b8a08edf8",
+      "sourceManifestSha256": "4d5baeef2853d6f175e143639ec0bd0777dae43a1968d0fbadde3ba6c815bc7d",
+      "manifestSha256": "642e8c4061bf5c035917d8f695f5b3ec24503f5333414100bd6b910692eebdab",
+      "fileManifest": [
+        {
+          "path": ".eslintrc.js",
+          "bytes": 587,
+          "sha256": "ade498e34a85117314bdf5317ea27b73a546fff5946fae46e29f79de31d3b260"
+        },
+        {
+          "path": ".godot-subpack-managed.json",
+          "bytes": 98,
+          "sha256": "43d230c1ce5ffbc32834a35ee5ef177eee0c38322265e1b48097cac70cd262ca"
+        },
+        {
+          "path": "candidate-mode.js",
+          "bytes": 4470,
+          "sha256": "2c673f88d248c15dfff75184ecdea96ac834f31261598d2b1ec522abb17bfa97"
+        },
+        {
+          "path": "candidate-observer.js",
+          "bytes": 4425,
+          "sha256": "35c112610f236dfe0f38cb5af9cb7f0786bb720157dd34849d57b590e38d2b57"
+        },
+        {
+          "path": "candidate-relay.js",
+          "bytes": 297,
+          "sha256": "1ffbcc51eb57575c6c362d2ca2ad63b2fc29b9cbeaadefdd8f47353ba1df2454"
+        },
+        {
+          "path": "engine/empty-tips.bin",
+          "bytes": 8007172,
+          "sha256": "3a6ae0f4da0db1e1951fc46d800d16d55f67f289d8c982a38339b38b8a08edf8"
+        },
+        {
+          "path": "engine/game.js",
+          "bytes": 136,
+          "sha256": "b88b173f3f80a61370326a688a56d7ac368c6b5dcfb947412486ee056be2f654"
+        },
+        {
+          "path": "engine/godot-sdk.js",
+          "bytes": 51353,
+          "sha256": "66eac0033c11b3fdb1252cc4294cb0fb689aca8af1b488f5a156e36723cb646e"
+        },
+        {
+          "path": "engine/godot.js",
+          "bytes": 469385,
+          "sha256": "d65d751899b46b3292a46cd48ee4a39b6aa63e03176a90f28f153ef1407c1a2a"
+        },
+        {
+          "path": "engine/godot.wasm.br",
+          "bytes": 8648194,
+          "sha256": "fed5ba84faa05499d1a01ca0a0d1b11e027a0e1d07a68d796761d9690505dacb"
+        },
+        {
+          "path": "game.js",
+          "bytes": 2246,
+          "sha256": "f83c62e4bb722275e112f566e701e5d74468a4356f89b6fc3ab89a5063d0d6e8"
+        },
+        {
+          "path": "game.json",
+          "bytes": 249,
+          "sha256": "1e780422d1cc158b06bfe88ac4c2579685b73095bfcc3cec1f34a875759026e8"
+        },
+        {
+          "path": "glx-config.js",
+          "bytes": 183,
+          "sha256": "ddefd618579efe1a156392da1e8393cabeaa65af2bb8bed25fa72f5f3c7483b3"
+        },
+        {
+          "path": "godot-loader.js",
+          "bytes": 17864,
+          "sha256": "0a403044162aba78f19cb67c8759791c80832e8d7a4b5616c4e09cc0948d584d"
+        },
+        {
+          "path": "images/background.jpg",
+          "bytes": 8917,
+          "sha256": "ee88b4672db843d57b164c5deeaf62e096e3bf91881bdba71a85dd980687db80"
+        },
+        {
+          "path": "images/background.jpg.import",
+          "bytes": 778,
+          "sha256": "72027bbda3797f17c21b81853f1e75f3dfa962097cc2627107cf75f955d52884"
+        },
+        {
+          "path": "images/logo.png",
+          "bytes": 4972,
+          "sha256": "1e3ff92a1e7291f181c624292d788eae18e63b3cbb4e93a6f29bc57f422ac907"
+        },
+        {
+          "path": "images/logo.png.import",
+          "bytes": 760,
+          "sha256": "44005f5320062f736ea535656a6cd648f4793ce67e0e74102fd6bbbd3503e2f3"
+        },
+        {
+          "path": "launch-query.js",
+          "bytes": 1816,
+          "sha256": "dfc2d3ef0204afe663795b03fc53054f1c997fd0bd6331e9650932b2d0c7be32"
+        },
+        {
+          "path": "project.config.json",
+          "bytes": 1096,
+          "sha256": "4e2bd704e3b7b2590695ae8c4997247a823726ffa891c0f441eab1ab4eaf2813"
+        },
+        {
+          "path": "project.private.config.json",
+          "bytes": 836,
+          "sha256": "b09d359f8435d74a3c88fc792fe554803ef05472ac342033ef8c574ed586c9cb"
+        },
+        {
+          "path": "regression-host.js",
+          "bytes": 1879,
+          "sha256": "82447f88049a1d3a667d9f0110258ca3e4ccafb4ae4248fbd17a056547e3e7fd"
+        },
+        {
+          "path": "startup-timing.js",
+          "bytes": 916,
+          "sha256": "38def031e1feb0759c7e5e20a8a62edb18b0a846524249261056e83439c883c2"
+        },
+        {
+          "path": "subpackages/subpack/game.js",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "subpackages/subpack/subpack.bin",
+          "bytes": 17888,
+          "sha256": "3cc9369e48326945bb6e2803d93c81bc98c6d362a8eef966655cbe636486e783"
+        },
+        {
+          "path": "subpacks/subpack_manifest.json",
+          "bytes": 1921,
+          "sha256": "c224964186b97b8c4238e9fc4d0de96f1876e7cacb5f2d5352ed65a62a5f9fa2"
+        },
+        {
+          "path": "wasm-gl-diagnostic-host.js",
+          "bytes": 9605,
+          "sha256": "36715a99406da446a35117004eef9ccd85606fe190a6044bc7a960d9af476bad"
+        },
+        {
+          "path": "weapp-adapter.js",
+          "bytes": 60774,
+          "sha256": "84c679ae0a6dbb226afb24110860e5142ac113a2e3a00a93449a09edeb4647f6"
+        },
+        {
+          "path": "使用前阅读.md",
+          "bytes": 1940,
+          "sha256": "2f074c768b2b3da02341fdbd41a6316f41eac15372506fd07c57fa00f69574ec"
+        },
+        {
+          "path": "小游戏工程说明.md",
+          "bytes": 1468,
+          "sha256": "045a8cbfef04f60faa0e3b996d7ba76416dc138e0e8bc3856af66b6ea5bf1af5"
+        }
+      ]
+    },
+    "reuse": {
+      "id": "selfbuild-alpha-regression19-reuse-glx-9a6d5bc8dd94f1813ed9",
+      "parent": "selfbuild-alpha-regression19-glx-6096c12a3ef5cda65ffd",
+      "pckSha256": "cbaf2f5023e496d229fb4811dd8f2e589a692f28c1c83daa4ed30b1d7982653f",
+      "sourceManifestSha256": "36b19045612dc60a59d02a7d8dff6bbf15020e3a69730b7f78a3d16f72e79b36",
+      "manifestSha256": "f609e7960d8f0500cddb4174c11ca4cc114cc7cb85657d77f1498f72e0c6eee2",
+      "fileManifest": [
+        {
+          "path": ".eslintrc.js",
+          "bytes": 587,
+          "sha256": "ade498e34a85117314bdf5317ea27b73a546fff5946fae46e29f79de31d3b260"
+        },
+        {
+          "path": ".godot-subpack-managed.json",
+          "bytes": 98,
+          "sha256": "43d230c1ce5ffbc32834a35ee5ef177eee0c38322265e1b48097cac70cd262ca"
+        },
+        {
+          "path": "candidate-mode.js",
+          "bytes": 4588,
+          "sha256": "f493dbec8fb76ab22a65fd9164696b66473ea42a51c1860f432e108a5b4956af"
+        },
+        {
+          "path": "candidate-observer.js",
+          "bytes": 4425,
+          "sha256": "35c112610f236dfe0f38cb5af9cb7f0786bb720157dd34849d57b590e38d2b57"
+        },
+        {
+          "path": "candidate-relay.js",
+          "bytes": 297,
+          "sha256": "1ffbcc51eb57575c6c362d2ca2ad63b2fc29b9cbeaadefdd8f47353ba1df2454"
+        },
+        {
+          "path": "engine/empty-tips.bin",
+          "bytes": 8012228,
+          "sha256": "cbaf2f5023e496d229fb4811dd8f2e589a692f28c1c83daa4ed30b1d7982653f"
+        },
+        {
+          "path": "engine/game.js",
+          "bytes": 136,
+          "sha256": "b88b173f3f80a61370326a688a56d7ac368c6b5dcfb947412486ee056be2f654"
+        },
+        {
+          "path": "engine/godot-sdk.js",
+          "bytes": 51353,
+          "sha256": "66eac0033c11b3fdb1252cc4294cb0fb689aca8af1b488f5a156e36723cb646e"
+        },
+        {
+          "path": "engine/godot.js",
+          "bytes": 469385,
+          "sha256": "d65d751899b46b3292a46cd48ee4a39b6aa63e03176a90f28f153ef1407c1a2a"
+        },
+        {
+          "path": "engine/godot.wasm.br",
+          "bytes": 8648194,
+          "sha256": "fed5ba84faa05499d1a01ca0a0d1b11e027a0e1d07a68d796761d9690505dacb"
+        },
+        {
+          "path": "game.js",
+          "bytes": 2246,
+          "sha256": "f83c62e4bb722275e112f566e701e5d74468a4356f89b6fc3ab89a5063d0d6e8"
+        },
+        {
+          "path": "game.json",
+          "bytes": 249,
+          "sha256": "1e780422d1cc158b06bfe88ac4c2579685b73095bfcc3cec1f34a875759026e8"
+        },
+        {
+          "path": "glx-config.js",
+          "bytes": 183,
+          "sha256": "ddefd618579efe1a156392da1e8393cabeaa65af2bb8bed25fa72f5f3c7483b3"
+        },
+        {
+          "path": "godot-loader.js",
+          "bytes": 17864,
+          "sha256": "0a403044162aba78f19cb67c8759791c80832e8d7a4b5616c4e09cc0948d584d"
+        },
+        {
+          "path": "images/background.jpg",
+          "bytes": 8917,
+          "sha256": "ee88b4672db843d57b164c5deeaf62e096e3bf91881bdba71a85dd980687db80"
+        },
+        {
+          "path": "images/background.jpg.import",
+          "bytes": 778,
+          "sha256": "72027bbda3797f17c21b81853f1e75f3dfa962097cc2627107cf75f955d52884"
+        },
+        {
+          "path": "images/logo.png",
+          "bytes": 4972,
+          "sha256": "1e3ff92a1e7291f181c624292d788eae18e63b3cbb4e93a6f29bc57f422ac907"
+        },
+        {
+          "path": "images/logo.png.import",
+          "bytes": 760,
+          "sha256": "44005f5320062f736ea535656a6cd648f4793ce67e0e74102fd6bbbd3503e2f3"
+        },
+        {
+          "path": "launch-query.js",
+          "bytes": 1816,
+          "sha256": "dfc2d3ef0204afe663795b03fc53054f1c997fd0bd6331e9650932b2d0c7be32"
+        },
+        {
+          "path": "project.config.json",
+          "bytes": 1096,
+          "sha256": "4e2bd704e3b7b2590695ae8c4997247a823726ffa891c0f441eab1ab4eaf2813"
+        },
+        {
+          "path": "project.private.config.json",
+          "bytes": 836,
+          "sha256": "b09d359f8435d74a3c88fc792fe554803ef05472ac342033ef8c574ed586c9cb"
+        },
+        {
+          "path": "regression-host.js",
+          "bytes": 1879,
+          "sha256": "82447f88049a1d3a667d9f0110258ca3e4ccafb4ae4248fbd17a056547e3e7fd"
+        },
+        {
+          "path": "startup-timing.js",
+          "bytes": 916,
+          "sha256": "38def031e1feb0759c7e5e20a8a62edb18b0a846524249261056e83439c883c2"
+        },
+        {
+          "path": "subpackages/subpack/game.js",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "subpackages/subpack/subpack.bin",
+          "bytes": 17888,
+          "sha256": "3cc9369e48326945bb6e2803d93c81bc98c6d362a8eef966655cbe636486e783"
+        },
+        {
+          "path": "subpacks/subpack_manifest.json",
+          "bytes": 1921,
+          "sha256": "c224964186b97b8c4238e9fc4d0de96f1876e7cacb5f2d5352ed65a62a5f9fa2"
+        },
+        {
+          "path": "wasm-gl-diagnostic-host.js",
+          "bytes": 9605,
+          "sha256": "36715a99406da446a35117004eef9ccd85606fe190a6044bc7a960d9af476bad"
+        },
+        {
+          "path": "weapp-adapter.js",
+          "bytes": 60774,
+          "sha256": "84c679ae0a6dbb226afb24110860e5142ac113a2e3a00a93449a09edeb4647f6"
+        },
+        {
+          "path": "使用前阅读.md",
+          "bytes": 1940,
+          "sha256": "2f074c768b2b3da02341fdbd41a6316f41eac15372506fd07c57fa00f69574ec"
+        },
+        {
+          "path": "小游戏工程说明.md",
+          "bytes": 1468,
+          "sha256": "045a8cbfef04f60faa0e3b996d7ba76416dc138e0e8bc3856af66b6ea5bf1af5"
+        }
+      ],
+      "changedRuntimePayload": [
+        "candidate-mode.js",
+        "engine/empty-tips.bin"
+      ],
+      "changedPckEntries": [
+        "regression19-main.gd",
+        "regression19-renderer.gd"
+      ],
+      "pckEntryCount": 57,
+      "metadataAlsoChanged": "CANDIDATE.json"
+    }
+  },
+  "nativeReference": {
+    "environment": "Windows Compatibility OpenGL, not phone GLX",
+    "baselineStates": 19,
+    "reuseStates": 19,
+    "reuseRepeatedTransitions": 27,
+    "exactLiveCropComparisons": 38,
+    "parametersCompared": 46,
+    "priorAuditPassed": true,
+    "evidence": [
+      {
+        "sha256": "35eee47d948442db2e9eee9883680e0671d079d5e905e051ce9d117c49436529",
+        "kind": "baseline native checks"
+      },
+      {
+        "sha256": "a086e798171fe4b19f42fe2a2500f2c7a3b275cdd5d8b6ca6be4fc65fb12cd7b",
+        "kind": "reuse native checks"
+      }
+    ],
+    "rerunDuringCloseout": false
+  },
+  "wechatDesktop": {
+    "mode": "WebGL2",
+    "actualSdk": "3.15.2",
+    "baselineObserved": [
+      "R01/opaque",
+      "R01/transparent48",
+      "R02/gradient"
+    ],
+    "baselineOtherStates": "NOT_CHECKED",
+    "buttons": "Each of previous / next / phase observed at least once in the baseline; CLI timeouts retained",
+    "reuse": "NOT_RUN",
+    "cannotSubstituteForPhoneGLX": true
+  },
+  "phone": [
+    {
+      "record": "ios-baseline",
+      "rawLog": {
+        "sha256": "4c732cb51a1d79e0b1f5eac791deaf27ec7056809de6a11699e4cea188b32be9",
+        "bytes": 57811,
+        "notRedistributed": true
+      },
+      "identity": {
+        "packageId": "selfbuild-alpha-regression19-glx-6096c12a3ef5cda65ffd",
+        "device": {
+          "model": "iPhone 16 Pro<iPhone17,1>",
+          "system": "iOS 18.3.1",
+          "wechatVersion": "8.0.75",
+          "SDKVersion": "3.17.6"
+        },
+        "requestedMode": "glx",
+        "actualMode": "glx",
+        "backendSource": "existing runtime context descriptor; not GL capability/query proof",
+        "globalIdCheck": "return 0",
+        "engineJsSha256": "d65d751899b46b3292a46cd48ee4a39b6aa63e03176a90f28f153ef1407c1a2a",
+        "wasmSha256": "e7b88edf517c66b20a176443e8baec63aaefcfa011d9777b89ea0a2e7ba577c3",
+        "pckSha256": "3a6ae0f4da0db1e1951fc46d800d16d55f67f289d8c982a38339b38b8a08edf8",
+        "librarySha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+        "enginePairSha256": "061e635589db96b6454c62877a91740648aeae39f0c10a680dce638b5cd9d07e"
+      },
+      "identityMatches": {
+        "packageId": true,
+        "engineJsSha256": true,
+        "wasmSha256": true,
+        "pckSha256": true,
+        "librarySha256": true,
+        "enginePairSha256": true,
+        "globalIdCheck": true
+      },
+      "sequenceRange": [
+        1,
+        105
+      ],
+      "sequenceGaps": [],
+      "parseFailures": [],
+      "uniqueStates": [
+        "R01/opaque",
+        "R02/gradient",
+        "R02/layers",
+        "R01/transparent48",
+        "R01/offscreen",
+        "R03/directional2",
+        "R03/omni",
+        "R03/spot",
+        "R04/shadow_off",
+        "R04/shadow_on",
+        "R05/background_opaque",
+        "R05/background_transparent",
+        "R06/self",
+        "R06/parent",
+        "R07/scissor30",
+        "R07/scissor60",
+        "R08/directional1",
+        "R08/directional2",
+        "R08/shadow2"
+      ],
+      "transitions": [
+        {
+          "state": "R01/opaque",
+          "callbackMs": 4514,
+          "constructionMs": 32,
+          "complete": true
+        },
+        {
+          "state": "R02/gradient",
+          "callbackMs": 14468,
+          "constructionMs": 260,
+          "complete": true
+        },
+        {
+          "state": "R02/layers",
+          "callbackMs": 9362,
+          "constructionMs": 51,
+          "complete": true
+        },
+        {
+          "state": "R01/opaque",
+          "callbackMs": 9321,
+          "constructionMs": 49,
+          "complete": true
+        },
+        {
+          "state": "R01/transparent48",
+          "callbackMs": 9316,
+          "constructionMs": 50,
+          "complete": true
+        },
+        {
+          "state": "R01/offscreen",
+          "callbackMs": 4763,
+          "constructionMs": 18,
+          "complete": true
+        },
+        {
+          "state": "R02/gradient",
+          "callbackMs": 14128,
+          "constructionMs": 248,
+          "complete": true
+        },
+        {
+          "state": "R03/directional2",
+          "callbackMs": 10601,
+          "constructionMs": 19,
+          "complete": true
+        },
+        {
+          "state": "R03/omni",
+          "callbackMs": 4267,
+          "constructionMs": 13,
+          "complete": true
+        },
+        {
+          "state": "R03/spot",
+          "callbackMs": 4299,
+          "constructionMs": 10,
+          "complete": true
+        },
+        {
+          "state": "R04/shadow_off",
+          "callbackMs": 4033,
+          "constructionMs": 12,
+          "complete": true
+        },
+        {
+          "state": "R04/shadow_on",
+          "callbackMs": 6204,
+          "constructionMs": 13,
+          "complete": true
+        },
+        {
+          "state": "R05/background_opaque",
+          "callbackMs": 2093,
+          "constructionMs": 17,
+          "complete": true
+        },
+        {
+          "state": "R05/background_transparent",
+          "callbackMs": 2131,
+          "constructionMs": 14,
+          "complete": true
+        },
+        {
+          "state": "R06/self",
+          "callbackMs": 2064,
+          "constructionMs": 11,
+          "complete": true
+        },
+        {
+          "state": "R06/parent",
+          "callbackMs": 2023,
+          "constructionMs": 17,
+          "complete": true
+        },
+        {
+          "state": "R07/scissor30",
+          "callbackMs": 4164,
+          "constructionMs": 29,
+          "complete": true
+        },
+        {
+          "state": "R07/scissor60",
+          "callbackMs": 4140,
+          "constructionMs": 34,
+          "complete": true
+        },
+        {
+          "state": "R08/directional1",
+          "callbackMs": 6359,
+          "constructionMs": 21,
+          "complete": true
+        },
+        {
+          "state": "R08/directional2",
+          "callbackMs": 6139,
+          "constructionMs": 19,
+          "complete": true
+        },
+        {
+          "state": "R08/shadow2",
+          "callbackMs": 6536,
+          "constructionMs": 23,
+          "complete": true
+        }
+      ],
+      "userVisualFeedback": "User reported the scenes looked generally normal; iOS switching stalled for seconds while Android felt faster. No individual-state visual verdicts were supplied.",
+      "individualStateVisualVerdicts": "NOT_COLLECTED",
+      "warnings": [
+        {
+          "message": "WARNING: Image format RGBAFloat not supported by hardware, converting to RGBAHalf.",
+          "count": 4,
+          "source": "drivers/gles3/storage/texture_storage.cpp:734",
+          "retained": true
+        }
+      ],
+      "shaderFailureInSuppliedLog": "NOT_OBSERVED",
+      "logCompleteness": "REG_OP sequence continuous with opening identity and complete final JSON; not proof all console channels are complete"
+    },
+    {
+      "record": "android-baseline",
+      "rawLog": {
+        "sha256": "f0e1bd27cf92392e7d2ca272f0daff1bc00e2368c8d7518ee1d223e5159d9bf5",
+        "bytes": 51565,
+        "notRedistributed": true
+      },
+      "identity": {
+        "packageId": "selfbuild-alpha-regression19-glx-6096c12a3ef5cda65ffd",
+        "device": {
+          "model": "VCE-AL00",
+          "system": "Android 10",
+          "wechatVersion": "8.0.79",
+          "SDKVersion": "3.17.5"
+        },
+        "requestedMode": "glx",
+        "actualMode": "glx",
+        "backendSource": "existing runtime context descriptor; not GL capability/query proof",
+        "globalIdCheck": "return 0",
+        "engineJsSha256": "d65d751899b46b3292a46cd48ee4a39b6aa63e03176a90f28f153ef1407c1a2a",
+        "wasmSha256": "e7b88edf517c66b20a176443e8baec63aaefcfa011d9777b89ea0a2e7ba577c3",
+        "pckSha256": "3a6ae0f4da0db1e1951fc46d800d16d55f67f289d8c982a38339b38b8a08edf8",
+        "librarySha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+        "enginePairSha256": "061e635589db96b6454c62877a91740648aeae39f0c10a680dce638b5cd9d07e"
+      },
+      "identityMatches": {
+        "packageId": true,
+        "engineJsSha256": true,
+        "wasmSha256": true,
+        "pckSha256": true,
+        "librarySha256": true,
+        "enginePairSha256": true,
+        "globalIdCheck": true
+      },
+      "sequenceRange": [
+        1,
+        95
+      ],
+      "sequenceGaps": [],
+      "parseFailures": [],
+      "uniqueStates": [
+        "R01/opaque",
+        "R01/transparent48",
+        "R01/offscreen",
+        "R02/gradient",
+        "R02/layers",
+        "R03/directional2",
+        "R03/omni",
+        "R03/spot",
+        "R04/shadow_off",
+        "R04/shadow_on",
+        "R05/background_opaque",
+        "R05/background_transparent",
+        "R06/self",
+        "R06/parent",
+        "R07/scissor30",
+        "R07/scissor60",
+        "R08/directional1",
+        "R08/directional2",
+        "R08/shadow2"
+      ],
+      "transitions": [
+        {
+          "state": "R01/opaque",
+          "callbackMs": 1810,
+          "constructionMs": 164,
+          "complete": true
+        },
+        {
+          "state": "R01/transparent48",
+          "callbackMs": 1222,
+          "constructionMs": 152,
+          "complete": true
+        },
+        {
+          "state": "R01/offscreen",
+          "callbackMs": 583,
+          "constructionMs": 35,
+          "complete": true
+        },
+        {
+          "state": "R02/gradient",
+          "callbackMs": 2721,
+          "constructionMs": 766,
+          "complete": true
+        },
+        {
+          "state": "R02/layers",
+          "callbackMs": 1180,
+          "constructionMs": 153,
+          "complete": true
+        },
+        {
+          "state": "R03/directional2",
+          "callbackMs": 1058,
+          "constructionMs": 42,
+          "complete": true
+        },
+        {
+          "state": "R03/omni",
+          "callbackMs": 1235,
+          "constructionMs": 41,
+          "complete": true
+        },
+        {
+          "state": "R03/spot",
+          "callbackMs": 1254,
+          "constructionMs": 41,
+          "complete": true
+        },
+        {
+          "state": "R04/shadow_off",
+          "callbackMs": 1092,
+          "constructionMs": 47,
+          "complete": true
+        },
+        {
+          "state": "R04/shadow_on",
+          "callbackMs": 1560,
+          "constructionMs": 44,
+          "complete": true
+        },
+        {
+          "state": "R05/background_opaque",
+          "callbackMs": 592,
+          "constructionMs": 42,
+          "complete": true
+        },
+        {
+          "state": "R05/background_transparent",
+          "callbackMs": 586,
+          "constructionMs": 38,
+          "complete": true
+        },
+        {
+          "state": "R06/self",
+          "callbackMs": 624,
+          "constructionMs": 65,
+          "complete": true
+        },
+        {
+          "state": "R06/parent",
+          "callbackMs": 599,
+          "constructionMs": 59,
+          "complete": true
+        },
+        {
+          "state": "R07/scissor30",
+          "callbackMs": 1666,
+          "constructionMs": 156,
+          "complete": true
+        },
+        {
+          "state": "R07/scissor60",
+          "callbackMs": 1185,
+          "constructionMs": 158,
+          "complete": true
+        },
+        {
+          "state": "R08/directional1",
+          "callbackMs": 2312,
+          "constructionMs": 63,
+          "complete": true
+        },
+        {
+          "state": "R08/directional2",
+          "callbackMs": 1539,
+          "constructionMs": 62,
+          "complete": true
+        },
+        {
+          "state": "R08/shadow2",
+          "callbackMs": 2081,
+          "constructionMs": 61,
+          "complete": true
+        }
+      ],
+      "userVisualFeedback": "User reported the scenes looked generally normal; iOS switching stalled for seconds while Android felt faster. No individual-state visual verdicts were supplied.",
+      "individualStateVisualVerdicts": "NOT_COLLECTED",
+      "warnings": [
+        {
+          "message": "WARNING: Image format RGBAFloat not supported by hardware, converting to RGBAHalf.",
+          "count": 4,
+          "source": "drivers/gles3/storage/texture_storage.cpp:734",
+          "retained": true
+        }
+      ],
+      "shaderFailureInSuppliedLog": "NOT_OBSERVED",
+      "logCompleteness": "REG_OP sequence continuous with opening identity and complete final JSON; not proof all console channels are complete"
+    },
+    {
+      "record": "ios-reuse",
+      "rawLog": {
+        "sha256": "182648f943e089ae68a5821fe68fd7fa2d98426065fe590aa2eb3ed6456206f8",
+        "bytes": 80427,
+        "notRedistributed": true
+      },
+      "identity": {
+        "packageId": "selfbuild-alpha-regression19-reuse-glx-9a6d5bc8dd94f1813ed9",
+        "device": {
+          "model": "iPhone 16 Pro<iPhone17,1>",
+          "system": "iOS 18.3.1",
+          "wechatVersion": "8.0.75",
+          "SDKVersion": "3.17.6"
+        },
+        "requestedMode": "glx",
+        "actualMode": "glx",
+        "backendSource": "existing runtime context descriptor; not GL capability/query proof",
+        "globalIdCheck": "return 0",
+        "engineJsSha256": "d65d751899b46b3292a46cd48ee4a39b6aa63e03176a90f28f153ef1407c1a2a",
+        "wasmSha256": "e7b88edf517c66b20a176443e8baec63aaefcfa011d9777b89ea0a2e7ba577c3",
+        "pckSha256": "cbaf2f5023e496d229fb4811dd8f2e589a692f28c1c83daa4ed30b1d7982653f",
+        "librarySha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+        "enginePairSha256": "061e635589db96b6454c62877a91740648aeae39f0c10a680dce638b5cd9d07e"
+      },
+      "identityMatches": {
+        "packageId": true,
+        "engineJsSha256": true,
+        "wasmSha256": true,
+        "pckSha256": true,
+        "librarySha256": true,
+        "enginePairSha256": true,
+        "globalIdCheck": true
+      },
+      "sequenceRange": [
+        1,
+        110
+      ],
+      "sequenceGaps": [],
+      "parseFailures": [],
+      "uniqueStates": [
+        "R01/opaque",
+        "R01/transparent48",
+        "R01/offscreen",
+        "R02/gradient",
+        "R02/layers",
+        "R03/directional2",
+        "R03/omni",
+        "R03/spot",
+        "R04/shadow_off",
+        "R04/shadow_on",
+        "R05/background_opaque",
+        "R05/background_transparent",
+        "R06/self",
+        "R06/parent",
+        "R07/scissor30",
+        "R07/scissor60",
+        "R08/directional1",
+        "R08/directional2",
+        "R08/shadow2"
+      ],
+      "transitions": [
+        {
+          "n": 1,
+          "state": "R01/opaque",
+          "visit": 1,
+          "first": true,
+          "action": "initial_build",
+          "callbackMs": 4146,
+          "creationMs": 31,
+          "prepMs": 47,
+          "postResourceMs": 4057,
+          "referenceMs": 3,
+          "readyMs": 4149
+        },
+        {
+          "n": 2,
+          "state": "R01/transparent48",
+          "visit": 1,
+          "first": true,
+          "action": "parameter_update",
+          "callbackMs": 1971,
+          "creationMs": 3,
+          "prepMs": 27,
+          "postResourceMs": 1939,
+          "referenceMs": 2,
+          "readyMs": 1973
+        },
+        {
+          "n": 3,
+          "state": "R01/offscreen",
+          "visit": 1,
+          "first": true,
+          "action": "topology_rebuild",
+          "callbackMs": 2063,
+          "creationMs": 11,
+          "prepMs": 47,
+          "postResourceMs": 1989,
+          "referenceMs": 1,
+          "readyMs": 2064
+        },
+        {
+          "n": 4,
+          "state": "R02/gradient",
+          "visit": 1,
+          "first": true,
+          "action": "page_rebuild",
+          "callbackMs": 6612,
+          "creationMs": 114,
+          "prepMs": 44,
+          "postResourceMs": 6434,
+          "referenceMs": 2,
+          "readyMs": 6614
+        },
+        {
+          "n": 5,
+          "state": "R02/layers",
+          "visit": 1,
+          "first": true,
+          "action": "topology_rebuild",
+          "callbackMs": 9382,
+          "creationMs": 51,
+          "prepMs": 33,
+          "postResourceMs": 9288,
+          "referenceMs": 3,
+          "readyMs": 9386
+        },
+        {
+          "n": 6,
+          "state": "R03/directional2",
+          "visit": 1,
+          "first": true,
+          "action": "page_rebuild",
+          "callbackMs": 9383,
+          "creationMs": 21,
+          "prepMs": 38,
+          "postResourceMs": 9317,
+          "referenceMs": 3,
+          "readyMs": 9386
+        },
+        {
+          "n": 7,
+          "state": "R03/omni",
+          "visit": 1,
+          "first": true,
+          "action": "parameter_update",
+          "callbackMs": 851,
+          "creationMs": 1,
+          "prepMs": 33,
+          "postResourceMs": 810,
+          "referenceMs": 6,
+          "readyMs": 857
+        },
+        {
+          "n": 8,
+          "state": "R03/spot",
+          "visit": 1,
+          "first": true,
+          "action": "parameter_update",
+          "callbackMs": 811,
+          "creationMs": 1,
+          "prepMs": 24,
+          "postResourceMs": 776,
+          "referenceMs": 5,
+          "readyMs": 816
+        },
+        {
+          "n": 9,
+          "state": "R04/shadow_off",
+          "visit": 1,
+          "first": true,
+          "action": "page_rebuild",
+          "callbackMs": 9366,
+          "creationMs": 18,
+          "prepMs": 37,
+          "postResourceMs": 9296,
+          "referenceMs": 4,
+          "readyMs": 9370
+        },
+        {
+          "n": 10,
+          "state": "R04/shadow_on",
+          "visit": 1,
+          "first": true,
+          "action": "parameter_update",
+          "callbackMs": 4776,
+          "creationMs": 0,
+          "prepMs": 23,
+          "postResourceMs": 4749,
+          "referenceMs": 4,
+          "readyMs": 4780
+        },
+        {
+          "n": 11,
+          "state": "R05/background_opaque",
+          "visit": 1,
+          "first": true,
+          "action": "page_rebuild",
+          "callbackMs": 4749,
+          "creationMs": 19,
+          "prepMs": 26,
+          "postResourceMs": 4674,
+          "referenceMs": 3,
+          "readyMs": 4752
+        },
+        {
+          "n": 12,
+          "state": "R05/background_transparent",
+          "visit": 1,
+          "first": true,
+          "action": "parameter_update",
+          "callbackMs": 29,
+          "creationMs": 4,
+          "prepMs": 19,
+          "postResourceMs": 3,
+          "referenceMs": 3,
+          "readyMs": 32
+        },
+        {
+          "n": 13,
+          "state": "R06/self",
+          "visit": 1,
+          "first": true,
+          "action": "page_rebuild",
+          "callbackMs": 4744,
+          "creationMs": 20,
+          "prepMs": 44,
+          "postResourceMs": 4646,
+          "referenceMs": 3,
+          "readyMs": 4747
+        },
+        {
+          "n": 14,
+          "state": "R06/parent",
+          "visit": 1,
+          "first": true,
+          "action": "parameter_update",
+          "callbackMs": 25,
+          "creationMs": 1,
+          "prepMs": 17,
+          "postResourceMs": 2,
+          "referenceMs": 4,
+          "readyMs": 29
+        },
+        {
+          "n": 15,
+          "state": "R06/self",
+          "visit": 2,
+          "first": false,
+          "action": "parameter_update",
+          "callbackMs": 19,
+          "creationMs": 0,
+          "prepMs": 7,
+          "postResourceMs": 3,
+          "referenceMs": 2,
+          "readyMs": 22
+        },
+        {
+          "n": 16,
+          "state": "R06/parent",
+          "visit": 2,
+          "first": false,
+          "action": "parameter_update",
+          "callbackMs": 19,
+          "creationMs": 0,
+          "prepMs": 6,
+          "postResourceMs": 3,
+          "referenceMs": 2,
+          "readyMs": 21
+        },
+        {
+          "n": 17,
+          "state": "R07/scissor30",
+          "visit": 1,
+          "first": true,
+          "action": "page_rebuild",
+          "callbackMs": 9421,
+          "creationMs": 53,
+          "prepMs": 35,
+          "postResourceMs": 9315,
+          "referenceMs": 3,
+          "readyMs": 9424
+        },
+        {
+          "n": 18,
+          "state": "R07/scissor60",
+          "visit": 1,
+          "first": true,
+          "action": "parameter_update",
+          "callbackMs": 34,
+          "creationMs": 0,
+          "prepMs": 21,
+          "postResourceMs": 4,
+          "referenceMs": 3,
+          "readyMs": 37
+        },
+        {
+          "n": 19,
+          "state": "R08/directional1",
+          "visit": 1,
+          "first": true,
+          "action": "page_rebuild",
+          "callbackMs": 13836,
+          "creationMs": 31,
+          "prepMs": 18,
+          "postResourceMs": 13782,
+          "referenceMs": 4,
+          "readyMs": 13840
+        },
+        {
+          "n": 20,
+          "state": "R08/directional2",
+          "visit": 1,
+          "first": true,
+          "action": "parameter_update",
+          "callbackMs": 16,
+          "creationMs": 1,
+          "prepMs": 12,
+          "postResourceMs": 2,
+          "referenceMs": 3,
+          "readyMs": 19
+        },
+        {
+          "n": 21,
+          "state": "R08/shadow2",
+          "visit": 1,
+          "first": true,
+          "action": "parameter_update",
+          "callbackMs": 605,
+          "creationMs": 0,
+          "prepMs": 20,
+          "postResourceMs": 582,
+          "referenceMs": 4,
+          "readyMs": 609
+        },
+        {
+          "n": 22,
+          "state": "R07/scissor30",
+          "visit": 2,
+          "first": false,
+          "action": "page_rebuild",
+          "callbackMs": 9378,
+          "creationMs": 53,
+          "prepMs": 6,
+          "postResourceMs": 9314,
+          "referenceMs": 3,
+          "readyMs": 9381
+        }
+      ],
+      "userVisualFeedback": "画面正常，但是感觉还是有卡顿，场景太多我也忘了时间了",
+      "individualStateVisualVerdicts": "NOT_COLLECTED",
+      "warnings": [
+        {
+          "message": "WARNING: Image format RGBAFloat not supported by hardware, converting to RGBAHalf.",
+          "count": 4,
+          "source": "drivers/gles3/storage/texture_storage.cpp:734",
+          "retained": true
+        }
+      ],
+      "shaderFailureInSuppliedLog": "NOT_OBSERVED",
+      "logCompleteness": "REG_OP sequence continuous with opening identity and complete final JSON; not proof all console channels are complete"
+    }
+  ],
+  "performance": {
+    "status": "PAUSED_UNRESOLVED",
+    "metric": "Switch start to frame_post_draw callback; not GPU time, compilation time or physical screen presentation",
+    "iosSameReportedDeviceAndVersions": true,
+    "pairedBenchmark": false,
+    "reuseParameterUpdates": 11,
+    "reuseRebuilds": 11,
+    "parameterMedianMs": 34,
+    "rebuildMedianMs": 9366,
+    "repeatedSamePageObserved": "R06 self/parent: 19 ms each",
+    "firstShadowOnMs": 4776,
+    "scope": "Some same-page transitions became shorter; cross-page waits and stutter remain. No overall speedup claim."
+  },
+  "preview": {
+    "candidateId": "selfbuild-alpha-regression19-reuse-glx-9a6d5bc8dd94f1813ed9",
+    "completedAtUTC": "2026-11-03T14:44:46.011Z",
+    "success": true,
+    "attempts": 1,
+    "uploadBytes": 17094708,
+    "experienceUpdated": false,
+    "baselineRestored": {
+      "filesVerified": 31,
+      "allHashesMatch": true
+    },
+    "historicalResultOnly": true,
+    "newUploadThisCloseout": false
+  },
+  "protection": {
+    "originalPackagesAndRawLogsRetained": true,
+    "privateConfigurationNotPublished": true,
+    "qrNotPublished": true,
+    "sessionIdentifiersRemoved": true
+  },
+  "missing": [
+    "Android run of resource-reuse candidate",
+    "Complete WeChat desktop run of all states",
+    "Individual visual verdict for every phone state",
+    "Repeated shadow switching and long-term stability",
+    "Controlled performance comparison",
+    "Clean-clone reproduction and licensed distribution of the complete runtime"
+  ],
+  "policy": {
+    "automaticVisualPass": false,
+    "performanceOptimizationPaused": true,
+    "newTestPackages": false
+  }
+}

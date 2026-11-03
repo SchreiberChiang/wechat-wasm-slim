@@ -1,0 +1,203 @@
+{
+  "schema": "regression19-source-inputs-v1",
+  "repositorySources": [
+    {
+      "target": "renderer_base.gd",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-base.gd",
+      "sha256": "26710e1374bcf7a34007318430cde35c7d59bc4f831094fbdd6201496fa5458b"
+    },
+    {
+      "target": "visual_canvas.gd",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-visual.gd",
+      "sha256": "a751b2e243a0089d984be31a358ce3e4f081692929e1abb0025b4daef2171687"
+    },
+    {
+      "target": "display_ignore_alpha.gdshader",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-display.gdshader",
+      "sha256": "24c25ae4d723eb89daca07782cbe2d626f8adf94b33d039cc56662afb3629cbf"
+    },
+    {
+      "target": "project.godot",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-project.godot",
+      "sha256": "b4f8387f5b289c5f79d835a4424055bc64e5ad4ce743b086694ec18a81141d99"
+    },
+    {
+      "target": "export_presets.cfg",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-export-presets.cfg",
+      "sha256": "e2c714706bf1b8df3e128b3c0bde5c0c0b87d49a360d2110860eaf18907d6f9a"
+    },
+    {
+      "target": "fonts/NOTICE.txt",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-font-NOTICE.txt",
+      "sha256": "f3424b04f441cff9067138f07965fa8e0a768f5067cbae0a0ec2c054245a7c7c"
+    },
+    {
+      "target": "fonts/FONT.json",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-font.json",
+      "sha256": "106907e34bc28b3ea15b5d95f3d9e8f6dcc40bd2ff29caccbceba8aafad8038d"
+    },
+    {
+      "target": "regression19-main.gd",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-main.gd",
+      "sha256": "cbd02bfd1af1b2d1f9c4cfc3f2dbdd0061095e52e24a02c60bf93dbef1999bf5"
+    },
+    {
+      "target": "regression19-renderer.gd",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-renderer.gd",
+      "sha256": "ce35ca5150f42492d822ac453a6eb61301cd8ba6b00ae4f6c16669de31b8f152"
+    },
+    {
+      "target": "regression19-main.tscn",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-main.tscn",
+      "sha256": "4120b6bb16fdb63195122d602b461855965c30e08732c408c11d5ba49e004dfd"
+    },
+    {
+      "target": "regression19-cases.json",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-cases.json",
+      "sha256": "c22bca6eee98bfd5b7f5495ee5d02d8d87519b7ea4abb0b91cd6b2d850e0ed12"
+    },
+    {
+      "target": "regression19-light-alpha.gdshader",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-light-alpha.gdshader",
+      "sha256": "ffadba46815fb559c9c308e677fe9a5a43cdb09cd6862a8e4d93b0d0af0a6e7c"
+    },
+    {
+      "target": "regression19-light-opaque.gdshader",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-light-opaque.gdshader",
+      "sha256": "60d8071a344c5c458f68c0cd3ac1646853411755f77f7fa91e556b96ab6c2dd7"
+    },
+    {
+      "target": "regression-checker.gd",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression-checker.gd",
+      "sha256": "e1898ce4eddd0b770fbd5666f225a836daa603775f8f5820b60e31e7fe0a4bcc"
+    },
+    {
+      "target": "fonts/OFL.txt",
+      "repositoryPath": "examples/glx-case4-alpha-mix/fonts/OFL.txt",
+      "sha256": "6a73f9541c2de74158c0e7cf6b0a58ef774f5a780bf191f2d7ec9cc53efe2bf2"
+    }
+  ],
+  "baselineOverrides": [
+    {
+      "target": "regression19-main.gd",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-baseline-main.gd",
+      "sha256": "0b4f2346baa7abb8bc15506dd3f175f4e6664ab7801d7ef634298b95417c8d9b"
+    },
+    {
+      "target": "regression19-renderer.gd",
+      "repositoryPath": "engine/alpha-preserve-lighting/regression19-baseline-renderer.gd",
+      "sha256": "c5b43b17324e576cd9f017d4160bba914b350793eb2ef4675c4f953d1547a38b"
+    }
+  ],
+  "font": {
+    "path": "fonts/AcceptanceCJK.otf",
+    "bytes": 8482020,
+    "sha256": "a2b93e6c2db05d6bbbf6f27d413ec73269735b7b679019c8a5aa9670ff0ffbf2",
+    "name": "Noto Sans SC Regular 2.002",
+    "license": "SIL OFL 1.1",
+    "source": "Previously installed full unmodified font; renamed only. Exact online acquisition not verified in this closeout.",
+    "redistributed": false
+  },
+  "references": [
+    {
+      "path": "references/R01-offscreen.png",
+      "sha256": "025e8d4fe92603c2e5be011457e50961e69ec89034083ded1a406b143cec538a",
+      "bytes": 18284
+    },
+    {
+      "path": "references/R01-opaque.png",
+      "sha256": "e5376795fafb2102d935cca403b51ace6a7bb732c2531079e13c2fc480ff9a66",
+      "bytes": 9127
+    },
+    {
+      "path": "references/R01-transparent48.png",
+      "sha256": "5db9ab8be569c8c1f41451b61bcafb2b1ff87fd934f284e3e8186f38d32892e2",
+      "bytes": 10816
+    },
+    {
+      "path": "references/R02-gradient.png",
+      "sha256": "3976d8e3b8694da421cb2633c5385f22f158b02805d6735c5b1815575fd32e16",
+      "bytes": 24895
+    },
+    {
+      "path": "references/R02-layers.png",
+      "sha256": "ec5251c251ff77937d8c4aeadc3e77e0b965ce41046cb561b37c5579099d5380",
+      "bytes": 12587
+    },
+    {
+      "path": "references/R03-directional2.png",
+      "sha256": "367439d35af8630e811e284c546d7d1c0eabbdd3e2bae3ae3ed4f8e67570d797",
+      "bytes": 18523
+    },
+    {
+      "path": "references/R03-omni.png",
+      "sha256": "e5357dd96c93391dc3a59eec86a5af1efe9ff4289da054a85c67cf76497dd4d0",
+      "bytes": 23971
+    },
+    {
+      "path": "references/R03-spot.png",
+      "sha256": "6be62608b4314641f4d88153f2da4efd529c0201761d318cc3543775689d1825",
+      "bytes": 23842
+    },
+    {
+      "path": "references/R04-shadow_off.png",
+      "sha256": "f489c33a223d3ed29e602c770f1c334123578b3e4354b7cf40dc61ab1f0deda2",
+      "bytes": 18064
+    },
+    {
+      "path": "references/R04-shadow_on.png",
+      "sha256": "2f65e0a5ac3d33871b5ccc6833eb980afbf3ab82fd241ee9d54c8f6cad022239",
+      "bytes": 17994
+    },
+    {
+      "path": "references/R05-background_opaque.png",
+      "sha256": "b3faa3cc9a27ed625273b0adaaa2225f9e61833892cc88def6eb5c4d058c0f09",
+      "bytes": 26084
+    },
+    {
+      "path": "references/R05-background_transparent.png",
+      "sha256": "cadc1b1e628935d9135e7dc9eed34b240898e41f2cb74f25a84a7a94d0ddf6b4",
+      "bytes": 26568
+    },
+    {
+      "path": "references/R06-parent.png",
+      "sha256": "709cee6d89e13a7ce6a9c090a9873156bbfcaf2f2c5e4a913a5c85e8163b3833",
+      "bytes": 20913
+    },
+    {
+      "path": "references/R06-self.png",
+      "sha256": "9b6a68d9525dbcf08e0201be5fe701d578db7323c78edb61ef1e867a1cfa49a2",
+      "bytes": 20944
+    },
+    {
+      "path": "references/R07-scissor30.png",
+      "sha256": "e31e581ebd32347d4cbf2ac683637e49580a12e20b82529d7aaa150e10a286f9",
+      "bytes": 15262
+    },
+    {
+      "path": "references/R07-scissor60.png",
+      "sha256": "1337248200ab04b1dd355d0dc7c13fd1844c05665fa1f5a878d0c5a7878deb88",
+      "bytes": 15461
+    },
+    {
+      "path": "references/R08-directional1.png",
+      "sha256": "18b9652604b99ecaaa5f89a9d5e8717c92562c28952e9477ad556c3665fe85dd",
+      "bytes": 13172
+    },
+    {
+      "path": "references/R08-directional2.png",
+      "sha256": "a0bde7b182281486d0e89437e686a4350964c2803fda6521fe8f33e8f177e6fb",
+      "bytes": 13794
+    },
+    {
+      "path": "references/R08-shadow2.png",
+      "sha256": "6118fa55d74aa4c1278129ee92b87abb467a572b8b45508ac7f731ef1766628d",
+      "bytes": 22947
+    }
+  ],
+  "referenceOrigin": "Godot 4.7.2.stable.steam.ed1daf0bf Windows Compatibility OpenGL; visual reference only, not GLX results",
+  "referencesRedistributed": false,
+  "engineDelivery": "docs/evidence/GLX_LIGHTING_DELIVERY_20261103.json",
+  "externalHost": "Requires the private frozen parent runtime and its verified manifest; not redistributed here",
+  "cleanCloneReproduction": "NOT_VERIFIED"
+}
