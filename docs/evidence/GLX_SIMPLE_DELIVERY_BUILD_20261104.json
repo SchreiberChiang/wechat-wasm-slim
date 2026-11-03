@@ -1,0 +1,146 @@
+{
+  "schema": "glx-simple-clean-build-evidence-v1",
+  "date": "2026-11-04",
+  "sourceCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "status": "CLEAN_BUILD_PAIR_AUDIT_AND_DESKTOP_REFERENCE_PASS",
+  "objectsCompiled": 2110,
+  "phases": [
+    {
+      "name": "fresh-thinlto-system-libraries",
+      "seconds": 97.854,
+      "status": "PASS"
+    },
+    {
+      "name": "source",
+      "seconds": 23.426,
+      "status": "PASS"
+    },
+    {
+      "name": "source-tests",
+      "seconds": 2.23,
+      "status": "PASS"
+    },
+    {
+      "name": "scons-compile-link-optimize",
+      "seconds": 2035.922,
+      "status": "PASS"
+    },
+    {
+      "name": "godot-process",
+      "seconds": 0.131,
+      "status": "PASS"
+    },
+    {
+      "name": "brotli-and-artifacts",
+      "seconds": 133.214,
+      "status": "PASS"
+    },
+    {
+      "name": "static-pair-audit",
+      "seconds": 0.347,
+      "status": "PASS"
+    }
+  ],
+  "outputs": {
+    "godot.js": {
+      "bytes": 469508,
+      "sha256": "e9f09402ddc60b0407a803e74b2f8824cc14b05d38e3cce99fb05d06ff573ddb"
+    },
+    "godot.wasm": {
+      "bytes": 65186879,
+      "sha256": "e7b88edf517c66b20a176443e8baec63aaefcfa011d9777b89ea0a2e7ba577c3"
+    },
+    "godot.wasm.br": {
+      "bytes": 8648194,
+      "sha256": "fed5ba84faa05499d1a01ca0a0d1b11e027a0e1d07a68d796761d9690505dacb"
+    }
+  },
+  "imports": 774,
+  "exports": 43,
+  "nativeMapping": {
+    "_glxInit": "xn",
+    "_glxInitBufferDataAndGlState": "yn",
+    "_glxUpdateContextId": "wn",
+    "_glxCommandBufferFlush": "zn"
+  },
+  "submission": {
+    "afterFrameInvokesNativeFlush": true,
+    "batchRenderAsyncPresent": true,
+    "swapWindowPresent": true
+  },
+  "fixedHistoricalOutputsMatch": true,
+  "sourceTests": [
+    "test_wechat_webgl_context_attributes.js",
+    "test_godot_process_commit_frame.js",
+    "test_wechat_glx_runtime.js"
+  ],
+  "deliveryTests": {
+    "passed": 15,
+    "failed": 0,
+    "skipped": 0
+  },
+  "pckSha256": "5eafd9620587e9b542e4c6a0e0aedde1e9ed6b531634c98a74a317df30d04dba",
+  "schedulingExecuted": {
+    "scons": 6,
+    "EMCC_CORES": 6,
+    "thinLto": 8,
+    "BINARYEN_CORES": "not set; default pool"
+  },
+  "resources": {
+    "samples": 145,
+    "maxCpuPercent": 100,
+    "minimumFreePhysicalBytes": 12419710976,
+    "minimumCommitHeadroomBytes": 9384972288,
+    "maxPagesInputPerSecond": 21085,
+    "maxObservedBudgetRootBytes": 3939765423
+  },
+  "warnings": [
+    "use_wx_glx requires C++ exception support and forces disable_exceptions=no",
+    "GodotWebXR user library symbol depends on internal MainLoop",
+    "JS library compilation warning summary"
+  ],
+  "scope": [
+    "Fresh fixed engine checkout; no old engine objects or old SDK cache",
+    "SDK from locked official archives; fresh ThinLTO system libraries and SCons venv",
+    "Exact existing Python base used read-only; downloaded installer signature checked, not installed",
+    "Fixed lawful Steam editor supplied; other-machine full installation not run",
+    "BINARYEN_CORES scheduling fix added after this build started; not retroactively effective",
+    "15-second resource samples are not complete peaks; synchronous Brotli section has before/after measurements",
+    "New desktop/cloud acceptance recorded separately"
+  ],
+  "currentNewPackageRuntime": {
+    "desktopPackageId": "glx-simple-f0a3ab257c6dab6857bc",
+    "finalGlxPackageId": "glx-simple-4c52eb3c549838b44b02",
+    "actualDesktopBackend": "WebGL2",
+    "actualDesktopSdk": "3.17.5",
+    "session": "mw0yitte-mcplschz",
+    "observed": [
+      "Textured cube visible",
+      "48 percent red panel visibly transmits geometry",
+      "Ground shadow visible",
+      "Ordinary TextureRect MIX displays offscreen content"
+    ],
+    "continuousAnimation": "No continuous recording; do not infer sustained performance from still screenshots",
+    "errors": "No error matches in current-session available console after compile-cache regeneration",
+    "warning": "HarmonyOS advisory retained",
+    "compilerIncident": "SWC and Babel generated-helper modules missing; Babel test failed and was reverted. Regenerating ONLY this new project compile cache with original settings restored execution. Cause beyond cache/runtime relationship not established.",
+    "screenshots": [
+      {
+        "name": "rebuilt-clean-compile.jpg",
+        "sha256": "e4920d24600c93c66d5a730742682f763b47ba14ef4f59f7dbe79b1ad9050268"
+      },
+      {
+        "name": "rebuilt-clean-later.jpg",
+        "sha256": "50b56ef77917fc33ea735b57eacb84d3312e3f1f3af7256f54abe33a75d8ec27"
+      }
+    ]
+  },
+  "phone": "NOT_RUN",
+  "experienceUpload": {
+    "version": "glx-clean-20261104",
+    "attempts": 1,
+    "status": "PENDING_USER_TOOL_CONFIRMATION",
+    "backendPointer": "NOT_VERIFIED"
+  },
+  "cloud": "NOT_SUBMITTED; coordinated thread waiting for upload terminal result"
+}

@@ -1,0 +1,27 @@
+diff --git a/platform/web/detect.py b/platform/web/detect.py
+--- a/platform/web/detect.py
++++ b/platform/web/detect.py
+@@ -309,6 +309,23 @@
+     env["ARCOM_POSIX"] = env["ARCOM"].replace("$TARGET", "$TARGET.posix").replace("$SOURCES", "$SOURCES.posix")
+     env["ARCOM"] = "${TEMPFILE('$ARCOM_POSIX','$ARCOMSTR')}"
+ 
++    # ENGINE_LAB_WINDOWS_LINK_RESPONSE_V2
++    import shlex
++    from SCons.Platform import TempFileMunge
++
++    class LinkTempFileMungeV2(TempFileMunge):
++        def __call__(self, target, source, env, for_signature):
++            if for_signature:
++                return self.cmd
++            link_env = env.Clone()
++            link_env["TEMPFILEARGESCFUNC"] = lambda arg: shlex.quote(str(arg))
++            link_env["TEMPFILEENCODING"] = "utf-8"
++            return super().__call__(target, source, link_env, for_signature)
++
++    env["LINKCOM_POSIX_V2"] = env["LINKCOM"].replace("$TARGET", "$TARGET.posix").replace("$SOURCES", "$SOURCES.posix")
++    env["LINK_TEMPFILE_V2"] = LinkTempFileMungeV2
++    env["LINKCOM"] = "${LINK_TEMPFILE_V2('$LINKCOM_POSIX_V2','$LINKCOMSTR')}"
++
+     # All intermediate files are just object files.
+     env["OBJPREFIX"] = ""
+     env["OBJSUFFIX"] = ".o"

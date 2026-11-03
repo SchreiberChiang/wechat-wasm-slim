@@ -1,0 +1,16 @@
+{
+  "sdk": "<AUTHORIZED_EMSDK_4_0_10_ABSOLUTE_DIRECTORY>",
+  "python": "<NEW_PYTHON_3_14_VENV>/Scripts/python.exe",
+  "library": "<REPOSITORY>/engine/alpha-preserve-lighting/libemscriptenglx-4.0.10-026e.a",
+  "editor": "<AUTHORIZED_EDITOR>/godot.windows.opt.tools.64.exe",
+  "hostArchive": "<AUTHORIZED_AUTHOR_ARCHIVE>/minigame4.7.0.8.1.tpz",
+  "js": "<VERIFIED_PREBUILT_PAIR>/godot.js",
+  "br": "<VERIFIED_PREBUILT_PAIR>/godot.wasm.br",
+  "pck": "<APPROVED_SAMPLE_DIRECTORY>/simple.pck",
+  "appid": "<YOUR_PRIVATE_WECHAT_APPID>",
+  "mode": "glx",
+  "work": "<APPROVED_NEW_BUILD_DIRECTORY>",
+  "budgetRoot": "<APPROVED_WORK_ROOT>",
+  "jobs": 6,
+  "sdkCacheWriteApproved": false
+}

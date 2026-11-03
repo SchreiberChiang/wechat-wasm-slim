@@ -1,0 +1,95 @@
+{
+  "schema": "simple-delivery-static-preparation-v1",
+  "date": "2026-11-03",
+  "gitHead": "fbc419696de889ac5a7b1bd65310ca49f6b0de75",
+  "tests": {
+    "passed": 15,
+    "failed": 0,
+    "skipped": 0,
+    "wallSeconds": 3.951
+  },
+  "gitLineEndingRoundTrip": "PASS",
+  "scope": "Static checks, in-memory patch replay/host generation/PCK fixture, historical output audit; no engine/editor execution, new project or preview directory",
+  "actualBuild": "NOT_RUN",
+  "actualPckExport": "NOT_RUN",
+  "gdscriptParser": "NOT_RUN",
+  "wechatRuntime": "NOT_RUN",
+  "phone": "NOT_RUN",
+  "inputs": {
+    "source": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+    "librarySha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+    "rawBuildRecordSha256": "4cc936483ea302243d39e98d681660eb01e2cec4e07ff82a4eae8a482d2fb5b9"
+  },
+  "files": [
+    {
+      "path": "engine/alpha-preserve-lighting/delivery-build.mjs",
+      "bytes": 9587,
+      "sha256": "6959c14dd00ba58b124554fac68614a47047481ed7d2e1d4779c92a2b19a2d35"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery-entry.js",
+      "bytes": 799,
+      "sha256": "4b394ab6e5cc16d2231866e46e2f438969bffc0ca5c11513a634ba5622fefd74"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery-exports.cfg",
+      "bytes": 401,
+      "sha256": "281b1372f09c9a8a69134c18aa083e98854b949538eeca11a15a08e28ddf4b67"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery-input.example.json",
+      "bytes": 610,
+      "sha256": "041e558b0b50954a0019829d02ff2d9872a2a78f6c06475c03318cb780ea54e3"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery-loader-edits.json",
+      "bytes": 1524,
+      "sha256": "9adfa96a27f7fe061011103d39f6055f1b930d0b8a9ec285bafc933b3548be3a"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery-observer.js",
+      "bytes": 1830,
+      "sha256": "4f72d3ab247525b890b3866dcfc94a506247f9d35a5e6def858bec1d3e5c6d79"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery-project.godot",
+      "bytes": 535,
+      "sha256": "3f3f2328672dc3ecac27fd4fea45748becf4c1bd70dca67809792d51737a10f6"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery-recipe.json",
+      "bytes": 7221,
+      "sha256": "8d5b30c9c7402fbe3cd82ffa8fac0d6ee317547e1620a19123ee1113a72e4203"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery-simple.gd",
+      "bytes": 3980,
+      "sha256": "cef4be0bca66bf226400bbe60901def0f3a425beca9ecfb447e7ac3f72a9034a"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery-simple.tscn",
+      "bytes": 272,
+      "sha256": "e30041a713efc469a0b429369003f89f055071331a14c975919a8ee70059f531"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery-windows-link.patch",
+      "bytes": 1211,
+      "sha256": "52065f189ef7c30e41b3ed1fd5cce106b4a259ac0b0b1f3d41bce25bdc6a5220"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/DELIVERY.md",
+      "bytes": 10520,
+      "sha256": "1086e871a54ac0a39115f2129dc5ee9fecfeb831b51f20182c91e419176f9f76"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery.mjs",
+      "bytes": 12427,
+      "sha256": "faffe079a572950b63669cc017ffd590a9493c54f5b52c9bf4ce1757e55a0fcf"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery.test.mjs",
+      "bytes": 9648,
+      "sha256": "108778a84a178607eb472d2e7f0aa733d267ab4c6a97b3872cea8a77473dec5d"
+    }
+  ]
+}

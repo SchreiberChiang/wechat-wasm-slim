@@ -1,0 +1,20 @@
+config_version=5
+
+[application]
+config/name="Godot GLX Simple"
+run/main_scene="res://simple.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+
+[display]
+window/size/viewport_width=640
+window/size/viewport_height=840
+window/stretch/mode="canvas_items"
+window/handheld/orientation=1
+
+[editor]
+export/convert_text_resources_to_binary=false
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.067, 0.141, 0.227, 1)

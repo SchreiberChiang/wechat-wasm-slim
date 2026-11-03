@@ -1,0 +1,216 @@
+{
+  "schema": "glx-simple-delivery-v1",
+  "status": "FIXED_RECIPE_CLEAN_BUILD_AND_PAIR_AUDIT_VERIFIED_20261104",
+  "historicalBuild": "build-settings-20261103.json",
+  "engine": {
+    "source": {
+      "repository": "https://github.com/citizenll/godot.git",
+      "commit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+      "runtimeVersion": "4.7.2.rc.custom_build.df3cdd9bc"
+    },
+    "patches": [
+      {
+        "order": 1,
+        "path": "engine/alpha-preserve-lighting/baseline-shader-diagnostic.patch",
+        "sha256": "84204452f43c04ef40ad4efcdd37e132f11ea429a42d029b63f6222d3e781ee6"
+      },
+      {
+        "order": 2,
+        "path": "engine/alpha-preserve-lighting/scene-alpha-restore.patch",
+        "sha256": "24e7d2f318f87b09ad585354e4d6006e010e7c5f2de21f629e05829cfdf0a514"
+      },
+      {
+        "order": 3,
+        "path": "engine/alpha-preserve-lighting/scene-light-output.patch",
+        "sha256": "c9f371b648d8dddda224fc1e334225e376c6608bae3eefa75dd416907fadbac6"
+      },
+      {
+        "order": 4,
+        "path": "engine/alpha-preserve-lighting/scene-alpha-output.patch",
+        "sha256": "57256151a301271b360be588da88fdb503471c0b7097c0d2ea4aa637012b0fce"
+      }
+    ],
+    "windowsLinkPatch": {
+      "path": "engine/alpha-preserve-lighting/delivery-windows-link.patch",
+      "sha256": "52065f189ef7c30e41b3ed1fd5cce106b4a259ac0b0b1f3d41bce25bdc6a5220"
+    },
+    "profile": {
+      "path": "examples/glx-smoke/full-engine.gdbuild",
+      "sha256": "920ca801a58fe5bfb0f56aa39a1d523adae9658233189d6518b17e3c5b98e81b"
+    },
+    "cppdefines": "",
+    "lto": "thin",
+    "ltoJobs": 8,
+    "globalId": "return 0",
+    "library": {
+      "sha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+      "bytes": 3866614,
+      "acquisition": "Exact official-support 4.0.10 attachment included as libemscriptenglx-4.0.10-026e.a; verify full SHA256, no latest substitution",
+      "redistribution": "INCLUDED_WITH_MAINTAINER_AUTHORIZATION_20261104; separate third-party terms; see GLX_LIBRARY_NOTICE.md"
+    },
+    "prebuilt": {
+      "scheme": "SHA256(UTF8(JSON.stringify([jsSha256,wasmSha256,brSha256])))",
+      "sha256": "061e635589db96b6454c62877a91740648aeae39f0c10a680dce638b5cd9d07e",
+      "js": "d65d751899b46b3292a46cd48ee4a39b6aa63e03176a90f28f153ef1407c1a2a",
+      "wasm": "e7b88edf517c66b20a176443e8baec63aaefcfa011d9777b89ea0a2e7ba577c3",
+      "br": "fed5ba84faa05499d1a01ca0a0d1b11e027a0e1d07a68d796761d9690505dacb"
+    }
+  },
+  "host": {
+    "archive": {
+      "name": "minigame4.7.0.8.1.tpz",
+      "url": "https://github.com/hao0917/godot-minigame/releases/download/4.7/minigame4.7.0.8.1.tpz",
+      "sha256": "c4673dd16b397be7c6bcd0c9bd038d20008be5b4586cdaea60be552326a50be7",
+      "bytes": 11744787,
+      "urlStatus": "Fresh official upstream-release download verified by full SHA256 on 2026-11-04",
+      "redistribution": "NOT_REDISTRIBUTED; obtain authorized upstream archive separately"
+    },
+    "files": [
+      {
+        "path": "weapp-adapter.js",
+        "sha256": "84c679ae0a6dbb226afb24110860e5142ac113a2e3a00a93449a09edeb4647f6",
+        "bytes": 60774
+      },
+      {
+        "path": "glx-config.js",
+        "sha256": "ddefd618579efe1a156392da1e8393cabeaa65af2bb8bed25fa72f5f3c7483b3",
+        "bytes": 183
+      },
+      {
+        "path": "godot-loader.js",
+        "sha256": "0e6bde33b9a63d3f452209838f0ef110a33890df8bc97fdedf25728bf00c03a4",
+        "bytes": 17036
+      },
+      {
+        "path": "engine/game.js",
+        "sha256": "b88b173f3f80a61370326a688a56d7ac368c6b5dcfb947412486ee056be2f654",
+        "bytes": 136
+      },
+      {
+        "path": "engine/godot-sdk.js",
+        "sha256": "f0f648b6778446a990b9865b8d577674f439348f8a3cef622e56ae13b8fda46e",
+        "bytes": 51322
+      }
+    ],
+    "loaderEdits": "delivery-loader-edits.json",
+    "omit": [
+      "author engine binaries",
+      "original PCK",
+      "historical probes",
+      "cloud relay",
+      "autotest scenes",
+      "author images",
+      "unused subpackage data"
+    ],
+    "compilerSettings": {
+      "urlCheck": false,
+      "es6": true,
+      "postcss": true,
+      "minified": true,
+      "newFeature": true,
+      "babelSetting": {
+        "ignore": [],
+        "disablePlugins": [],
+        "outputPath": ""
+      },
+      "coverView": false,
+      "enhance": true,
+      "showShadowRootInWxmlPanel": false,
+      "packNpmRelationList": [],
+      "ignoreUploadUnusedFiles": true,
+      "swc": true,
+      "compileWorklet": false,
+      "uglifyFileName": false,
+      "uploadWithSourceMap": true,
+      "packNpmManually": false,
+      "minifyWXSS": true,
+      "minifyWXML": true,
+      "localPlugins": false,
+      "disableUseStrict": false,
+      "useCompilerPlugins": false,
+      "condition": false,
+      "disableSWC": false
+    },
+    "compilerSettingsSource": "Verified full Godot alpha-cloud package; independent triangle compiler settings are not applicable"
+  },
+  "toolchain": {
+    "driverNode": {
+      "version": "24.18.0",
+      "sha256": "9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de"
+    },
+    "emscripten": "4.0.10",
+    "sdkFiles": [
+      {
+        "path": ".emscripten",
+        "sha256": "19e1a7c839001b3f3dc528e771353460a9af3bb420360efe06517dee269bf86e"
+      },
+      {
+        "path": "upstream/emscripten/emscripten-version.txt",
+        "bytes": 10,
+        "sha256": "ca0f65b7dc4f97d03522346306ff0323f61de41cdb0c00304dd54db3111a4446"
+      },
+      {
+        "path": "upstream/emscripten/emcc.py",
+        "bytes": 37426,
+        "sha256": "4b47445c680acc3ce625312f1d279d4d50347c27661fcde9b5b904a775eae9ec"
+      },
+      {
+        "path": "upstream/emscripten/em++.py",
+        "bytes": 506,
+        "sha256": "017f735c953318fdaaa4af68c8d4bf13936a787ddbd5dad804d532b0223b6c2f"
+      },
+      {
+        "path": "upstream/bin/clang.exe",
+        "bytes": 86481920,
+        "sha256": "2139bce5bdd3ba2648e353d56d9e75654cf89c2dfed10ebfbc56a60979a86c55"
+      },
+      {
+        "path": "upstream/bin/wasm-ld.exe",
+        "bytes": 52444672,
+        "sha256": "3b6db708d4e85e592017832b1ffd245469776bbbc4d9be50d4de9a1f3171e2fc"
+      },
+      {
+        "path": "upstream/bin/wasm-opt.exe",
+        "bytes": 11606528,
+        "sha256": "7d69f7f4a46b208493ab8405309c58226b67e7905c1015069acf9001055b8a33"
+      },
+      {
+        "path": "node/24.19.0_64bit/node.exe",
+        "bytes": 92825416,
+        "sha256": "3602f2bb1a10f2cbab4c36886218a33c1ab3db87290e73b033c46c77147d0237"
+      },
+      {
+        "path": "python/3.13.3_64bit/python.exe",
+        "bytes": 105832,
+        "sha256": "d87063e5597f257004c731b66c59c56c91038861c6877b1a3dca6b8c4e919125"
+      }
+    ],
+    "buildPython": "3.14.0",
+    "pythonBaseSha256": "467014615a5255aca450ae88100dd2caf887da87657f00e3c2171ec44a685aec",
+    "scons": "4.11.1",
+    "sconsWheelSha256": "454cef364348053422696e3d2ecb4fa593c96a624f955842eaaea64f95c8d11d",
+    "acquisition": {
+      "sdk": "Emscripten official release 4.0.10; require the locked installed key-file fingerprints, including SDK Node 24.19.0 and Python 3.13.3",
+      "node": "Official Node 24.18.0 distribution; verify executable fingerprint",
+      "python": "Official Python 3.14.0 distribution; create a fresh venv at its final path, never copy an old venv",
+      "scons": "PyPI wheel under engine/requirements-scons.lock with pip --require-hashes",
+      "glx": "WeChat official support exact 026e attachment; no public-latest substitution"
+    },
+    "downloadsFullyLocked": true,
+    "acquisitionGaps": [
+      "Fixed Steam editor must be supplied legally; exact public automatic acquisition not verified",
+      "Public prebuilt JS/WASM release not published; source-rebuild route verified on this Windows computer"
+    ]
+  },
+  "editor": {
+    "version": "4.7.2.stable.steam.ed1daf0bf",
+    "bytes": 180860936,
+    "sha256": "12310c74bdda7dcd43f28e971f33047dcecadd436b68169d61ce41009006df38",
+    "acquisition": "User-provided authorized Steam Godot editor; stable public exact-binary acquisition not verified"
+  },
+  "scene": {
+    "font": "Godot built-in font; English on-screen labels with Chinese README, no CJK font dependency",
+    "externalAssets": [],
+    "runtimeTests": "Recorded separately in docs/GLX_SIMPLE_DELIVERY_EXECUTION_20261104.md; build success is not visual acceptance"
+  }
+}

@@ -6,3 +6,9 @@ engine/shader-type-return/** text eol=lf
 # Preserve exact new scene/PCK source bytes; its admission includes line endings.
 examples/glx-opaque-alpha-compat/** -text
 engine/opaque-viewport-compat/** -text
+# Simple-delivery hashes and source/PCK checks must survive a fresh Windows checkout.
+engine/alpha-preserve-lighting/delivery* text eol=lf
+# The verified Windows recipe fingerprints these existing CRLF inputs.
+examples/glx-smoke/full-engine.gdbuild text eol=crlf
+engine/assets/candidate-mode.js text eol=crlf
+engine/alpha-preserve-lighting/libemscriptenglx-4.0.10-026e.a -text
