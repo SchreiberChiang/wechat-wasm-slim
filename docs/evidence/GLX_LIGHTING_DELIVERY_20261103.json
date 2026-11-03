@@ -1,0 +1,227 @@
+{
+  "schema": "glx-lighting-delivery-v1",
+  "recordedAt": "2026-11-03",
+  "candidateId": "claude-alpha-light-cloud-glx-10914e3e21ab144c",
+  "parentPackageId": "claude-shadow-r04-cloud-glx-84231cde840b701f",
+  "packageId": "claude-alpha-light-cloud-glx-10914e3e21ab144c",
+  "sourcePin": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "buildSettings": "engine/alpha-preserve-lighting/build-settings-20261103.json",
+  "buildRecordSha256": "4cc936483ea302243d39e98d681660eb01e2cec4e07ff82a4eae8a482d2fb5b9",
+  "frozenManifestSha256": "d7da576b2b19dcc2560ffe986baaeb0237ce35bab9e2030d8bfaefb7712970a5",
+  "parentFrozenManifestSha256": "8b7541d1bd32498942dd37a5758d210af7e90789b4cb7ee58a10e9d72ee13e7c",
+  "engineRebuilt": true,
+  "enginePair": {
+    "scheme": "SHA256(UTF8(JSON.stringify([jsSha256,wasmSha256,brSha256])))",
+    "sha256": "061e635589db96b6454c62877a91740648aeae39f0c10a680dce638b5cd9d07e",
+    "js": "d65d751899b46b3292a46cd48ee4a39b6aa63e03176a90f28f153ef1407c1a2a",
+    "wasm": "e7b88edf517c66b20a176443e8baec63aaefcfa011d9777b89ea0a2e7ba577c3",
+    "br": "fed5ba84faa05499d1a01ca0a0d1b11e027a0e1d07a68d796761d9690505dacb"
+  },
+  "pckSha256": "a1264d8d806a65fe596e002b23a8306319597e959da1ee089fb8ebeb12b5e54f",
+  "librarySha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+  "patches": [
+    {
+      "order": 1,
+      "path": "engine/alpha-preserve-lighting/baseline-shader-diagnostic.patch",
+      "sha256": "84204452f43c04ef40ad4efcdd37e132f11ea429a42d029b63f6222d3e781ee6"
+    },
+    {
+      "order": 2,
+      "path": "engine/alpha-preserve-lighting/scene-alpha-restore.patch",
+      "sha256": "24e7d2f318f87b09ad585354e4d6006e010e7c5f2de21f629e05829cfdf0a514"
+    },
+    {
+      "order": 3,
+      "path": "engine/alpha-preserve-lighting/scene-light-output.patch",
+      "sha256": "c9f371b648d8dddda224fc1e334225e376c6608bae3eefa75dd416907fadbac6"
+    },
+    {
+      "order": 4,
+      "path": "engine/alpha-preserve-lighting/scene-alpha-output.patch",
+      "sha256": "57256151a301271b360be588da88fdb503471c0b7097c0d2ea4aa637012b0fce"
+    }
+  ],
+  "globalIdCheck": "return 0",
+  "viewportCapOverride": false,
+  "localAlphaCompat": false,
+  "prewarmChanged": false,
+  "changedPayloadFiles": [
+    "candidate-mode.js",
+    "engine/godot.wasm.br",
+    "project.config.json"
+  ],
+  "frozenPayloadFileCount": 30,
+  "publicPayloadHashes": [
+    {
+      "path": ".eslintrc.js",
+      "bytes": 587,
+      "sha256": "ade498e34a85117314bdf5317ea27b73a546fff5946fae46e29f79de31d3b260"
+    },
+    {
+      "path": ".godot-subpack-managed.json",
+      "bytes": 98,
+      "sha256": "43d230c1ce5ffbc32834a35ee5ef177eee0c38322265e1b48097cac70cd262ca"
+    },
+    {
+      "path": "candidate-mode.js",
+      "bytes": 5418,
+      "sha256": "1fc66dde69c9a2ed3f2ba56a06a811d1b44376e6aa653a46750d4c0c7eff2882"
+    },
+    {
+      "path": "candidate-observer.js",
+      "bytes": 4425,
+      "sha256": "35c112610f236dfe0f38cb5af9cb7f0786bb720157dd34849d57b590e38d2b57"
+    },
+    {
+      "path": "candidate-relay.js",
+      "bytes": 297,
+      "sha256": "1ffbcc51eb57575c6c362d2ca2ad63b2fc29b9cbeaadefdd8f47353ba1df2454"
+    },
+    {
+      "path": "engine/empty-tips.bin",
+      "bytes": 7810688,
+      "sha256": "a1264d8d806a65fe596e002b23a8306319597e959da1ee089fb8ebeb12b5e54f"
+    },
+    {
+      "path": "engine/game.js",
+      "bytes": 136,
+      "sha256": "b88b173f3f80a61370326a688a56d7ac368c6b5dcfb947412486ee056be2f654"
+    },
+    {
+      "path": "engine/godot-sdk.js",
+      "bytes": 51353,
+      "sha256": "66eac0033c11b3fdb1252cc4294cb0fb689aca8af1b488f5a156e36723cb646e"
+    },
+    {
+      "path": "engine/godot.js",
+      "bytes": 469385,
+      "sha256": "d65d751899b46b3292a46cd48ee4a39b6aa63e03176a90f28f153ef1407c1a2a"
+    },
+    {
+      "path": "engine/godot.wasm.br",
+      "bytes": 8648194,
+      "sha256": "fed5ba84faa05499d1a01ca0a0d1b11e027a0e1d07a68d796761d9690505dacb"
+    },
+    {
+      "path": "game.js",
+      "bytes": 2246,
+      "sha256": "f83c62e4bb722275e112f566e701e5d74468a4356f89b6fc3ab89a5063d0d6e8"
+    },
+    {
+      "path": "game.json",
+      "bytes": 249,
+      "sha256": "1e780422d1cc158b06bfe88ac4c2579685b73095bfcc3cec1f34a875759026e8"
+    },
+    {
+      "path": "glx-config.js",
+      "bytes": 183,
+      "sha256": "ddefd618579efe1a156392da1e8393cabeaa65af2bb8bed25fa72f5f3c7483b3"
+    },
+    {
+      "path": "godot-loader.js",
+      "bytes": 17864,
+      "sha256": "0a403044162aba78f19cb67c8759791c80832e8d7a4b5616c4e09cc0948d584d"
+    },
+    {
+      "path": "images/background.jpg",
+      "bytes": 8917,
+      "sha256": "ee88b4672db843d57b164c5deeaf62e096e3bf91881bdba71a85dd980687db80"
+    },
+    {
+      "path": "images/background.jpg.import",
+      "bytes": 778,
+      "sha256": "72027bbda3797f17c21b81853f1e75f3dfa962097cc2627107cf75f955d52884"
+    },
+    {
+      "path": "images/logo.png",
+      "bytes": 4972,
+      "sha256": "1e3ff92a1e7291f181c624292d788eae18e63b3cbb4e93a6f29bc57f422ac907"
+    },
+    {
+      "path": "images/logo.png.import",
+      "bytes": 760,
+      "sha256": "44005f5320062f736ea535656a6cd648f4793ce67e0e74102fd6bbbd3503e2f3"
+    },
+    {
+      "path": "launch-query.js",
+      "bytes": 1816,
+      "sha256": "dfc2d3ef0204afe663795b03fc53054f1c997fd0bd6331e9650932b2d0c7be32"
+    },
+    {
+      "path": "regression-host.js",
+      "bytes": 1736,
+      "sha256": "ed1b66cd05492b4e4a7cf748da2960727fed5c07ae50e1f910b59c1410dfaaac"
+    },
+    {
+      "path": "startup-timing.js",
+      "bytes": 916,
+      "sha256": "38def031e1feb0759c7e5e20a8a62edb18b0a846524249261056e83439c883c2"
+    },
+    {
+      "path": "subpackages/subpack/game.js",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "subpackages/subpack/subpack.bin",
+      "bytes": 17888,
+      "sha256": "3cc9369e48326945bb6e2803d93c81bc98c6d362a8eef966655cbe636486e783"
+    },
+    {
+      "path": "subpacks/subpack_manifest.json",
+      "bytes": 1921,
+      "sha256": "c224964186b97b8c4238e9fc4d0de96f1876e7cacb5f2d5352ed65a62a5f9fa2"
+    },
+    {
+      "path": "wasm-gl-diagnostic-host.js",
+      "bytes": 9605,
+      "sha256": "36715a99406da446a35117004eef9ccd85606fe190a6044bc7a960d9af476bad"
+    },
+    {
+      "path": "weapp-adapter.js",
+      "bytes": 60774,
+      "sha256": "84c679ae0a6dbb226afb24110860e5142ac113a2e3a00a93449a09edeb4647f6"
+    },
+    {
+      "path": "使用前阅读.md",
+      "bytes": 1940,
+      "sha256": "2f074c768b2b3da02341fdbd41a6316f41eac15372506fd07c57fa00f69574ec"
+    },
+    {
+      "path": "小游戏工程说明.md",
+      "bytes": 1468,
+      "sha256": "045a8cbfef04f60faa0e3b996d7ba76416dc138e0e8bc3856af66b6ea5bf1af5"
+    }
+  ],
+  "privateConfiguration": {
+    "included": false,
+    "locallyVerified": true,
+    "reason": "AppID and local configuration contents are not public deliverables"
+  },
+  "historicalMetadataCorrections": {
+    "topLevelCandidateId": "selfbuild-alpha-regression8-glx-f409810e28434e5f3b29",
+    "topLevelEnginePair": {
+      "js": "d65d751899b46b3292a46cd48ee4a39b6aa63e03176a90f28f153ef1407c1a2a",
+      "wasm": "6f18df40f98682df8dd28bc47039fef034f40fb06bfa88f780155c69d076f8a6",
+      "br": "9d642dedceaa2e05df0f52208dfe4e7701b37ce11f7309ab52625a3b732beac3"
+    },
+    "topLevelEngineRebuilt": false,
+    "action": "New independent manifest is authoritative for this checkpoint; frozen original remains unmodified",
+    "sceneSourceManifest": "Inherited source hash not independently verified for this cloud scene; omitted from authoritative identity",
+    "stagingStatus": "Original NOT_RUN/NOT_UPLOADED fields describe staging time; observed validation is separately recorded"
+  },
+  "validation": {
+    "record": "docs/GLX_LIGHTING_CHECKPOINT_20261103.md",
+    "fullEightGroupRegressionOnThisEngine": "NOT_RUN",
+    "cleanRebuild": "NOT_RUN",
+    "currentExperienceBackendPointer": "NOT_QUERIED_THIS_ROUND",
+    "runtimeOnThisComputer": "NOT_RUN"
+  },
+  "globalIdPolicy": {
+    "origin": "official diagnostic suggestion",
+    "retainedFor": "exact tested configuration",
+    "necessity": "NOT_VERIFIED",
+    "futureComparison": "restore original function only, separately approved",
+    "isLightingAlphaFix": false
+  }
+}
