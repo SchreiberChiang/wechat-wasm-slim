@@ -1095,6 +1095,166 @@
       "sha256": "17c01277dc3468a1d53081f01a6f7665f5d0f82e7882a8198e1f486ee344d5d8",
       "bytes": 28071,
       "origin": "c050c09b105c3715e1caa57a7109cd752047fd89:drivers/gles3/shader_gles3.cpp"
+    },
+    "fixtures/reference-parents/glx.json": {
+      "bytes": 9714,
+      "sha256": "10157ec424746065718eb0929d91c046e43c045ec09509206416d412dd2ed2d3",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/ade498e34a85117314bdf5317ea27b73a546fff5946fae46e29f79de31d3b260": {
+      "bytes": 587,
+      "sha256": "ade498e34a85117314bdf5317ea27b73a546fff5946fae46e29f79de31d3b260",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/43d230c1ce5ffbc32834a35ee5ef177eee0c38322265e1b48097cac70cd262ca": {
+      "bytes": 98,
+      "sha256": "43d230c1ce5ffbc32834a35ee5ef177eee0c38322265e1b48097cac70cd262ca",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/5135b80343d366591c80c085450e2b8677e0728b670472c6e07736b4e001ca3c": {
+      "bytes": 5291,
+      "sha256": "5135b80343d366591c80c085450e2b8677e0728b670472c6e07736b4e001ca3c",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/35c112610f236dfe0f38cb5af9cb7f0786bb720157dd34849d57b590e38d2b57": {
+      "bytes": 4425,
+      "sha256": "35c112610f236dfe0f38cb5af9cb7f0786bb720157dd34849d57b590e38d2b57",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/d6b179f5a9f69a1949a9dee04240494a4579510c9d9c80ed6bc208bbab732668": {
+      "bytes": 292,
+      "sha256": "d6b179f5a9f69a1949a9dee04240494a4579510c9d9c80ed6bc208bbab732668",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/0d4eb4b3f94e60468a271f705b177a2223fe9db6745fb254c388cd21d566ef5b": {
+      "bytes": 66364,
+      "sha256": "0d4eb4b3f94e60468a271f705b177a2223fe9db6745fb254c388cd21d566ef5b",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/b88b173f3f80a61370326a688a56d7ac368c6b5dcfb947412486ee056be2f654": {
+      "bytes": 136,
+      "sha256": "b88b173f3f80a61370326a688a56d7ac368c6b5dcfb947412486ee056be2f654",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/f0f648b6778446a990b9865b8d577674f439348f8a3cef622e56ae13b8fda46e": {
+      "bytes": 51322,
+      "sha256": "f0f648b6778446a990b9865b8d577674f439348f8a3cef622e56ae13b8fda46e",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/e9f09402ddc60b0407a803e74b2f8824cc14b05d38e3cce99fb05d06ff573ddb": {
+      "bytes": 469508,
+      "sha256": "e9f09402ddc60b0407a803e74b2f8824cc14b05d38e3cce99fb05d06ff573ddb",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/a3fa7032ace37840021c58bd06b6b49f7b0468c01dde4b9d63a33bc2d2cd82cf": {
+      "bytes": 8649514,
+      "sha256": "a3fa7032ace37840021c58bd06b6b49f7b0468c01dde4b9d63a33bc2d2cd82cf",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/dc2fad9b430dc190c41e011926b1cb5c20c59585cd9ced4b96aa6154ff10c787": {
+      "bytes": 2134,
+      "sha256": "dc2fad9b430dc190c41e011926b1cb5c20c59585cd9ced4b96aa6154ff10c787",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/1e780422d1cc158b06bfe88ac4c2579685b73095bfcc3cec1f34a875759026e8": {
+      "bytes": 249,
+      "sha256": "1e780422d1cc158b06bfe88ac4c2579685b73095bfcc3cec1f34a875759026e8",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/ddefd618579efe1a156392da1e8393cabeaa65af2bb8bed25fa72f5f3c7483b3": {
+      "bytes": 183,
+      "sha256": "ddefd618579efe1a156392da1e8393cabeaa65af2bb8bed25fa72f5f3c7483b3",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/1dd408fa7a69e2f4652033d6f08c12d70bb6f233cb3074bd0e7510173aa1ae1b": {
+      "bytes": 17397,
+      "sha256": "1dd408fa7a69e2f4652033d6f08c12d70bb6f233cb3074bd0e7510173aa1ae1b",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/ee88b4672db843d57b164c5deeaf62e096e3bf91881bdba71a85dd980687db80": {
+      "bytes": 8917,
+      "sha256": "ee88b4672db843d57b164c5deeaf62e096e3bf91881bdba71a85dd980687db80",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/72027bbda3797f17c21b81853f1e75f3dfa962097cc2627107cf75f955d52884": {
+      "bytes": 778,
+      "sha256": "72027bbda3797f17c21b81853f1e75f3dfa962097cc2627107cf75f955d52884",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/1e3ff92a1e7291f181c624292d788eae18e63b3cbb4e93a6f29bc57f422ac907": {
+      "bytes": 4972,
+      "sha256": "1e3ff92a1e7291f181c624292d788eae18e63b3cbb4e93a6f29bc57f422ac907",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/44005f5320062f736ea535656a6cd648f4793ce67e0e74102fd6bbbd3503e2f3": {
+      "bytes": 760,
+      "sha256": "44005f5320062f736ea535656a6cd648f4793ce67e0e74102fd6bbbd3503e2f3",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/d48038b6ce7b2e761d52a3f1aab7b6af12593a1cb88273f3d82718117f39524a": {
+      "bytes": 1107,
+      "sha256": "d48038b6ce7b2e761d52a3f1aab7b6af12593a1cb88273f3d82718117f39524a",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/cbf9eb24b100af5f0caf1013702c0e0d4c6710603dd7c2705e545d3e40a420c1": {
+      "bytes": 847,
+      "sha256": "cbf9eb24b100af5f0caf1013702c0e0d4c6710603dd7c2705e545d3e40a420c1",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/3cc9369e48326945bb6e2803d93c81bc98c6d362a8eef966655cbe636486e783": {
+      "bytes": 17888,
+      "sha256": "3cc9369e48326945bb6e2803d93c81bc98c6d362a8eef966655cbe636486e783",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/c224964186b97b8c4238e9fc4d0de96f1876e7cacb5f2d5352ed65a62a5f9fa2": {
+      "bytes": 1921,
+      "sha256": "c224964186b97b8c4238e9fc4d0de96f1876e7cacb5f2d5352ed65a62a5f9fa2",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/84c679ae0a6dbb226afb24110860e5142ac113a2e3a00a93449a09edeb4647f6": {
+      "bytes": 60774,
+      "sha256": "84c679ae0a6dbb226afb24110860e5142ac113a2e3a00a93449a09edeb4647f6",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/2f074c768b2b3da02341fdbd41a6316f41eac15372506fd07c57fa00f69574ec": {
+      "bytes": 1940,
+      "sha256": "2f074c768b2b3da02341fdbd41a6316f41eac15372506fd07c57fa00f69574ec",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/045a8cbfef04f60faa0e3b996d7ba76416dc138e0e8bc3856af66b6ea5bf1af5": {
+      "bytes": 1468,
+      "sha256": "045a8cbfef04f60faa0e3b996d7ba76416dc138e0e8bc3856af66b6ea5bf1af5",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/webgl.json": {
+      "bytes": 9914,
+      "sha256": "ec0ca6a01729c6d3cb8259b5e02dc46e92d4b793ec81afecdb658a605f18f91f",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/e8623d9096d07cd7c67198df5093a001650630c8c2ee5408e928e7802bc7a3aa": {
+      "bytes": 5699,
+      "sha256": "e8623d9096d07cd7c67198df5093a001650630c8c2ee5408e928e7802bc7a3aa",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/eabce804b064c1237c1774ac366b4b035247e85db56c59a721da5a078f99f701": {
+      "bytes": 308,
+      "sha256": "eabce804b064c1237c1774ac366b4b035247e85db56c59a721da5a078f99f701",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/fe314b3f727c41f23a26b1f53734acb7b0391defef2f5e44e97c1d9889b42b87": {
+      "bytes": 1108,
+      "sha256": "fe314b3f727c41f23a26b1f53734acb7b0391defef2f5e44e97c1d9889b42b87",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/14e54cb3935cee46de0b37fcaa26ab11d2488c5e926c11b2cb24fbc253ed79b5": {
+      "bytes": 848,
+      "sha256": "14e54cb3935cee46de0b37fcaa26ab11d2488c5e926c11b2cb24fbc253ed79b5",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
     }
   }
 }
