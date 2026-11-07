@@ -5,12 +5,13 @@
 // 放行、计划、执行、预算与路径检查全部在快速流程和共用任务核心里，这里不做任何放宽。
 //
 // 用法：node quick-adapter.mjs LOCAL_CONFIG MODE TOKEN
-//   MODE = plan | run | open；请求内容读自 logs/TOKEN.quick-request.private.json
+//   MODE = plan | run | open | cancel；cancel 的请求是 {runToken}，按该次运行的进度事件找到运行目录。
+//   请求内容读自 logs/TOKEN.quick-request.private.json
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {loadConfig} from './adapter.mjs';
-import {quickPlan, quickRun, QUICK_SETTINGS_SCHEMA} from '../../lib/quick-flow.mjs';
+import {quickPlan, quickRun, cancelQuickRun, QUICK_SETTINGS_SCHEMA} from '../../lib/quick-flow.mjs';
 import {openWeChatProject} from './open-project.mjs';
 
 const PANEL_KEYS = ['template', 'orientation', 'glx', 'skipPrewarm', 'subpackages', 'scenes', 'appid', 'appidFrom', 'gameName', 'output'];
@@ -41,9 +42,9 @@ function writeResult(file, value) {
   fs.renameSync(temporary, file);
 }
 
-export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan, run = quickRun, open = openWeChatProject} = {}) {
-  if (!['plan', 'run', 'open'].includes(mode) || !TOKEN.test(token)) reject('QUICK_ADAPTER_ARGUMENT', '参数无效');
-  const config = loadConfig(configFile);
+export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan, run = quickRun, open = openWeChatProject, cancel = cancelQuickRun, load = loadConfig} = {}) {
+  if (!['plan', 'run', 'open', 'cancel'].includes(mode) || !TOKEN.test(token)) reject('QUICK_ADAPTER_ARGUMENT', '参数无效');
+  const config = load(configFile);
   const logs = path.join(path.dirname(path.resolve(configFile)), 'logs');
   fs.mkdirSync(logs, {recursive: true});
   const stem = path.join(logs, token);
@@ -53,7 +54,15 @@ export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan
   try {
     const request = JSON.parse(fs.readFileSync(stem + '.quick-request.private.json', 'utf8'));
     let result;
-    if (mode === 'open') {
+    if (mode === 'cancel') {
+      // 只取消本面板发起、且仍在本插件 logs 里有进度记录的那次运行。
+      if (typeof request.runToken !== 'string' || !TOKEN.test(request.runToken) || request.runToken === token) reject('QUICK_ADAPTER_CANCEL', '没有要取消的运行');
+      const runEvents = path.join(logs, request.runToken + '.quick-events.private.jsonl');
+      if (fs.existsSync(path.join(logs, request.runToken + '.quick-result.private.json'))) reject('QUICK_ADAPTER_CANCEL_ENDED', '这次运行已经结束，无需取消');
+      const start = fs.existsSync(runEvents) ? fs.readFileSync(runEvents, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line)).find(e => e.phase === 'start') : null;
+      if (typeof start?.run !== 'string' || !path.isAbsolute(start.run)) reject('QUICK_ADAPTER_CANCEL_NOT_STARTED', '运行目录尚未建立；请稍后再取消');
+      result = await cancel(start.run);
+    } else if (mode === 'open') {
       if (typeof request.projectConfig !== 'string' || !path.isAbsolute(request.projectConfig)) reject('QUICK_ADAPTER_OPEN', '没有可打开的转换结果');
       result = {schema: 'wxslim-quick-open-v1', status: 'SUCCESS', open: open(request.projectConfig, '')};
     } else {

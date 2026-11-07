@@ -5,9 +5,10 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   normalizeQuickSettings, settingsBlockers, findWebPresets, projectName, runName, resolveQuickInputs,
-  quickPlan, quickRun, exportPayload, convertPayload, resolveMainScene, QUICK_SETTINGS_SCHEMA, SIMPLE_INTERFACES,
+  quickPlan, quickRun, cancelQuickRun, planTaskRoot, CANCEL_MARKER, exportPayload, convertPayload, resolveMainScene, QUICK_SETTINGS_SCHEMA, SIMPLE_INTERFACES,
 } from '../lib/quick-flow.mjs';
 import {runQuickCli} from '../lib/quick-cli.mjs';
+import {runQuickAdapter} from '../editor/workbench/quick-adapter.mjs';
 import {taskPlanIdentity} from '../lib/task-core.mjs';
 import {buildExportRequestDraft} from '../editor/workbench/export-request-form.mjs';
 import {buildOfficialConvertRequestDraft} from '../editor/workbench/official-convert-request-form.mjs';
@@ -273,4 +274,89 @@ test('cli: run needs --write; unknown flags are refused', async () => {
   assert.equal(await runQuickCli(['run', 'X'], io), 1);
   assert.match(err.join(''), /--write/);
   assert.equal(await runQuickCli(['plan', 'X', '--bogus'], io), 1);
+});
+
+test('cancel: a marker written during export stops the run before conversion executes', async () => {
+  const f = fixture();
+  const service = fakeService();
+  const execute = service.execute;
+  service.execute = async (file, options) => {
+    const outcome = await execute(file, options);
+    const run = path.dirname(path.dirname(file));
+    fs.writeFileSync(path.join(run, CANCEL_MARKER), '{}');
+    return outcome;
+  };
+  const result = await quickRun(f.options, {service});
+  assert.equal(result.status, 'CANCELLED');
+  assert.equal(result.error.code, 'QUICK_CANCELLED');
+  assert.deepEqual(service.calls.map(c => `${c.kind}:${c.action}`), ['plan:project-pck-export', 'execute:project-pck-export', 'plan:official-convert']);
+  assert.ok(fs.existsSync(path.join(result.run, 'pck', 'full.pck')), 'nothing is rolled back');
+});
+
+test('cancel: a task that ends CANCELLED makes the run CANCELLED, not FAILED', async () => {
+  const f = fixture();
+  const result = await quickRun(f.options, {service: fakeService({status: 'CANCELLED'})});
+  assert.equal(result.status, 'CANCELLED');
+  assert.equal(result.error.task.status, 'CANCELLED');
+});
+
+test('cancel: the active shared task is cancelled through the task service with an explicit write', async () => {
+  const f = fixture();
+  const run = path.join(f.output, 'r1'), root = path.join(run, 'wechat'), requestFile = path.join(run, 'requests', 'convert-request.json');
+  fs.mkdirSync(path.join(run, 'requests'), {recursive: true});
+  fs.mkdirSync(root);
+  fs.writeFileSync(requestFile, '{}');
+  fs.writeFileSync(path.join(run, 'requests', 'active-task.json'), JSON.stringify({step: 'convert', requestFile, taskRoot: root}));
+  fs.writeFileSync(path.join(root, 'TASK.json'), JSON.stringify({schema: 'wxslim-official-task-v1', taskId: 'abc'}));
+  const calls = [];
+  const service = {
+    status(file, options) { calls.push(['status', file, options]); return {status: 'NO_TERMINAL_RECEIPT', terminalPresent: false, inputBinding: 'MATCHED_EXECUTION_SNAPSHOT'}; },
+    async cancel(file, options) { calls.push(['cancel', file, options]); return {cancel: {accepted: true}}; },
+  };
+  const first = await cancelQuickRun(run, {service, waitMs: 0});
+  assert.equal(first.markerWritten, true);
+  assert.deepEqual(first.task, {step: 'convert', taskId: 'abc', status: 'NO_TERMINAL_RECEIPT', accepted: true, duplicate: false, alreadyEnded: false});
+  assert.deepEqual(calls[1], ['cancel', requestFile, {root, taskId: 'abc', write: true}]);
+  const second = await cancelQuickRun(run, {service, waitMs: 0});
+  assert.equal(second.markerWritten, false);
+});
+
+test('cancel: an ended task is not cancelled; no task yet leaves only the marker', async () => {
+  const f = fixture();
+  const run = path.join(f.output, 'r2');
+  fs.mkdirSync(path.join(run, 'requests'), {recursive: true});
+  const service = {status() { throw Error('no status without a task'); }, cancel() { throw Error('no cancel'); }};
+  const result = await cancelQuickRun(run, {service, waitMs: 0});
+  assert.equal(result.task, null);
+  assert.ok(fs.existsSync(path.join(run, CANCEL_MARKER)));
+  await assert.rejects(cancelQuickRun(path.join(f.output, 'missing'), {service, waitMs: 0}), {code: 'QUICK_CANCEL_RUN_INVALID'});
+  assert.equal(planTaskRoot({action: 'official-convert', plan: {taskRoot: run}}), run);
+  assert.equal(planTaskRoot({action: 'project-pck-export', plan: {input: {output: run}}}), run);
+  assert.equal(planTaskRoot({action: 'project-pck-export', plan: {input: {output: 'relative'}}}), '');
+});
+
+test('adapter: cancel finds the run from its start event and refuses ended or unknown runs', async () => {
+  const f = fixture();
+  const state = path.join(f.root, 'state'), logs = path.join(state, 'logs');
+  fs.mkdirSync(logs, {recursive: true});
+  const configFile = path.join(state, 'local-config.json');
+  fs.writeFileSync(configFile, JSON.stringify({}));
+  const seen = [];
+  const cancel = async run => { seen.push(run); return {schema: 'wxslim-quick-cancel-v1', status: 'CANCEL_REQUESTED'}; };
+  const call = async (token, request) => {
+    fs.writeFileSync(path.join(logs, token + '.quick-request.private.json'), JSON.stringify(request));
+    return runQuickAdapter(configFile, 'cancel', token, {cancel, load: () => ({})});
+  };
+  const run = path.join(f.output, 'r3');
+  fs.writeFileSync(path.join(logs, '1-1.quick-events.private.jsonl'), JSON.stringify({step: 'start', phase: 'start', run}) + '\n');
+  const missing = await call('1-2', {runToken: '1-9'});
+  assert.equal(missing.code, 'QUICK_ADAPTER_CANCEL_NOT_STARTED');
+  const ok = await call('1-3', {runToken: '1-1'});
+  assert.equal(ok.status, 'CANCEL_REQUESTED');
+  assert.deepEqual(seen, [run]);
+  fs.writeFileSync(path.join(logs, '1-1.quick-result.private.json'), '{}');
+  const ended = await call('1-4', {runToken: '1-1'});
+  assert.equal(ended.code, 'QUICK_ADAPTER_CANCEL_ENDED');
+  const bad = await call('1-5', {runToken: '../x'});
+  assert.equal(bad.code, 'QUICK_ADAPTER_CANCEL');
 });

@@ -10,7 +10,7 @@ extends VBoxContainer
 const INSTALL_LOCATOR := "res://addons/wxslim_readonly/workbench.path"
 const SETTINGS_FILE := "panel-preview-settings.private.json"
 const LAST_RUN_FILE := "panel-preview-last-run.private.json"
-const STEP_TEXT := {"export": "导出 PCK", "convert": "官方转换", "devtools": "生成电脑预览包", "open": "打开开发者工具"}
+const STEP_TEXT := {"start": "准备运行目录", "export": "导出 PCK", "convert": "官方转换", "devtools": "生成电脑预览包", "open": "打开开发者工具"}
 const APPID_PATTERN := "^wx[0-9a-f]{16}$"
 const TEMPLATES := {"full": "完整模板", "2d": "2D 模板", "custom": "自定义"}
 const STORAGE := [["project", "跟随项目（res://wxslim.json）"], ["project-local", "仅本工程本机（.godot/wxslim/）"], ["machine", "仅本电脑（插件状态目录）"]]
@@ -26,7 +26,7 @@ const CATEGORIES := [
 const GROUP_KEYS := {
 	"packing": ["template", "subpackages", "scenes"],
 	"runtime": ["orientation", "glx", "skipPrewarm"],
-	"publish": ["appid", "appidFrom", "gameName", "output", "storage", "project"],
+	"publish": ["appid", "appidFrom", "gameName", "output", "storage"],
 }
 
 var _saved := {}
@@ -68,8 +68,12 @@ var _log: TextEdit
 var _notice: AcceptDialog
 var _confirm: ConfirmationDialog
 var _project: LineEdit
+var _advanced: FoldableContainer
 var _appid_source_value := ""
 var _job := {}
+var _cancel_job := {}
+var _cancel_button: Button
+var _cancel_confirm: ConfirmationDialog
 var _poll_elapsed := 0.0
 var _last_run := {}
 
@@ -109,6 +113,13 @@ func _ready() -> void:
 	_confirm.cancel_button_text = "取消"
 	_confirm.confirmed.connect(func(): _quick_start("run"))
 	add_child(_confirm)
+	_cancel_confirm = ConfirmationDialog.new()
+	_cancel_confirm.title = "取消导出并转换"
+	_cancel_confirm.dialog_text = "正在执行的步骤会在安全点停止（导出要等编辑器进程退出），后面的步骤不再开始。\n不回滚：已写入的内容保留在本次运行目录，可手动删除。"
+	_cancel_confirm.ok_button_text = "取消运行"
+	_cancel_confirm.cancel_button_text = "继续运行"
+	_cancel_confirm.confirmed.connect(_quick_cancel)
+	add_child(_cancel_confirm)
 	_load_last_run()
 	_build_header()
 	var scroll := ScrollContainer.new()
@@ -194,12 +205,10 @@ func _group_missing(group: String) -> Array:
 				missing.append("AppID")
 			if _draft.output.is_empty():
 				missing.append("输出目录")
-			if not _installed() and _draft.project.is_empty():
-				missing.append("游戏工程目录")
 	return missing
 
 func _settings_ready() -> bool:
-	return not _saved.template.is_empty() and not _saved.output.is_empty() and _appid_valid(_saved.appid) and (_installed() or not _saved.project.is_empty())
+	return not _saved.template.is_empty() and not _saved.output.is_empty() and _appid_valid(_saved.appid)
 
 func _capability_status(id: String) -> String:
 	var item: Dictionary = _capabilities.get(id, {})
@@ -407,25 +416,6 @@ func _build_publish(parent: Control) -> void:
 	choose.pressed.connect(func(): dir_picker.popup_centered_ratio(0.7))
 	output_row.add_child(choose)
 
-	if not _installed():
-		var project := _field("游戏工程目录（源码工作台开发用）", body, "project")
-		var project_row := HBoxContainer.new()
-		project.add_child(project_row)
-		_project = _line_edit(project_row, "含 project.godot 和 Web 导出预设的游戏目录", "project")
-		var project_picker := FileDialog.new()
-		project_picker.file_mode = FileDialog.FILE_MODE_OPEN_DIR
-		project_picker.access = FileDialog.ACCESS_FILESYSTEM
-		project_picker.dir_selected.connect(func(value: String):
-			_project.text = value
-			_project.text_changed.emit(value)
-		)
-		add_child(project_picker)
-		var project_choose := Button.new()
-		project_choose.text = "选择…"
-		project_choose.pressed.connect(func(): project_picker.popup_centered_ratio(0.7))
-		project_row.add_child(project_choose)
-		_note("插件安装到游戏后，导出的就是当前打开的工程，不会显示这一项。", project)
-
 	var game_name := _field("游戏名", body)
 	_game_name = _line_edit(game_name, "显示在开发者工具中的名称", "gameName")
 
@@ -486,7 +476,28 @@ func _capability_row(parent: Control, item: Dictionary) -> void:
 	row.add_child(name_label)
 
 func _build_advanced(parent: Control) -> void:
-	var body: VBoxContainer = _foldable("高级", parent, true)[1]
+	var parts := _foldable("高级", parent, true)
+	_advanced = parts[0]
+	var body: VBoxContainer = parts[1]
+	# 安装到游戏后导出的就是当前打开的工程；只有在源码工作台里开发面板时才需要另指游戏目录。
+	if not _installed():
+		var project := _field("游戏工程目录（源码工作台用）", body, "project")
+		var project_row := HBoxContainer.new()
+		project.add_child(project_row)
+		_project = _line_edit(project_row, "含 project.godot 和 Web 导出预设的游戏目录", "project")
+		var project_picker := FileDialog.new()
+		project_picker.file_mode = FileDialog.FILE_MODE_OPEN_DIR
+		project_picker.access = FileDialog.ACCESS_FILESYSTEM
+		project_picker.dir_selected.connect(func(value: String):
+			_project.text = value
+			_project.text_changed.emit(value)
+		)
+		add_child(project_picker)
+		var project_choose := Button.new()
+		project_choose.text = "选择…"
+		project_choose.pressed.connect(func(): project_picker.popup_centered_ratio(0.7))
+		project_row.add_child(project_choose)
+		_note("插件安装到游戏后，导出的就是当前打开的工程，不会显示这一项。改动后点顶部「保存设置」。", project)
 	_note("自建引擎构建：给维护者用，需要固定 SDK、补丁配方和大型编译。预览版请用旧面板。", body)
 	_note("打开已有任务（原「手动任务」）：查看、执行或取消命令行或上次会话创建的任务。日常流程由面板自动跟踪。预览版请用旧面板。", body)
 
@@ -535,6 +546,12 @@ func _build_footer() -> void:
 	_open_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_open_button.pressed.connect(func(): _quick_start("open"))
 	row.add_child(_open_button)
+	_cancel_button = Button.new()
+	_cancel_button.text = "取消"
+	_cancel_button.custom_minimum_size = Vector2(80, 32)
+	_cancel_button.tooltip_text = "停止本次导出并转换；不回滚"
+	_cancel_button.pressed.connect(func(): _cancel_confirm.popup_centered())
+	row.add_child(_cancel_button)
 	_open_hint = _note("", footer)
 
 # ---------- 行为 ----------
@@ -641,6 +658,56 @@ func _package_id(result: Dictionary) -> String:
 		return str(steps.convert.outcome.get("packageId", ""))
 	return ""
 
+# 写请求文件并启动适配器；失败时提示并返回空字典，什么都没有执行。
+func _spawn_adapter(node: String, mode: String, request: Dictionary) -> Dictionary:
+	var token := "%d-%d" % [OS.get_process_id(), Time.get_ticks_usec()]
+	var logs := _state_directory().path_join("logs")
+	DirAccess.make_dir_recursive_absolute(logs)
+	var request_file := FileAccess.open(logs.path_join(token + ".quick-request.private.json"), FileAccess.WRITE)
+	if request_file == null:
+		_show_notice("无法开始", "无法写入插件日志目录：" + logs)
+		return {}
+	request_file.store_string(JSON.stringify(request))
+	request_file.close()
+	var adapter := _workbench_directory().path_join("quick-adapter.mjs")
+	var pid := OS.create_process(node, PackedStringArray([adapter, _config_file(), mode, token]), false)
+	if pid <= 0:
+		_show_notice("无法开始", "没能启动 Node 进程；没有执行任何步骤。")
+		return {}
+	return {"pid": pid, "token": token, "result": logs.path_join(token + ".quick-result.private.json"), "events": logs.path_join(token + ".quick-events.private.jsonl")}
+
+# 取消只针对本面板发起、还在进行的「导出并转换」。由适配器找到运行目录，走共用任务核心的取消。
+func _quick_cancel() -> void:
+	if _job.is_empty() or _job.mode != "run" or not _cancel_job.is_empty() or _job.get("cancelling", false):
+		return
+	var config = JSON.parse_string(FileAccess.get_file_as_string(_config_file())) if FileAccess.file_exists(_config_file()) else null
+	if not config is Dictionary:
+		return
+	var spawned := _spawn_adapter(str(config.get("nodeExecutable", "")), "cancel", {"runToken": _job.token})
+	if spawned.is_empty():
+		return
+	_cancel_job = spawned
+	_job.cancelling = true
+	_task_line.text = "任务：正在取消…（等当前步骤到安全点）"
+	_log_line("已请求取消导出并转换。")
+	set_process(true)
+	_refresh()
+
+func _on_cancel_result(result: Dictionary) -> void:
+	var task = result.get("task")
+	if result.get("status") == "CANCEL_REQUESTED":
+		if task is Dictionary:
+			_log_line("取消请求已送达 %s 任务 %s（%s）。" % [STEP_TEXT.get(str(task.get("step", "")), task.get("step", "")), task.get("taskId", ""),
+				"该任务已结束" if task.get("alreadyEnded") == true else "等待它在安全点停止"])
+		else:
+			_log_line("已写入取消标记：" + str(result.get("note", "下一步开始前停止")))
+	else:
+		# 例如运行目录尚未建立或运行刚好结束；面板保持运行状态，结果以运行本身的收据为准。
+		if not _job.is_empty():
+			_job.cancelling = false
+		_log_line("取消没有生效：%s" % str(result.get("message", result.get("code", ""))))
+	_refresh()
+
 func _quick_start(mode: String) -> void:
 	if not _job.is_empty():
 		return
@@ -656,23 +723,12 @@ func _quick_start(mode: String) -> void:
 		request = {"projectConfig": target if not target.is_empty() else _last_run.get("projectConfig", "")}
 	else:
 		request = {"project": _game_project(), "settings": _saved}
-	var token := "%d-%d" % [OS.get_process_id(), Time.get_ticks_usec()]
-	var logs := _state_directory().path_join("logs")
-	DirAccess.make_dir_recursive_absolute(logs)
-	var request_file := FileAccess.open(logs.path_join(token + ".quick-request.private.json"), FileAccess.WRITE)
-	if request_file == null:
-		_show_notice("无法开始", "无法写入插件日志目录：" + logs)
-		return
-	request_file.store_string(JSON.stringify(request))
-	request_file.close()
-	var adapter := _workbench_directory().path_join("quick-adapter.mjs")
-	var pid := OS.create_process(str(config.nodeExecutable), PackedStringArray([adapter, _config_file(), mode, token]), false)
-	if pid <= 0:
-		_show_notice("无法开始", "没能启动 Node 进程；没有执行任何步骤。")
+	var spawned := _spawn_adapter(str(config.nodeExecutable), mode, request)
+	if spawned.is_empty():
 		return
 	# 记下发起时的设置：运行期间若又保存了新设置，结果只算在发起时那份设置名下。
-	_job = {"pid": pid, "mode": mode, "token": token, "started": Time.get_ticks_msec(), "settings": JSON.stringify(_saved),
-		"result": logs.path_join(token + ".quick-result.private.json"), "events": logs.path_join(token + ".quick-events.private.jsonl")}
+	_job = spawned
+	_job.merge({"mode": mode, "started": Time.get_ticks_msec(), "settings": JSON.stringify(_saved)})
 	_task_line.text = {"plan": "任务：正在检查…", "run": "任务：开始导出…", "open": "任务：正在打开开发者工具…"}[mode]
 	_log_line({"plan": "开始只读检查。", "run": "开始导出并转换，运行目录在输出目录下。", "open": "打开 " + str(request.get("projectConfig", ""))}[mode])
 	_poll_elapsed = 0.0
@@ -680,20 +736,30 @@ func _quick_start(mode: String) -> void:
 	_refresh()
 
 func _process(delta: float) -> void:
-	if _job.is_empty():
+	if _job.is_empty() and _cancel_job.is_empty():
 		set_process(false)
 		return
 	_poll_elapsed += delta
 	if _poll_elapsed < 0.5:
 		return
 	_poll_elapsed = 0.0
+	if not _cancel_job.is_empty():
+		if FileAccess.file_exists(_cancel_job.result):
+			var cancel_result = JSON.parse_string(FileAccess.get_file_as_string(_cancel_job.result))
+			_cancel_job = {}
+			_on_cancel_result(cancel_result if cancel_result is Dictionary else {})
+		elif not OS.is_process_running(int(_cancel_job.pid)):
+			_cancel_job = {}
+			_log_line("取消进程已退出但没有结果；请查看插件 logs。")
+	if _job.is_empty():
+		return
 	var seconds := int((Time.get_ticks_msec() - int(_job.started)) / 1000)
 	if _job.mode == "run" and FileAccess.file_exists(_job.events):
 		var lines := FileAccess.get_file_as_string(_job.events).strip_edges().split("\n")
 		var last = JSON.parse_string(lines[lines.size() - 1]) if lines.size() > 0 and not lines[0].is_empty() else null
 		if last is Dictionary:
-			var phase := {"plan": "计划中", "execute": "进行中", "done": "完成"}.get(str(last.get("phase", "")), "")
-			_task_line.text = "任务：%s · %s（%d 秒）" % [STEP_TEXT.get(str(last.get("step", "")), ""), phase, seconds]
+			var phase := {"start": "", "plan": "计划中", "execute": "进行中", "done": "完成"}.get(str(last.get("phase", "")), "")
+			_task_line.text = "任务：%s%s · %s（%d 秒）" % ["正在取消 · " if _job.get("cancelling", false) else "", STEP_TEXT.get(str(last.get("step", "")), ""), phase, seconds]
 	if FileAccess.file_exists(_job.result):
 		var result = JSON.parse_string(FileAccess.get_file_as_string(_job.result))
 		var job := _job
@@ -727,6 +793,9 @@ func _on_quick_result(job: Dictionary, result: Dictionary) -> void:
 				_save_last_run(result, job.settings)
 				_task_line.text = "任务：完成（%d 秒）· 包号 %s" % [seconds, _last_run.packageId]
 				_log_line("导出并转换完成：" + str(result.get("run", "")))
+			elif result.get("status") == "CANCELLED":
+				_task_line.text = "任务：已取消（%d 秒）" % seconds
+				_log_line("已取消：%s。没有回滚，已写入的内容保留在 %s" % [str(result.get("error", {}).get("message", "")), str(result.get("run", ""))])
 			elif result.get("status") == "BLOCKED":
 				_task_line.text = "任务：未开始"
 				_show_notice("还不能导出", "\n".join(messages))
@@ -755,7 +824,7 @@ func _missing_for_export() -> Array:
 	if _saved.output.is_empty():
 		missing.append(["未选输出目录", "publish"])
 	if not _installed() and _saved.project.is_empty():
-		missing.append(["未选游戏工程目录", "publish"])
+		missing.append(["未选游戏工程目录", "advanced"])
 	if _settings_dirty():
 		missing.append(["设置未保存", "save"])
 	return missing
@@ -773,6 +842,10 @@ func _missing_for_open() -> Array:
 func _focus_missing(target: String) -> void:
 	if target == "save":
 		_settings_save.grab_focus()
+		return
+	if target == "advanced":
+		_advanced.folded = false
+		_project.grab_focus()
 		return
 	_groups[target].folded = false
 	match target:
@@ -805,6 +878,8 @@ func _refresh() -> void:
 		_groups[key].title = "%s%s：%s%s" % [marks, names[key], _group_summary(key), "  ●" if _group_dirty(key) else ""]
 		_groups[key].tooltip_text = ("还差：" + "、".join(PackedStringArray(missing))) if not missing.is_empty() else ""
 	var filled := {"template": not _draft.template.is_empty(), "output": not _draft.output.is_empty(), "appid": _appid_valid(_draft.appid), "project": _installed() or not _draft.project.is_empty()}
+	_advanced.title = ("⚠ " if not filled.project else "") + "高级" + ("  ●" if _draft.project != _saved.project else "")
+	_advanced.tooltip_text = "" if filled.project else "还差：游戏工程目录"
 	for key in _captions.keys():
 		if filled.get(key, true):
 			_captions[key].remove_theme_color_override("font_color")
@@ -859,6 +934,9 @@ func _refresh() -> void:
 	_export_button.disabled = busy or not export_missing.is_empty()
 	_export_button.text = "导出中…" if busy and _job.mode == "run" else "导出并转换"
 	_export_button.tooltip_text = "" if export_missing.is_empty() else "还差：" + "、".join(PackedStringArray(export_missing.map(func(m): return m[0])))
+	_cancel_button.visible = busy and _job.mode == "run"
+	_cancel_button.disabled = _job.get("cancelling", false)
+	_cancel_button.text = "取消中…" if _job.get("cancelling", false) else "取消"
 	_open_button.disabled = busy or not open_missing.is_empty()
 	_open_button.tooltip_text = "还差：" + "、".join(PackedStringArray(open_missing))
 	_open_hint.text = "打开还差：" + "、".join(PackedStringArray(open_missing))
