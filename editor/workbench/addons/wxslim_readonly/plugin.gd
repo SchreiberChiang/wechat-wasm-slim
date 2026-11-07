@@ -8,7 +8,8 @@ class EditorFilesOnly extends EditorExportPlugin:
 		return "WxSlimEditorFilesOnly"
 
 	func _export_file(file: String, _type: String, _features: PackedStringArray) -> void:
-		if file.begins_with("res://addons/wxslim_readonly/"):
+		# 插件本身、随项目提交的面板设置和快速流程命令行设置都不进游戏 PCK。
+		if file.begins_with("res://addons/wxslim_readonly/") or file in ["res://wxslim.json", "res://wxslim-export.json"]:
 			skip()
 
 var export_filter := EditorFilesOnly.new()

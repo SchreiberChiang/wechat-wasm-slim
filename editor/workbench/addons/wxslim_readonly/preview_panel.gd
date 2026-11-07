@@ -13,7 +13,11 @@ const LAST_RUN_FILE := "panel-preview-last-run.private.json"
 const STEP_TEXT := {"start": "准备运行目录", "export": "导出 PCK", "convert": "官方转换", "devtools": "生成电脑预览包", "open": "打开开发者工具"}
 const APPID_PATTERN := "^wx[0-9a-f]{16}$"
 const TEMPLATES := {"full": "完整模板", "2d": "2D 模板", "custom": "自定义"}
-const STORAGE := [["project", "跟随项目（res://wxslim.json）"], ["project-local", "仅本工程本机（.godot/wxslim/）"], ["machine", "仅本电脑（插件状态目录）"]]
+const PROJECT_SETTINGS := "res://wxslim.json"
+const LOCAL_SETTINGS := "res://.godot/wxslim/panel-settings.json"
+# 与游戏相关、适合随项目共享的选择。输出目录、AppID 及其来源文件、源码工作台的游戏目录属于本机，始终只存在本机状态目录。
+const SHARED_KEYS := ["template", "confirmNo3d", "orientation", "glx", "skipPrewarm", "subpackages", "scenes", "gameName"]
+const STORAGE := [["project", "跟随项目"], ["project-local", "仅本工程本机"], ["machine", "仅本电脑"]]
 const STATUS_TEXT := {"implemented": "已实现待验证", "unsupported": "不支持", "missing": "未实现", "pending": "待核查", "verified": "已验证"}
 const STATUS_COLOR := {"implemented": Color(0.95, 0.75, 0.3), "unsupported": Color(0.6, 0.6, 0.6), "missing": Color(0.9, 0.4, 0.4), "pending": Color(0.55, 0.7, 0.9), "verified": Color(0.45, 0.85, 0.5)}
 const CATEGORIES := [
@@ -59,6 +63,7 @@ var _appid_note: Label
 var _game_name: LineEdit
 var _output: LineEdit
 var _storage: OptionButton
+var _storage_note: Label
 var _lock_note: Label
 var _lower: VBoxContainer
 var _engine_line: Label
@@ -168,25 +173,65 @@ func _load_capabilities() -> void:
 			if item is Dictionary and item.get("id") is String:
 				_capabilities[item.id] = item
 
+# 设置保存位置：本机状态目录里始终有一份完整设置（含保存位置本身和只属于本机的路径）；
+# 选「跟随项目」或「仅本工程本机」时，与游戏相关的选择另写到对应文件，读取时以它为准。
+func _shared_file(storage: String) -> String:
+	return {"project": PROJECT_SETTINGS, "project-local": LOCAL_SETTINGS}.get(storage, "")
+
+func _overlay(target: Dictionary, file: String, keys: Array) -> bool:
+	if not FileAccess.file_exists(file):
+		return false
+	var data = JSON.parse_string(FileAccess.get_file_as_string(file))
+	if not data is Dictionary:
+		return false
+	for key in keys:
+		if data.has(key) and typeof(data[key]) == typeof(target[key]):
+			target[key] = data[key]
+	return true
+
 func _load_settings() -> void:
 	_saved = _default_settings()
-	var file := _state_directory().path_join(SETTINGS_FILE)
-	if FileAccess.file_exists(file):
-		var data = JSON.parse_string(FileAccess.get_file_as_string(file))
-		if data is Dictionary:
-			for key in _saved.keys():
-				if data.has(key) and typeof(data[key]) == typeof(_saved[key]):
-					_saved[key] = data[key]
+	var had_machine := _overlay(_saved, _state_directory().path_join(SETTINGS_FILE), _saved.keys())
+	# 新电脑上第一次打开、项目里已有随项目提交的设置：直接沿用它。
+	if not had_machine and FileAccess.file_exists(PROJECT_SETTINGS):
+		_saved.storage = "project"
+	var shared := _shared_file(_saved.storage)
+	if not shared.is_empty():
+		_overlay(_saved, shared, SHARED_KEYS)
 	_draft = _saved.duplicate(true)
 
-func _write_settings() -> bool:
-	var file := FileAccess.open(_state_directory().path_join(SETTINGS_FILE), FileAccess.WRITE)
-	if file == null:
+func _write_json(file: String, value: Dictionary) -> bool:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(file.get_base_dir()))
+	var handle := FileAccess.open(file, FileAccess.WRITE)
+	if handle == null:
+		return false
+	handle.store_string(JSON.stringify(value, "\t") + "\n")
+	handle.close()
+	return true
+
+func _write_settings(previous_storage := "") -> bool:
+	if not _write_json(_state_directory().path_join(SETTINGS_FILE), _saved):
 		_log_line("设置保存失败：无法写入插件状态目录。")
 		return false
-	file.store_string(JSON.stringify(_saved, "\t") + "\n")
-	file.close()
+	var shared := _shared_file(_saved.storage)
+	if not shared.is_empty():
+		var value := {"schema": "wxslim-panel-settings-v1"}
+		for key in SHARED_KEYS:
+			value[key] = _saved[key]
+		if not _write_json(shared, value):
+			_log_line("设置保存失败：无法写入 " + shared)
+			return false
+	# 换了保存位置时不删旧文件，只提示它还在。
+	var old := _shared_file(previous_storage)
+	if previous_storage != _saved.storage and not old.is_empty() and FileAccess.file_exists(old):
+		_log_line("保存位置已改为「%s」。旧位置的文件保留未删除：%s" % [_storage_label(_saved.storage), old])
 	return true
+
+func _storage_label(storage: String) -> String:
+	for item in STORAGE:
+		if item[0] == storage:
+			return item[1]
+	return storage
 
 func _appid_valid(value: String) -> bool:
 	return RegEx.create_from_string(APPID_PATTERN).search(value) != null
@@ -234,7 +279,7 @@ func _note(text: String, parent: Control) -> Label:
 	label.text = text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.modulate = Color(1, 1, 1, 0.6)
-	label.add_theme_font_size_override("font_size", 12)
+	# 不写死字号：跟随编辑器字号缩放，只用淡色区分说明文字。
 	parent.add_child(label)
 	return label
 
@@ -242,6 +287,8 @@ func _foldable(title: String, parent: Control, folded: bool) -> Array:
 	var box := FoldableContainer.new()
 	box.title = title
 	box.folded = folded
+	# 窄侧栏或大字号时标题显示省略号，悬停看全文，不把整个面板撑宽。
+	box.title_text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	parent.add_child(box)
 	var body := VBoxContainer.new()
 	body.add_theme_constant_override("separation", 8)
@@ -254,6 +301,7 @@ func _field(caption: String, parent: Control, key := "") -> VBoxContainer:
 	parent.add_child(item)
 	var label := Label.new()
 	label.text = caption + (" *" if not key.is_empty() else "")
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	item.add_child(label)
 	if not key.is_empty():
 		_captions[key] = label
@@ -378,6 +426,7 @@ func _build_runtime(parent: Control) -> void:
 	_radio_group(orientation, [["portrait", "竖屏"], ["landscape", "横屏"]], _orientation_buttons, "orientation")
 	var render := _field("渲染", body)
 	_glx = CheckBox.new()
+	_glx.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_glx.text = "启用 GLX（取消为 WebGL 电脑对照）"
 	_glx.toggled.connect(func(on: bool):
 		if not _loading:
@@ -388,6 +437,7 @@ func _build_runtime(parent: Control) -> void:
 	_glx_status = _note("", render)
 	var prewarm := _field("启动预热", body)
 	_prewarm = CheckBox.new()
+	_prewarm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_prewarm.text = "跳过默认 3D 预热"
 	_prewarm.toggled.connect(func(on: bool):
 		if not _loading:
@@ -447,6 +497,8 @@ func _build_publish(parent: Control) -> void:
 
 	var storage := _field("设置保存位置", body)
 	_storage = OptionButton.new()
+	_storage.fit_to_longest_item = false
+	_storage.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	for item in STORAGE:
 		_storage.add_item(item[1])
 		_storage.set_item_metadata(_storage.item_count - 1, item[0])
@@ -455,7 +507,8 @@ func _build_publish(parent: Control) -> void:
 			_draft.storage = str(_storage.get_item_metadata(index))
 			_refresh()
 	)
-	_storage.tooltip_text = "预览版统一保存在插件本机状态目录；三种位置的实际读写在正式版实现。"
+	_storage.tooltip_text = "跟随项目：模板、方向、GLX、分包场景和游戏名写入 res://wxslim.json，可随项目提交，导出游戏时自动排除。\n仅本工程本机：写入 .godot/wxslim/，不进版本库。\n仅本电脑：只存在插件状态目录。\n输出目录、AppID 和来源文件始终只存本机，不会写进项目。"
+	_storage_note = _note("", storage)
 	storage.add_child(_storage)
 
 # ---------- 其他折叠区 ----------
@@ -654,8 +707,9 @@ func _save_settings() -> void:
 	for key in ["template", "confirmNo3d", "orientation", "glx", "skipPrewarm", "appid", "subpackages", "scenes"]:
 		if _draft[key] != _saved[key]:
 			changed_build = true
+	var previous_storage: String = _saved.storage
 	_saved = _draft.duplicate(true)
-	if _write_settings():
+	if _write_settings(previous_storage):
 		_log_line("设置已保存。" + ("之前的转换结果不再适用，需要重新导出并转换。" if changed_build else ""))
 	for key in _groups.keys():
 		if _group_missing(key).is_empty():
@@ -1051,7 +1105,7 @@ func _refresh() -> void:
 		var missing := _group_missing(key)
 		var marks := ("⚠ " if not missing.is_empty() else "")
 		_groups[key].title = "%s%s：%s%s" % [marks, names[key], _group_summary(key), "  ●" if _group_dirty(key) else ""]
-		_groups[key].tooltip_text = ("还差：" + "、".join(PackedStringArray(missing))) if not missing.is_empty() else ""
+		_groups[key].tooltip_text = _groups[key].title + (("\n还差：" + "、".join(PackedStringArray(missing))) if not missing.is_empty() else "")
 	var filled := {"template": not _draft.template.is_empty(), "output": not _draft.output.is_empty(), "appid": _appid_valid(_draft.appid), "project": _installed() or not _draft.project.is_empty()}
 	_advanced.title = ("⚠ " if not filled.project else "") + "高级" + ("  ●" if _draft.project != _saved.project else "")
 	_advanced.tooltip_text = "" if filled.project else "还差：游戏工程目录"
@@ -1064,7 +1118,12 @@ func _refresh() -> void:
 	var dirty := _settings_dirty()
 	_settings_save.disabled = not dirty
 	_settings_discard.disabled = not dirty
-	_save_state.text = "● 有未保存的改动（带 ● 的组）" if dirty else "设置已保存。点组标题可展开修改，带 * 的为必填。"
+	if dirty:
+		_save_state.text = "● 有未保存的改动（带 ● 的组）"
+	elif not _settings_ready():
+		_save_state.text = "第一次使用：选模板 → 填 AppID 和输出目录 → 保存设置 → 导出并转换。"
+	else:
+		_save_state.text = "设置已保存。点组标题可展开修改，带 * 的为必填。"
 	_save_state.modulate = Color(1, 1, 1, 1.0 if dirty else 0.6)
 	if dirty:
 		_save_state.add_theme_color_override("font_color", STATUS_COLOR.implemented)
@@ -1076,6 +1135,7 @@ func _refresh() -> void:
 	_lower.modulate = Color(1, 1, 1, 1.0 if settings_ok else 0.4)
 	_set_locked(_lower, not settings_ok)
 
+	_storage_note.text = {"project": "写入 res://wxslim.json，导出游戏时自动排除。", "project-local": "写入 .godot/wxslim/panel-settings.json。", "machine": "只存在插件状态目录。"}.get(_draft.storage, "") + "输出目录和 AppID 只存本机。"
 	_custom_box.visible = _draft.template == "custom"
 	_scene_box.visible = _draft.subpackages == "scenes"
 	_render_scene_list()
