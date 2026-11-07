@@ -479,6 +479,32 @@ test('runs: a finished run writes a summary that the run list reads back', async
   assert.equal(JSON.parse(fs.readFileSync(path.join(cancelled.run, RUN_SUMMARY), 'utf8')).error.code, 'QUICK_CANCELLED');
 });
 
+test('progress shows only the bound task event and a partial owner never completes a pending cancel', async () => {
+  const f = fixture();
+  const run = fakeRun(f.output, 'live', {exportStatus:'RUNNING', active:'export', marker:true});
+  const event = {taskId:'pck', at:'2026-11-08T00:00:00.000Z', stage:'EXPORT', status:'RUNNING', details:{private:'omitted'}};
+  fs.writeFileSync(path.join(run, 'pck/events.jsonl'), JSON.stringify(event) + '\n');
+  const state = quickRunStatus(run);
+  assert.equal(state.status, 'UNFINISHED');
+  assert.equal(state.cancelRequested, true);
+  assert.equal(state.progress.taskId, 'pck');
+  assert.equal(state.progress.step, 'export');
+  assert.equal(state.progress.readStatus, 'COMPLETE');
+  assert.deepEqual(state.progress.lastEvent, {stage:event.stage, status:event.status, at:event.at, wallMs:null});
+  assert.equal(state.progress.scope, 'LAST_RECORDED_EVENT_NOT_LIVENESS_OR_TERMINAL');
+  fs.writeFileSync(path.join(run,'pck/TASK.json'), '{');
+  assert.equal(quickRunStatus(run).progress, null);
+  assert.equal(quickRunStatus(run).status, 'UNFINISHED');
+  const sibling = fakeRun(f.output, 'sibling', {exportStatus:'RUNNING',active:'export'});
+  const record = {step:'export', taskRoot:path.join(sibling,'pck'), requestFile:path.join(sibling,'requests/export-request.json')};
+  fs.writeFileSync(path.join(run,'requests/active-task.json'), JSON.stringify(record));
+  assert.equal(quickRunStatus(run).progress, null);
+  const never = () => assert.fail('cancel crossed the run boundary');
+  const cancelled = await cancelQuickRun(run, {service:{status:never, cancel:never},waitMs:0});
+  assert.equal(cancelled.task, null);
+  assert.equal(fs.existsSync(path.join(sibling,CANCEL_MARKER)), false);
+});
+
 test('runs: runs without a summary are inferred from task receipts and the cancel marker', () => {
   const f = fixture();
   const status = name => quickRunStatus(path.join(f.output, name)).status;

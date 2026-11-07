@@ -66,7 +66,7 @@ const closed = new Promise((resolve,reject)=>{
   child.once('error',reject);
   child.once('close',resolve);
 });
-let run, active;
+let run, active, runningState;
 const until = Date.now()+180000;
 while (child.exitCode===null && child.signalCode===null && Date.now()<until) {
   const [name] = fs.readdirSync(runs);
@@ -76,7 +76,10 @@ while (child.exitCode===null && child.signalCode===null && Date.now()<until) {
     try { active=read(file); }
     catch (e) { if (e.code !== 'ENOENT' && !(e instanceof SyntaxError)) throw e; }
     if (active?.step==='convert' && path.relative(path.join(run,'wechat'),active.taskRoot)==='' &&
-        fs.existsSync(path.join(active.taskRoot,'TASK.json'))) break;
+        fs.existsSync(path.join(active.taskRoot,'TASK.json')) && fs.statSync(path.join(active.taskRoot,'events.jsonl'),{throwIfNoEntry:false})?.size) {
+      runningState = command('running-status',['status',run],0);
+      break;
+    }
   }
   await delay(40);
 }
@@ -93,6 +96,11 @@ const terminal = read(path.join(run,'wechat/terminal.json'));
 assert.equal(cancelReceipt.task.accepted,true);
 assert.equal(terminal.taskId,cancelReceipt.task.taskId);
 assert.equal(terminal.status,'CANCELLED');
+assert.equal(runningState?.status,'UNFINISHED');
+assert.equal(runningState.progress.step,'convert');
+assert.equal(runningState.progress.taskId,terminal.taskId);
+assert(runningState.progress.lastEvent?.at);
+assert.equal(runningState.progress.scope,'LAST_RECORDED_EVENT_NOT_LIVENESS_OR_TERMINAL');
 const cancelState = command('cancel-status',['status',run],0);
 assert.equal(cancelState.status,'CANCELLED');
 assert.equal(cancelState.openTarget,'');
@@ -128,7 +136,7 @@ assert.equal(failedState.packageId,'');
 assert.equal(failedState.openTarget,'');
 assert(!fs.existsSync(path.join(failure.run,'wechat')));
 const result = {blocked:{field:'confirmRemovedModules',writes:'NONE'},
-  cancelled:{export:'SUCCESS',conversion:terminal.status,quick:cancelState.status,taskId:terminal.taskId},
+  cancelled:{export:'SUCCESS',conversion:terminal.status,quick:cancelState.status,taskId:terminal.taskId,progress:runningState.progress},
   failed:{export:failedTerminal.status,quick:failedState.status,reason:cause.code,field:failedState.error.field,taskId:failedTerminal.taskId}};
 save('result.json',result);
 console.log(JSON.stringify(result));
