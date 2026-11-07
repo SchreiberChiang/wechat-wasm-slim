@@ -112,22 +112,27 @@ export function createTask(root, {budgetBytes, recipeId}) {
   // Observation while an owned child is changing its cache must not recursively
   // measure that active tree. Budget enforcement remains in the existing gates.
   const readCancellationRequested = () => { owner(root, taskId); return !!existing(root, 'cancel.json', taskId); };
+  function append(event, measureBudget) {
+    if (measureBudget) check(); else owner(root, taskId);
+    if (!event || typeof event !== 'object' || Array.isArray(event) || !Object.keys(event).length || Object.keys(event).some(key => !['status', 'stage', 'details'].includes(key)) || !plainJson(event) || ['status', 'stage'].some(key => event[key] !== undefined && (typeof event[key] !== 'string' || !/^[A-Z][A-Z0-9_]{0,63}$/.test(event[key])))) fail('TASK_EVENT_INVALID', 'events contain status/stage tokens and plain JSON details only');
+    if (existing(root, 'terminal.json', taskId)) fail('TASK_ENDED', 'task already ended');
+    let handle;
+    try {
+      regular(log);
+      handle = fs.openSync(log, fs.constants.O_APPEND | fs.constants.O_WRONLY); fs.writeFileSync(handle, JSON.stringify({taskId, at:new Date().toISOString(), ...event}) + '\n'); fs.fsyncSync(handle);
+    } catch (error) { logFailed = true; throw error; }
+    finally { if (handle !== undefined) try { fs.closeSync(handle); } catch (error) { logFailed = true; throw error; } }
+    if (measureBudget) budget(root, record);
+  }
   return {
     root, taskId,
     isCancellationRequested,
     readCancellationRequested,
-    event(event) {
-      check();
-      if (!event || typeof event !== 'object' || Array.isArray(event) || !Object.keys(event).length || Object.keys(event).some(key => !['status', 'stage', 'details'].includes(key)) || !plainJson(event) || ['status', 'stage'].some(key => event[key] !== undefined && (typeof event[key] !== 'string' || !/^[A-Z][A-Z0-9_]{0,63}$/.test(event[key])))) fail('TASK_EVENT_INVALID', 'events contain status/stage tokens and plain JSON details only');
-      if (existing(root, 'terminal.json', taskId)) fail('TASK_ENDED', 'task already ended');
-      let handle;
-      try {
-        regular(log);
-        handle = fs.openSync(log, fs.constants.O_APPEND | fs.constants.O_WRONLY); fs.writeFileSync(handle, JSON.stringify({taskId, at:new Date().toISOString(), ...event}) + '\n'); fs.fsyncSync(handle);
-      } catch (error) { logFailed = true; throw error; }
-      finally { if (handle !== undefined) try { fs.closeSync(handle); } catch (error) { logFailed = true; throw error; } }
-      budget(root, record);
-    },
+    event(event) { append(event, true); },
+    // Child-observation events while an owned child writes inside this task root.
+    // Same validation and log rules as event(), without recursively measuring the
+    // active tree; the next checkpoint after the child closes enforces the budget.
+    observe(event) { append(event, false); },
     checkpoint(stage) {
       check();
       if (existing(root, 'terminal.json', taskId)) fail('TASK_ENDED', 'task already ended');

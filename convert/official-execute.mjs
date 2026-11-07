@@ -80,8 +80,11 @@ export async function executeOfficial(cfg, {writeAuthorized=false, expectedPrefl
       runTransformer:async options=>{
         checkpoint('CONVERTER_RUNNING');
         child=await runOwnedProcess({...options,observeAfterMs:600000,
-          isCancellationRequested:()=>task.isCancellationRequested(),
-          onEvent:event=>task.event({stage:'CONVERTER',status:event.type==='cancellation_requested'?'CANCEL_REQUESTED_WAITING_CHILD':event.type==='observation_timeout'?'OBSERVATION_TIMEOUT_WAITING_CHILD':'RUNNING',details:event}),
+          // The transformer creates and deletes temporary files inside this task root.
+          // Observing it must not walk that tree: a file removed mid-walk raised ENOENT and
+          // failed an otherwise successful conversion. Budget is enforced at CONVERTER_CLOSED.
+          isCancellationRequested:()=>task.readCancellationRequested(),
+          onEvent:event=>task.observe({stage:'CONVERTER',status:event.type==='cancellation_requested'?'CANCEL_REQUESTED_WAITING_CHILD':event.type==='observation_timeout'?'OBSERVATION_TIMEOUT_WAITING_CHILD':'RUNNING',details:event}),
         });
         writeNew(path.join(task.root,'CHILD.json'),child);
         // The runner returns only after close and log persistence; no packaging
