@@ -118,7 +118,11 @@ test('inputs: fixed files come from the release, editor and preset are resolved,
 });
 
 test('run: drafts equal the panel form builders and each step executes the plan it just reviewed', async () => {
-  const f = fixture({appidFrom: ''});
+  const f = fixture();
+  const appidFrom = path.join(f.root, 'project.config.json');
+  fs.writeFileSync(appidFrom, '{}');
+  const settingsFile = path.join(f.project, 'wxslim-export.json');
+  fs.writeFileSync(settingsFile, JSON.stringify({...JSON.parse(fs.readFileSync(settingsFile, 'utf8')), appidFrom}));
   const service = fakeService();
   const opened = [];
   const result = await quickRun(f.options, {service, openProject: (file, from) => { opened.push([file, from]); return {ok: true}; }});
@@ -145,7 +149,7 @@ test('run: drafts equal the panel form builders and each step executes the plan 
   }
   assert.equal(result.steps.export.planSha256, service.calls[1].options.expectedPlanSha256);
   assert.equal(result.projectConfig, path.join(result.run, 'wechat', 'converted', 'minigame', 'project.config.json'));
-  assert.deepEqual(opened, [[result.projectConfig, '']]);
+  assert.deepEqual(opened, [[result.projectConfig, appidFrom]]);
 });
 
 test('run: digest passed to execute is the identity of the reviewed plan', async () => {
@@ -183,6 +187,16 @@ test('run: an existing run directory is never reused', async () => {
   const service = fakeService();
   const result = await quickRun(f.options, {service});
   assert.equal(result.status, 'FAILED');
+  assert.deepEqual(service.calls, []);
+});
+
+test('run: --open without an AppID source is blocked before anything is written', async () => {
+  const f = fixture();
+  const service = fakeService();
+  const result = await quickRun(f.options, {service, openProject: () => ({})});
+  assert.equal(result.status, 'BLOCKED');
+  assert.deepEqual(result.blockers.map(b => b.code), ['QUICK_OPEN_NEEDS_APPID_SOURCE']);
+  assert.deepEqual(fs.readdirSync(f.output), []);
   assert.deepEqual(service.calls, []);
 });
 
