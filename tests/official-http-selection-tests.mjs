@@ -1,3 +1,4 @@
+import {fileURLToPath} from 'node:url';
 // Fixed-source GET/read + in-memory replay and selected Python AST execution.
 // Does not import/execute SCons, compile, run an engine, or request business URLs.
 import fs from 'node:fs';
@@ -6,11 +7,12 @@ import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {execFileSync} from 'node:child_process';
-import {officialStorageInputPlan,fetchOfficialStorageInputs,prepareOfficialStorageSources} from '../engine/official-storage-source-audit.mjs';
+import {officialStorageInputPlan,prepareOfficialStorageSources} from '../engine/official-storage-source-audit.mjs';
 import {replayUnifiedPatch} from '../engine/fixed-source-audit.mjs';
 const id=b=>({bytes:Buffer.byteLength(b),sha256:crypto.createHash('sha256').update(b).digest('hex')});
 const meta=JSON.parse(fs.readFileSync(new URL('../engine/official-http-selection.json',import.meta.url),'utf8'));
-const inputs=process.env.WXSLIM_OFFICIAL_SOURCE_ROOT?new Map(officialStorageInputPlan().map(p=>[p.path,fs.readFileSync(path.join(process.env.WXSLIM_OFFICIAL_SOURCE_ROOT,p.path))])):await fetchOfficialStorageInputs();
+const sourceRoot=process.env.WXSLIM_OFFICIAL_SOURCE_ROOT || fileURLToPath(new URL('../offline/fixtures/c050-source/',import.meta.url));
+const inputs=new Map(officialStorageInputPlan().map(p=>[p.path,fs.readFileSync(path.join(sourceRoot,p.path))]));
 const before=prepareOfficialStorageSources(inputs).scsubSource;
 const patch=fs.readFileSync(new URL('../engine/official-http-selection.patch',import.meta.url));
 const replay=replayUnifiedPatch(patch,p=>{assert.equal(p,'platform/web/SCsub');return before;});

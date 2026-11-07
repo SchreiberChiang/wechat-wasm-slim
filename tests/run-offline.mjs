@@ -27,6 +27,7 @@ const required = {
   WXSLIM_SHADER_DF3_ROOT: path.join(state, 'df3.git'),
   WXSLIM_AUDIO_DF3_ROOT: path.join(state, 'df3.git'),
   WXSLIM_FIXED_HTTP_FIXTURES: sourceFile('fixtures/fork-http'),
+  WXSLIM_OFFICIAL_SOURCE_ROOT: sourceFile('fixtures/c050-source'),
   WXSLIM_CUSTOM_MODULE_SOURCE: sourceFile('fixtures/modules'),
 };
 for (const [key, filename] of Object.entries(required)) {
@@ -40,7 +41,9 @@ const result = spawnSync(path.join(state, 'node.exe'),
     cwd: source, windowsHide: true, stdio: ['ignore','pipe','inherit'], encoding:'utf8', maxBuffer:64*2**20,
     env: {...process.env, ...required,
       PATH: path.dirname(required.WXSLIM_PINNED_GIT_EXE) + path.delimiter + process.env.PATH,
-      GIT_CONFIG_NOSYSTEM:'1', GIT_CONFIG_GLOBAL:'NUL', GIT_NO_REPLACE_OBJECTS:'1'},
+      GIT_CONFIG_NOSYSTEM:'1', GIT_CONFIG_GLOBAL:'NUL', GIT_NO_REPLACE_OBJECTS:'1',
+      GIT_CONFIG_COUNT:'2', GIT_CONFIG_KEY_0:'safe.directory', GIT_CONFIG_KEY_1:'safe.directory',
+      GIT_CONFIG_VALUE_0:required.WXSLIM_C050_GIT.replaceAll('\\','/'), GIT_CONFIG_VALUE_1:required.WXSLIM_AUDIO_DF3_ROOT.replaceAll('\\','/')},
   });
 if (result.error) throw result.error;
 process.stdout.write(result.stdout);

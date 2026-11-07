@@ -1080,6 +1080,21 @@
       "bytes": 13750,
       "sha256": "786a6423cf256fbe9093c9330c0fc70398f27455893a25c8a3eab292230e2c13",
       "origin": "official-engine-dev-01/engine/modules/register_module_types.gen.cpp"
+    },
+    "fixtures/c050-source/platform/web/js/libs/library_godot_os.js": {
+      "sha256": "211dfb5520e9dd1381e3c379b4d9486420a02d9f3f72c40b912e3b2a5e7daaa9",
+      "bytes": 14940,
+      "origin": "c050c09b105c3715e1caa57a7109cd752047fd89:platform/web/js/libs/library_godot_os.js"
+    },
+    "fixtures/c050-source/platform/web/SCsub": {
+      "sha256": "d8292a8945f941c061f6484ea2bcce783d7838cde8ecad8ff3ca86ff29b36180",
+      "bytes": 4631,
+      "origin": "c050c09b105c3715e1caa57a7109cd752047fd89:platform/web/SCsub"
+    },
+    "fixtures/c050-source/drivers/gles3/shader_gles3.cpp": {
+      "sha256": "17c01277dc3468a1d53081f01a6f7665f5d0f82e7882a8198e1f486ee344d5d8",
+      "bytes": 28071,
+      "origin": "c050c09b105c3715e1caa57a7109cd752047fd89:drivers/gles3/shader_gles3.cpp"
     }
   }
 }
