@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {sha} from './inputs.mjs';
 import {CUSTOM_PAIR_PROFILE, readCompletedCustomPairTask} from '../../lib/custom-pair-task.mjs';
+import {portablePairSchema,readPortablePair} from './portable-pair.mjs';
 import {getOfficialRecipe, getRecipeIdentity, OFFICIAL_C050_CAPABILITY_PROFILE} from './official-engine-admission.mjs';
 
 // The existing converter looks up recipes by profile at many checkpoints.
@@ -26,6 +27,7 @@ export async function readPreparedSource(file) {
   const stat = fs.lstatSync(file);
   assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 65536, 'bounded preparation config required');
   const cfg = JSON.parse(fs.readFileSync(file));
+  if (cfg.schema === portablePairSchema) return readPortablePair(file);
   if (cfg.schema === 'wxslim-rebuilt-capability-pair-v1') {
     const {readRebuiltCapabilityPair} = await import('../../engine/rebuilt-capability-pair.mjs');
     return readRebuiltCapabilityPair(file);
@@ -67,8 +69,8 @@ export function withOfficialConfiguration(file, action) {
     const paths = JSON.parse(configBytes);
     const resolve = p => path.resolve(path.dirname(preparationConfig), p);
     const context = Object.freeze({record:Object.freeze({recipe,identity}), preparationConfig,
-      sourceRecipe:summary.sourceRecipe, protectedRoot:resolve(paths.rawTaskRoot), rebuilt, retainedFixed:!!summary.retainedFixed,
-      protectedFiles:Object.freeze([preparationConfig,resolve(paths.outputJs),resolve(paths.receipt)]),
+      sourceRecipe:summary.sourceRecipe, protectedRoot:prepared.protectedRoot ?? resolve(paths.rawTaskRoot), rebuilt, retainedFixed:!!summary.retainedFixed,
+      protectedFiles:Object.freeze(prepared.protectedRoot ? [preparationConfig] : [preparationConfig,resolve(paths.outputJs),resolve(paths.receipt)]),
       customSource:freeze(customSource), recheck:prepared.recheck,
       // Factory/output checks compare to their own copy, including the selected
       // minified import keys. No converter caller can replace the approved bytes.
@@ -76,6 +78,6 @@ export function withOfficialConfiguration(file, action) {
     assert(fs.readFileSync(file).equals(source), 'custom conversion configuration changed during admission');
     const state = {context, live:true};
     try { return await active.run(state, action); }
-    finally { state.live = false; }
+    finally { state.live = false; prepared.close?.(); }
   }
 }
