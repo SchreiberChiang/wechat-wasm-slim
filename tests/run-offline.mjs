@@ -36,10 +36,14 @@ for (const [key, filename] of Object.entries(required)) {
 const files = ['editor/workbench', 'tests'].flatMap(dir =>
   fs.readdirSync(path.join(source, dir)).filter(name => name.endsWith('-tests.mjs')).sort()
     .map(name => path.join(dir, name)));
+// A developer may have configured another installed plugin or an external
+// evidence directory. The offline suite selects every project input itself.
+const environment = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
+  !/^(?:WXSLIM_|OFFICIAL_CAPTURE_RAW_DIR$)/i.test(key)));
 const result = spawnSync(path.join(state, 'node.exe'),
   ['--test', '--test-concurrency=4', '--test-reporter=tap', ...files], {
     cwd: source, windowsHide: true, stdio: ['ignore','pipe','inherit'], encoding:'utf8', maxBuffer:64*2**20,
-    env: {...process.env, ...required,
+    env: {...environment, ...required,
       PATH: path.dirname(required.WXSLIM_PINNED_GIT_EXE) + path.delimiter + process.env.PATH,
       GIT_CONFIG_NOSYSTEM:'1', GIT_CONFIG_GLOBAL:'NUL', GIT_NO_REPLACE_OBJECTS:'1',
       GIT_CONFIG_COUNT:'2', GIT_CONFIG_KEY_0:'safe.directory', GIT_CONFIG_KEY_1:'safe.directory',
