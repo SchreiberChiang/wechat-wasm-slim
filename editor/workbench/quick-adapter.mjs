@@ -16,7 +16,7 @@ import {loadConfig} from './adapter.mjs';
 import {quickPlan, quickRun, cancelQuickRun, listQuickRuns, quickRunStatus, QUICK_SETTINGS_SCHEMA} from '../../lib/quick-flow.mjs';
 import {openWeChatProject} from './open-project.mjs';
 
-const PANEL_KEYS = ['template', 'orientation', 'glx', 'skipPrewarm', 'subpackages', 'scenes', 'appid', 'appidFrom', 'gameName', 'output'];
+const PANEL_KEYS = ['template', 'orientation', 'glx', 'skipPrewarm', 'subpackages', 'scenes', 'appid', 'appidFrom', 'gameName', 'output', 'confirmNo3d'];
 const TOKEN = /^[0-9]{1,12}-[0-9]{1,24}$/;
 
 function reject(code, message) {

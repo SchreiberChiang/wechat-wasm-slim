@@ -24,7 +24,7 @@ const CATEGORIES := [
 ]
 # 每个设置组包含的字段，用于判断该组是否有未保存改动。
 const GROUP_KEYS := {
-	"packing": ["template", "subpackages", "scenes"],
+	"packing": ["template", "confirmNo3d", "subpackages", "scenes"],
 	"runtime": ["orientation", "glx", "skipPrewarm"],
 	"publish": ["appid", "appidFrom", "gameName", "output", "storage"],
 }
@@ -44,6 +44,10 @@ var _template_buttons := {}
 var _orientation_buttons := {}
 var _subpackage_buttons := {}
 var _custom_box: VBoxContainer
+var _confirm_2d_box: VBoxContainer
+var _confirm_2d: CheckBox
+# 与 lib/quick-flow.mjs 的 pure2dRemovedModules() 一致，仅用于提示；实际声明由快速流程按 PCK 生成。
+const PURE_2D_REMOVED := ["csg", "fbx", "gltf", "godot_physics_3d", "gridmap", "jolt_physics", "meshoptimizer", "mobile_vr", "navigation_3d", "vhacd", "webxr"]
 var _scene_box: VBoxContainer
 var _scene_list: VBoxContainer
 var _glx: CheckBox
@@ -94,7 +98,7 @@ func _workbench_directory() -> String:
 	return ProjectSettings.globalize_path("res://")
 
 func _default_settings() -> Dictionary:
-	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "subpackages": "none", "scenes": [], "appid": "", "appidFrom": "", "gameName": "", "output": "", "project": ""}
+	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "confirmNo3d": false, "subpackages": "none", "scenes": [], "appid": "", "appidFrom": "", "gameName": "", "output": "", "project": ""}
 
 func _installed() -> bool:
 	return FileAccess.file_exists(INSTALL_LOCATOR)
@@ -205,6 +209,8 @@ func _group_missing(group: String) -> Array:
 		"packing":
 			if _draft.template.is_empty():
 				missing.append("未选模板")
+			if _draft.template == "2d" and not _draft.confirmNo3d:
+				missing.append("2D 未确认不用 3D")
 			if _draft.subpackages == "scenes" and _draft.scenes.is_empty():
 				missing.append("未选分包场景")
 		"publish":
@@ -315,6 +321,19 @@ func _build_packing(parent: Control) -> void:
 
 	var template := _field("模板", body, "template")
 	_radio_group(template, [["full", "完整"], ["2d", "2D"], ["custom", "自定义…"]], _template_buttons, "template")
+	_confirm_2d_box = VBoxContainer.new()
+	template.add_child(_confirm_2d_box)
+	_confirm_2d = CheckBox.new()
+	_confirm_2d.text = "确认游戏没有用到 3D 功能"
+	_confirm_2d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_confirm_2d.tooltip_text = "2D 模板的引擎去掉了：%s。\n这份确认会写进每次转换的功能声明，并绑定导出的 PCK。\n用字符串动态加载的 3D 资源或类，插件检查不到，需要你自己确认。" % ", ".join(PURE_2D_REMOVED)
+	_confirm_2d.toggled.connect(func(on: bool):
+		if not _loading:
+			_draft.confirmNo3d = on
+			_refresh()
+	)
+	_confirm_2d_box.add_child(_confirm_2d)
+	_note("会去掉 3D 渲染与物理、GLTF/FBX 导入、CSG、GridMap、3D 导航和 XR；悬停看完整列表。首次转换要先核验引擎来源，约 4 到 5 分钟。", _confirm_2d_box)
 	_custom_box = VBoxContainer.new()
 	template.add_child(_custom_box)
 	_note("自定义需重新编译引擎：先检测游戏没用到的功能，再确认裁剪项。", _custom_box)
@@ -506,7 +525,7 @@ func _build_advanced(parent: Control) -> void:
 		project_row.add_child(project_choose)
 		_note("插件安装到游戏后，导出的就是当前打开的工程，不会显示这一项。改动后点顶部「保存设置」。", project)
 	_build_runs(body)
-	_note("以下功能还在「微信导出·旧版（待并入）」停靠栏，接入本面板后移除旧版：2D 与自定义模板、按场景分包、自建引擎构建（维护者用）、按请求文件打开任意已有任务。", body)
+	_note("以下功能还在「微信导出·旧版（待并入）」停靠栏，接入本面板后移除旧版：保守版与自定义模板、按场景分包、自建引擎构建（维护者用）、按请求文件打开任意已有任务。", body)
 
 # 最近运行：输出目录里快速流程的运行，含命令行和以前会话发起的。可打开、取消未结束的、在文件夹中显示、移到回收站。
 func _build_runs(parent: Control) -> void:
@@ -632,7 +651,7 @@ func _save_settings() -> void:
 		return
 	var output_changed: bool = _draft.output != _saved.output
 	var changed_build := false
-	for key in ["template", "orientation", "glx", "skipPrewarm", "appid", "subpackages", "scenes"]:
+	for key in ["template", "confirmNo3d", "orientation", "glx", "skipPrewarm", "appid", "subpackages", "scenes"]:
 		if _draft[key] != _saved[key]:
 			changed_build = true
 	_saved = _draft.duplicate(true)
@@ -969,8 +988,12 @@ func _missing_for_export() -> Array:
 		missing.append(["未选模板", "packing"])
 	if _saved.subpackages == "scenes" and _saved.scenes.is_empty():
 		missing.append(["未选分包场景", "packing"])
-	if _saved.template == "custom" and not _detection_confirmed:
-		missing.append(["自定义未完成检测", "packing"])
+	if _saved.template == "custom":
+		missing.append(["自定义模板暂不支持", "packing"])
+	if _saved.template == "2d" and not _saved.confirmNo3d:
+		missing.append(["2D 未确认不用 3D", "packing"])
+	if _saved.subpackages == "scenes":
+		missing.append(["按场景分包暂不支持", "packing"])
 	if not _appid_valid(_saved.appid):
 		missing.append(["AppID 未保存", "publish"])
 	if _saved.output.is_empty():
@@ -1058,14 +1081,21 @@ func _refresh() -> void:
 	_render_scene_list()
 	var glx_status := _capability_status("render-glx" if _draft.glx else "render-webgl")
 	_glx_status.text = ("GLX 渲染" if _draft.glx else "WebGL 对照") + "：" + STATUS_TEXT.get(glx_status, glx_status)
-	# 完整模板不能跳过预热：切到完整模板时自动取消勾选，而不是留下一个勾着但点不动的选项。
-	if _draft.template == "full" and _draft.skipPrewarm:
+	# 安装版里的引擎启动时都固定预热：保持不勾选，而不是留下一个勾着但不会生效的选项。
+	if _draft.skipPrewarm:
 		_draft.skipPrewarm = false
 		_loading = true
 		_prewarm.button_pressed = false
 		_loading = false
-	_prewarm.disabled = _draft.template == "full"
-	_prewarm_note.text = "完整模板启动时固定预热，跳过需重建引擎。" if _draft.template == "full" else "是否生效以所选引擎为准，待核实。"
+	_prewarm.disabled = true
+	_prewarm_note.text = "安装版的引擎启动时都固定预热，跳过需要重建引擎。"
+	# 2D 确认只对 2D 模板有意义；换成别的模板就清掉，换回来要重新确认。
+	_confirm_2d_box.visible = _draft.template == "2d"
+	if _draft.template != "2d" and _draft.confirmNo3d:
+		_draft.confirmNo3d = false
+	_loading = true
+	_confirm_2d.button_pressed = _draft.confirmNo3d
+	_loading = false
 	if _draft.appid.is_empty():
 		_appid_note.text = "转换前必填。只检查格式，不代表微信后台有效。"
 	elif not _appid_valid(_draft.appid):

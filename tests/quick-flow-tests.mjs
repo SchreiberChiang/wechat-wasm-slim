@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import {createHash} from 'node:crypto';
 import {
   normalizeQuickSettings, settingsBlockers, findWebPresets, projectName, runName, resolveQuickInputs,
-  quickPlan, quickRun, cancelQuickRun, planTaskRoot, CANCEL_MARKER, listQuickRuns, quickRunStatus, RUN_SUMMARY, exportPayload, convertPayload, resolveMainScene, QUICK_SETTINGS_SCHEMA, SIMPLE_INTERFACES,
+  quickPlan, quickRun, cancelQuickRun, pure2dRemovedModules, resolvePairProof, planTaskRoot, CANCEL_MARKER, listQuickRuns, quickRunStatus, RUN_SUMMARY, exportPayload, convertPayload, resolveMainScene, QUICK_SETTINGS_SCHEMA, SIMPLE_INTERFACES,
 } from '../lib/quick-flow.mjs';
 import {runQuickCli} from '../lib/quick-cli.mjs';
 import {runQuickAdapter} from '../editor/workbench/quick-adapter.mjs';
@@ -19,24 +20,38 @@ const PRESETS = '[preset.0]\nname="Web"\nplatform="Web"\nexport_filter="all_reso
 const temporary = [];
 test.after(() => { for (const dir of temporary) fs.rmSync(dir, {recursive: true, force: true}); });
 
+// 结构正确的最小 Godot 4.7.2 PCK（只含 project.binary），供需要读取 PCK 的 2D 声明使用。
+function makePck() {
+  const name = Buffer.from('project.binary'), data = Buffer.from('structural-only PCK body');
+  const offset = 113, end = offset + data.length, pad = Math.ceil(name.length / 4) * 4, b = Buffer.alloc(end + 4 + 40 + pad);
+  b.write('GDPC'); b.writeUInt32LE(4, 4); [4, 7, 2].forEach((v, i) => b.writeUInt32LE(v, 8 + 4 * i));
+  b.writeBigUInt64LE(113n, 24); b.writeBigUInt64LE(BigInt(end), 32); b.writeUInt32LE(1, end);
+  let at = end + 4; b.writeUInt32LE(pad, at); at += 4; name.copy(b, at); at += pad;
+  b.writeBigUInt64LE(0n, at); b.writeBigUInt64LE(BigInt(data.length), at + 8);
+  createHash('md5').update(data).digest().copy(b, at + 16); data.copy(b, offset); return b;
+}
+
 function fixture(overrides = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wxslim-quick-test-'));
   temporary.push(root);
   const release = path.join(root, 'release'), project = path.join(root, 'game'), output = path.join(root, 'out');
-  for (const dir of [release, project, output, path.join(release, 'engines', 'full'), path.join(release, 'tools')]) fs.mkdirSync(dir, {recursive: true});
+  const proof = path.join(root, 'portable-proof-01', 'proof');
+  for (const dir of [release, project, output, proof, path.join(release, 'engines', 'full'), path.join(release, 'engines', 'pure-2d'), path.join(release, 'tools')]) fs.mkdirSync(dir, {recursive: true});
+  fs.writeFileSync(path.join(proof, 'pure-2d.json'), JSON.stringify({schema: 'wxslim-retained-pair-location-v1', profile: 'pure-2d'}));
   fs.writeFileSync(path.join(release, 'RELEASE.json'), '{}');
   fs.writeFileSync(path.join(release, 'profiles.json'), JSON.stringify({
     schema: 1, files: {'engines/full/godot.prepared.js': {}, 'engines/full/godot.wasm': {}, 'tools/wx-transformer-v1.0.35-win.exe': {}},
-    pairs: {full: {profile: 'full-official-c050-capability-dev', js: 'engines/full/godot.prepared.js', wasm: 'engines/full/godot.wasm', requiresPreparedSource: false}},
+    pairs: {full: {profile: 'full-official-c050-capability-dev', js: 'engines/full/godot.prepared.js', wasm: 'engines/full/godot.wasm', requiresPreparedSource: false},
+      'pure-2d': {profile: 'custom-official-c050-dev', js: 'engines/pure-2d/godot.prepared.js', wasm: 'engines/pure-2d/godot.wasm', requiresPreparedSource: true}},
   }));
-  for (const file of ['engines/full/godot.prepared.js', 'engines/full/godot.wasm', 'tools/wx-transformer-v1.0.35-win.exe']) fs.writeFileSync(path.join(release, file), 'x');
+  for (const file of ['engines/full/godot.prepared.js', 'engines/full/godot.wasm', 'engines/pure-2d/godot.prepared.js', 'engines/pure-2d/godot.wasm', 'tools/wx-transformer-v1.0.35-win.exe']) fs.writeFileSync(path.join(release, file), 'x');
   fs.writeFileSync(path.join(project, 'project.godot'), '[application]\nconfig/name="小测试"\nrun/main_scene="res://main.tscn"\n');
   fs.writeFileSync(path.join(project, 'export_presets.cfg'), PRESETS);
   const editor = path.join(root, 'godot.exe');
   fs.writeFileSync(editor, 'x');
   const settings = {schema: QUICK_SETTINGS_SCHEMA, template: 'full', orientation: 'landscape', glx: true, devtoolsPreview: false, output, ...overrides};
   fs.writeFileSync(path.join(project, 'wxslim-export.json'), JSON.stringify(settings));
-  return {root, release, project, output, editor, options: {project, editor, release, now: NOW}};
+  return {root, release, project, output, editor, proof, options: {project, editor, release, now: NOW}};
 }
 
 function fakeService({eligible = true, status = 'SUCCESS'} = {}) {
@@ -55,7 +70,7 @@ function fakeService({eligible = true, status = 'SUCCESS'} = {}) {
       calls.push({kind: 'execute', action: request.action, file, options});
       if (status === 'SUCCESS' && request.action === 'project-pck-export') {
         fs.mkdirSync(config.output);
-        fs.writeFileSync(path.join(config.output, 'full.pck'), 'pck');
+        fs.writeFileSync(path.join(config.output, 'full.pck'), makePck());
       }
       if (status === 'SUCCESS' && request.action === 'official-convert') {
         const mini = path.join(config.output, 'converted', 'minigame');
@@ -86,9 +101,11 @@ test('blockers: unsupported combinations are named instead of silently downgrade
   assert.deepEqual(settingsBlockers(base), []);
   const codes = s => settingsBlockers({...base, ...s}).map(b => b.code);
   assert.deepEqual(codes({template: ''}), ['QUICK_TEMPLATE_MISSING']);
-  assert.deepEqual(codes({template: '2d'}), ['QUICK_TEMPLATE_NEEDS_PREPARATION']);
-  assert.deepEqual(codes({template: 'custom'}), ['QUICK_TEMPLATE_NEEDS_PREPARATION']);
+  assert.deepEqual(codes({template: '2d'}), ['QUICK_2D_NEEDS_CONFIRMATION']);
+  assert.deepEqual(codes({template: '2d', confirmNo3d: true}), []);
+  assert.deepEqual(codes({template: 'custom'}), ['QUICK_TEMPLATE_CUSTOM_PENDING']);
   assert.deepEqual(codes({skipPrewarm: true}), ['QUICK_PREWARM_UNSUPPORTED']);
+  assert.deepEqual(codes({template: '2d', confirmNo3d: true, skipPrewarm: true}), ['QUICK_PREWARM_UNSUPPORTED']);
   assert.deepEqual(codes({subpackages: 'scenes'}), ['QUICK_SUBPACKAGES_PENDING']);
   assert.deepEqual(codes({output: ''}), ['QUICK_OUTPUT_MISSING']);
   assert.deepEqual(codes({output: 'relative/out'}), ['QUICK_OUTPUT_RELATIVE']);
@@ -444,4 +461,47 @@ test('adapter: runs lists the output; cancel by run directory only for unfinishe
   assert.equal((await call('2-4', 'cancel', {run: running})).status, 'CANCEL_REQUESTED');
   assert.deepEqual(cancelled, [running]);
   assert.equal((await call('2-5', 'runs', {output: 'relative'})).code, 'QUICK_ADAPTER_RUNS');
+});
+
+test('2d: the run converts with the pure-2D pair, the located proof and a declaration bound to this PCK', async () => {
+  const f = fixture({template: '2d', confirmNo3d: true});
+  const service = fakeService();
+  const result = await quickRun(f.options, {service});
+  assert.equal(result.status, 'SUCCESS');
+  const config = JSON.parse(fs.readFileSync(path.join(result.run, 'requests', 'convert-config.json'), 'utf8'));
+  assert.equal(config.engineProfile, 'custom-official-c050-dev');
+  assert.equal(config.js, path.join(f.release, 'engines', 'pure-2d', 'godot.prepared.js'));
+  assert.equal(config.customPreparation, path.join(f.proof, 'pure-2d.json'));
+  const pck = fs.readFileSync(path.join(result.run, 'pck', 'full.pck'));
+  assert.deepEqual(config.projectUsage.pck, {bytes: pck.length, sha256: createHash('sha256').update(pck).digest('hex')});
+  assert.equal(config.projectUsage.removedFeaturesUnused, true);
+  assert.deepEqual(config.projectUsage.removedModules, pure2dRemovedModules());
+  assert.equal(config.projectUsage.engine3dRemoved, true);
+});
+
+test('2d: no confirmation or no proof directory blocks before anything is written', async () => {
+  const unconfirmed = fixture({template: '2d'});
+  const blocked = await quickRun(unconfirmed.options, {service: fakeService()});
+  assert.equal(blocked.status, 'BLOCKED');
+  assert.ok(blocked.blockers.some(b => b.code === 'QUICK_2D_NEEDS_CONFIRMATION'));
+  const noProof = fixture({template: '2d', confirmNo3d: true});
+  fs.rmSync(path.join(noProof.proof, 'pure-2d.json'));
+  const service = fakeService();
+  const result = await quickRun({...noProof.options, env: {}}, {service});
+  assert.equal(result.status, 'BLOCKED');
+  assert.ok(result.blockers.some(b => b.code === 'QUICK_PAIR_PROOF_NOT_FOUND'));
+  assert.deepEqual(service.calls, []);
+  assert.deepEqual(fs.readdirSync(noProof.output), []);
+});
+
+test('2d: proof lookup uses the setting, then the environment, then the folder beside the release', () => {
+  const f = fixture();
+  const other = path.join(f.root, 'elsewhere');
+  fs.mkdirSync(other);
+  fs.writeFileSync(path.join(other, 'pure-2d.json'), JSON.stringify({schema: 'wxslim-retained-pair-location-v1', profile: 'pure-2d'}));
+  assert.equal(resolvePairProof(f.release, other, {}), path.join(other, 'pure-2d.json'));
+  assert.equal(resolvePairProof(f.release, '', {WXSLIM_PAIR_PROOF: other}), path.join(other, 'pure-2d.json'));
+  assert.equal(resolvePairProof(f.release, '', {}), path.join(f.proof, 'pure-2d.json'));
+  fs.writeFileSync(path.join(other, 'pure-2d.json'), JSON.stringify({schema: 'wxslim-retained-pair-location-v1', profile: 'conservative'}));
+  assert.equal(resolvePairProof(f.release, other, {}), path.join(f.proof, 'pure-2d.json'), 'a location file for another profile is not used');
 });
