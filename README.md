@@ -28,6 +28,8 @@ node wxslim.mjs official custom-project-plan FEATURES.json BOOT.pck
 
 ## 同包测试工具
 
+两种历史配对迁移后可以继续在转换表单的「自建 c050 配对」中使用。在保存原始目录布局的证据根目录放一个 JSON 定位文件，内容为 `{"schema":"wxslim-retained-pair-location-v1","profile":"conservative"}` 或 `{"schema":"wxslim-retained-pair-location-v1","profile":"pure-2d"}`。选择该定位文件、对应的已准备 JS/WASM，以及与启动 PCK 匹配的使用声明。保留整个证据根目录。读取器在独立工作线程中把固定旧路径映射到当前目录，按原始收据、模块和链接记录重新核验。普通自建任务继续使用原来的准备配置。
+
 选择 GLX 完成官方转换后，对本项目生成的本地验收接口、资源配置、启动 PCK 与已绑定的本机 AppID 配置，运行以下命令。目标目录必须是新的。先只读，复核后加 `--write`。此模式使用固定 c050、zh_CN、原生 GLX／WebGL 路由及严格框架锚点。桌面通过 WebGL2，设备仍须实际 GLX。新包号需要各自的运行证据。
 
 ```text
