@@ -1,0 +1,254 @@
+diff --git a/platform/web/js/libs/library_godot_audio.js b/platform/web/js/libs/library_godot_audio.js
+--- a/platform/web/js/libs/library_godot_audio.js
++++ b/platform/web/js/libs/library_godot_audio.js
+@@ -2646,122 +2646,128 @@
+-				const volume = GodotRuntime.heapSub(HEAPF32, volumePtr, 8);
+-				const playback = {
+-					ctx: null,
+-					streamInfo,
+-					busIndex,
+-					baseVolume: Math.max(volume[0], volume[1]),
+-					cancelled: false,
+-					hashRef: false,
+-				};
+-				GodotAudio.WX.activePlaybacks.set(playbackObjectId, playback);
+-                if (!streamInfo) {
+-                    GodotAudio.WX.recordFailure("RESOURCE", "AUDIO_SAMPLE_UNREGISTERED");
+-                    return GodotAudio.WX.finishFailedStart(playbackObjectId, playback);
+-                }
+-                if (streamInfo.kind === "cache") {
+-					if (!GodotAudio.WX.acquireCache(streamInfo.hash)) {
+-						GodotAudio.WX.recordFailure("CACHE", "AUDIO_CACHE_UNAVAILABLE");
+-                        return GodotAudio.WX.finishFailedStart(playbackObjectId, playback);
+-					}
+-					playback.hashRef = true;
+-				}
+-				
+-
+-				const beginPlayback = () => {
+-					if (
+-						GodotAudio.WX.closed || playback.cancelled ||
+-						GodotAudio.WX.activePlaybacks.get(playbackObjectId) !== playback
+-					) {
+-						return;
+-					}
+-					const alive = () => !GodotAudio.WX.closed && GodotAudio.WX.activePlaybacks.get(playbackObjectId) === playback;
+-                    const setupFailed = (error) => {
+-                        GodotAudio.WX.recordFailure("SETUP", "AUDIO_SETUP_FAILED");
+-                        GodotAudio.WX.error("Playback setup failed", error);
+-                        const cleaned = GodotAudio.WX.cleanupPlayback(playbackObjectId, playback.ctx, true, playback);
+-                        if (cleaned && streamInfo.kind === "cache") GodotAudio.WX.invalidateCacheRecord(streamInfo.hash);
+-                        if (cleaned) GodotAudio.WX.notifyFinished(playbackObjectId);
+-                        return false;
+-                    };
+-                    const setup = (operation) => GodotAudio.WX.invokePlatform(() => {
+-                        if (!alive()) return false;
+-                        operation();
+-                        return alive();
+-                    }, setupFailed);
+-                    let ctx;
+-                    if (!setup(() => {
+-                        const acquired = GodotAudio.WX.getContext(streamInfo.path);
+-                        if (!alive()) { GodotAudio.WX.destroyContext(acquired); return; }
+-                        ctx = acquired; playback.ctx = ctx;
+-                    })) return;
+-                    if (!setup(() => GodotAudio.WX.resetContext(ctx, alive))) return;
+-                    if (!setup(() => { if (ctx.src !== streamInfo.path) ctx.src = streamInfo.path; })) return;
+-                    if (!setup(() => { ctx.volume = GodotAudio.WX.calculateFinalVolume(playback.baseVolume, busIndex); })) return;
+-                    if (!setup(() => { ctx.playbackRate = Math.max(0.5, Math.min(2, pitchScale)); })) return;
+-                    if (!setup(() => { ctx.loop = streamInfo.loopMode === "forward"; })) return;
+-                    if (!setup(() => { ctx.startTime = offset > 0 ? offset : 0; })) return;
+-                    if (!setup(() => ctx.onEnded(() => {
+-                        if (GodotAudio.WX.cleanupPlayback(playbackObjectId, ctx, false, playback)) GodotAudio.WX.notifyFinished(playbackObjectId);
+-                    }))) return;
+-                    if (!setup(() => ctx.onStop(() => {
+-                        if (GodotAudio.WX.cleanupPlayback(playbackObjectId, ctx, false, playback)) GodotAudio.WX.notifyFinished(playbackObjectId);
+-                    }))) return;
+-                    if (!setup(() => ctx.onError((error) => {
+-                        if (!alive()) return;
+-                        GodotAudio.WX.recordFailure("PLAYBACK", "AUDIO_PLAYBACK_ERROR");
+-                        GodotAudio.WX.error(`Playback error for ${playbackObjectId}`, error);
+-                        const cleaned = GodotAudio.WX.cleanupPlayback(playbackObjectId, ctx, true, playback);
+-                        if (cleaned && streamInfo.kind === "cache") GodotAudio.WX.invalidateCacheRecord(streamInfo.hash);
+-                        if (cleaned) GodotAudio.WX.notifyFinished(playbackObjectId);
+-                    }))) return;
+-                    GodotAudio.WX.invokePlatform(() => ctx.play(), (error) => {
+-                        GodotAudio.WX.recordFailure("PLAY", "AUDIO_PLAY_FAILED");
+-                        GodotAudio.WX.error("Playback start failed", error);
+-                        const cleaned = GodotAudio.WX.cleanupPlayback(playbackObjectId, ctx, true, playback);
+-                        if (cleaned && streamInfo.kind === "cache") GodotAudio.WX.invalidateCacheRecord(streamInfo.hash);
+-                        if (cleaned) GodotAudio.WX.notifyFinished(playbackObjectId);
+-                    });
+-				};
+-
+-				return GodotAudio.WX.ensureSubpackage(streamInfo.subpackage)
+-					.then(beginPlayback, (error) => {
+-                        if (GodotAudio.WX.closed || GodotAudio.WX.activePlaybacks.get(playbackObjectId) !== playback) return;
+-                        GodotAudio.WX.recordFailure("SUBPACKAGE", "AUDIO_SUBPACKAGE_FAILED");
+-						GodotAudio.WX.error(
+-							`Failed to load audio subpackage ${streamInfo.subpackage}`,
+-							error
+-						);
+-						if (GodotAudio.WX.cleanupPlayback(playbackObjectId, null, false, playback)) {
+-							GodotAudio.WX.notifyFinished(playbackObjectId);
+-						}
+-					});
+-			
+-},
+-
+-			stopSample: function (playbackObjectId) {
+-				const playback = GodotAudio.WX.activePlaybacks.get(playbackObjectId);
+-				if (!playback) {
+-					return false;
+-				}
+-				GodotAudio.WX.activePlaybacks.delete(playbackObjectId);
+-				playback.cancelled = true;
+-				if (playback.hashRef) {
+-					GodotAudio.WX.releaseCache(playback.streamInfo.hash);
+-					playback.hashRef = false;
+-				}
+-				if (playback.ctx) {
+-					// WeChat may deliver onStop asynchronously. A context with a pending
+-					// stop event must never be reused for a different playback.
+-					GodotAudio.WX.destroyContext(playback.ctx);
+-				}
+-				return true;
+-			},
+-
+-			setPause: function (playbackObjectId, paused) {
+-				const playback = GodotAudio.WX.activePlaybacks.get(playbackObjectId);
+-				if (!playback) {
+-					return false;
+-				}
+-				if (playback.ctx) {
+-					if (paused) {
+-						playback.ctx.pause();
+-					} else {
++				const volume = GodotRuntime.heapSub(HEAPF32, volumePtr, 8);
++				const playback = {
++					ctx: null,
++                    desiredPaused: false,
++                    readyToPlay: false,
++					streamInfo,
++					busIndex,
++					baseVolume: Math.max(volume[0], volume[1]),
++					cancelled: false,
++					hashRef: false,
++				};
++				GodotAudio.WX.activePlaybacks.set(playbackObjectId, playback);
++                if (!streamInfo) {
++                    GodotAudio.WX.recordFailure("RESOURCE", "AUDIO_SAMPLE_UNREGISTERED");
++                    return GodotAudio.WX.finishFailedStart(playbackObjectId, playback);
++                }
++                if (streamInfo.kind === "cache") {
++					if (!GodotAudio.WX.acquireCache(streamInfo.hash)) {
++						GodotAudio.WX.recordFailure("CACHE", "AUDIO_CACHE_UNAVAILABLE");
++                        return GodotAudio.WX.finishFailedStart(playbackObjectId, playback);
++					}
++					playback.hashRef = true;
++				}
++				
++
++				const beginPlayback = () => {
++					if (
++						GodotAudio.WX.closed || playback.cancelled ||
++						GodotAudio.WX.activePlaybacks.get(playbackObjectId) !== playback
++					) {
++						return;
++					}
++					const alive = () => !GodotAudio.WX.closed && GodotAudio.WX.activePlaybacks.get(playbackObjectId) === playback;
++                    const setupFailed = (error) => {
++                        GodotAudio.WX.recordFailure("SETUP", "AUDIO_SETUP_FAILED");
++                        GodotAudio.WX.error("Playback setup failed", error);
++                        const cleaned = GodotAudio.WX.cleanupPlayback(playbackObjectId, playback.ctx, true, playback);
++                        if (cleaned && streamInfo.kind === "cache") GodotAudio.WX.invalidateCacheRecord(streamInfo.hash);
++                        if (cleaned) GodotAudio.WX.notifyFinished(playbackObjectId);
++                        return false;
++                    };
++                    const setup = (operation) => GodotAudio.WX.invokePlatform(() => {
++                        if (!alive()) return false;
++                        operation();
++                        return alive();
++                    }, setupFailed);
++                    let ctx;
++                    if (!setup(() => {
++                        const acquired = GodotAudio.WX.getContext(streamInfo.path);
++                        if (!alive()) { GodotAudio.WX.destroyContext(acquired); return; }
++                        ctx = acquired; playback.ctx = ctx;
++                    })) return;
++                    if (!setup(() => GodotAudio.WX.resetContext(ctx, alive))) return;
++                    if (!setup(() => { if (ctx.src !== streamInfo.path) ctx.src = streamInfo.path; })) return;
++                    if (!setup(() => { ctx.volume = GodotAudio.WX.calculateFinalVolume(playback.baseVolume, busIndex); })) return;
++                    if (!setup(() => { ctx.playbackRate = Math.max(0.5, Math.min(2, pitchScale)); })) return;
++                    if (!setup(() => { ctx.loop = streamInfo.loopMode === "forward"; })) return;
++                    if (!setup(() => { ctx.startTime = offset > 0 ? offset : 0; })) return;
++                    if (!setup(() => ctx.onEnded(() => {
++                        if (GodotAudio.WX.cleanupPlayback(playbackObjectId, ctx, false, playback)) GodotAudio.WX.notifyFinished(playbackObjectId);
++                    }))) return;
++                    if (!setup(() => ctx.onStop(() => {
++                        if (GodotAudio.WX.cleanupPlayback(playbackObjectId, ctx, false, playback)) GodotAudio.WX.notifyFinished(playbackObjectId);
++                    }))) return;
++                    if (!setup(() => ctx.onError((error) => {
++                        if (!alive()) return;
++                        GodotAudio.WX.recordFailure("PLAYBACK", "AUDIO_PLAYBACK_ERROR");
++                        GodotAudio.WX.error(`Playback error for ${playbackObjectId}`, error);
++                        const cleaned = GodotAudio.WX.cleanupPlayback(playbackObjectId, ctx, true, playback);
++                        if (cleaned && streamInfo.kind === "cache") GodotAudio.WX.invalidateCacheRecord(streamInfo.hash);
++                        if (cleaned) GodotAudio.WX.notifyFinished(playbackObjectId);
++                    }))) return;
++                    playback.readyToPlay = true;
++                    if (!alive() || playback.desiredPaused) return;
++                    GodotAudio.WX.invokePlatform(() => ctx.play(), (error) => {
++                        GodotAudio.WX.recordFailure("PLAY", "AUDIO_PLAY_FAILED");
++                        GodotAudio.WX.error("Playback start failed", error);
++                        const cleaned = GodotAudio.WX.cleanupPlayback(playbackObjectId, ctx, true, playback);
++                        if (cleaned && streamInfo.kind === "cache") GodotAudio.WX.invalidateCacheRecord(streamInfo.hash);
++                        if (cleaned) GodotAudio.WX.notifyFinished(playbackObjectId);
++                    });
++				};
++
++				return GodotAudio.WX.ensureSubpackage(streamInfo.subpackage)
++					.then(beginPlayback, (error) => {
++                        if (GodotAudio.WX.closed || GodotAudio.WX.activePlaybacks.get(playbackObjectId) !== playback) return;
++                        GodotAudio.WX.recordFailure("SUBPACKAGE", "AUDIO_SUBPACKAGE_FAILED");
++						GodotAudio.WX.error(
++							`Failed to load audio subpackage ${streamInfo.subpackage}`,
++							error
++						);
++						if (GodotAudio.WX.cleanupPlayback(playbackObjectId, null, false, playback)) {
++							GodotAudio.WX.notifyFinished(playbackObjectId);
++						}
++					});
++			
++},
++
++			stopSample: function (playbackObjectId) {
++				const playback = GodotAudio.WX.activePlaybacks.get(playbackObjectId);
++				if (!playback) {
++					return false;
++				}
++				GodotAudio.WX.activePlaybacks.delete(playbackObjectId);
++				playback.cancelled = true;
++				if (playback.hashRef) {
++					GodotAudio.WX.releaseCache(playback.streamInfo.hash);
++					playback.hashRef = false;
++				}
++				if (playback.ctx) {
++					// WeChat may deliver onStop asynchronously. A context with a pending
++					// stop event must never be reused for a different playback.
++					GodotAudio.WX.destroyContext(playback.ctx);
++				}
++				return true;
++			},
++
++			setPause: function (playbackObjectId, paused) {
++				const playback = GodotAudio.WX.activePlaybacks.get(playbackObjectId);
++				if (!playback) {
++					return false;
++				}
++                // Save intent even while subpackage loading or context setup is pending.
++                playback.desiredPaused = Boolean(paused);
++				if (playback.ctx && playback.readyToPlay) {
++					if (paused) {
++						playback.ctx.pause();
++					} else {

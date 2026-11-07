@@ -1,0 +1,606 @@
+{
+  "schema": "wxslim-official-build-plan-inputs-v1",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "status": "PLAN_SOURCE_PREPARED_NOT_EXECUTED",
+  "patches": [
+    {
+      "order": 1,
+      "path": "engine/official-glx-detect.patch",
+      "bytes": 6258,
+      "sha256": "9eb2f529efb783319d384b54b1e0f7f0599ecd5545356eb1784bda956e2ad252"
+    },
+    {
+      "order": 2,
+      "path": "engine/official-graphics-conditional-seed.patch",
+      "bytes": 10977,
+      "sha256": "c971a9fb791d30423d52769177202b8b0f581f206dec8172fc7e3c7957d4f5c4"
+    },
+    {
+      "order": 3,
+      "path": "engine/official-glx-context-source.patch",
+      "bytes": 8090,
+      "sha256": "022456eae38ce11f9fb4f6b27a4fb3f2f00582c4c1d63c823ca87d220dd7e503"
+    },
+    {
+      "order": 4,
+      "path": "engine/official-jsbridge-source.patch",
+      "bytes": 3399,
+      "sha256": "800e7cfcb793a8d8cde5b873ab527b86cab9868f9492b20974b86c8c4246b4c4"
+    },
+    {
+      "order": 5,
+      "path": "engine/official-storage-source.patch",
+      "bytes": 22114,
+      "sha256": "87f4f5de71c73f149a85b7ef1abf26bd81171fb904e3a8e739eeca07bea3f0ed"
+    },
+    {
+      "order": 6,
+      "path": "engine/official-file-errors.patch",
+      "bytes": 2284,
+      "sha256": "c2c210f07a654bcf05334ad57c7de7723245840d0abc87464db3c123aa399b70"
+    },
+    {
+      "order": 7,
+      "path": "engine/alpha-preserve-lighting/scene-alpha-restore.patch",
+      "bytes": 790,
+      "sha256": "24e7d2f318f87b09ad585354e4d6006e010e7c5f2de21f629e05829cfdf0a514"
+    },
+    {
+      "order": 8,
+      "path": "engine/alpha-preserve-lighting/scene-light-output.patch",
+      "bytes": 6483,
+      "sha256": "c9f371b648d8dddda224fc1e334225e376c6608bae3eefa75dd416907fadbac6"
+    },
+    {
+      "order": 9,
+      "path": "engine/alpha-preserve-lighting/scene-alpha-output.patch",
+      "bytes": 10470,
+      "sha256": "57256151a301271b360be588da88fdb503471c0b7097c0d2ea4aa637012b0fce"
+    },
+    {
+      "order": 10,
+      "path": "engine/official-input-source.patch",
+      "bytes": 8859,
+      "sha256": "b90bc31341eb0d1760786b72218cc82e876f8e860f239e2b168b89bc46cab9c8"
+    },
+    {
+      "order": 11,
+      "path": "engine/official-audio-source.patch",
+      "bytes": 68489,
+      "sha256": "80bd9f95e94c8cab1c03e2776be11756c3dcd1f3a17420ed600a6f6e50c0ed63"
+    },
+    {
+      "order": 12,
+      "path": "engine/official-http-source.patch",
+      "bytes": 13407,
+      "sha256": "39df4a2a0eca32bc30befe69e3c1886e196520b4870c577416a259c97fd3a411"
+    },
+    {
+      "order": 13,
+      "path": "engine/official-http-selection.patch",
+      "bytes": 558,
+      "sha256": "581717e6b4a0b610669f59c761cba5c8f51fbe1ab31bf487bfbaec86d79b97bf"
+    },
+    {
+      "order": 14,
+      "path": "engine/official-shader-diagnostics.patch",
+      "bytes": 23569,
+      "sha256": "857e8a91596ae14e9bed15349878da88e3b679392487fd12c6f54351fe6b0f20"
+    },
+    {
+      "order": 15,
+      "path": "engine/official-audio-lifecycle.patch",
+      "bytes": 18668,
+      "sha256": "d14de0afd45e66fc623cfcbcfc617683e2afa0ebb129909752db5fa98e16f570"
+    },
+    {
+      "order": 16,
+      "path": "engine/official-upstream-storage-tail.patch",
+      "bytes": 14621,
+      "sha256": "e0ecbee1969d8c26e09933cb87bb1bbc5f9e4613e6df0a7a449e26120dbabe7c"
+    },
+    {
+      "order": 17,
+      "path": "engine/wechat-websocket-lifecycle.patch",
+      "bytes": 5631,
+      "sha256": "f3ebbca6bfecf9f61330a589c80aa2adeb29eef64bae162db77f6c60b78b03b2"
+    },
+    {
+      "order": 18,
+      "path": "engine/wechat-websocket-error-privacy.patch",
+      "bytes": 861,
+      "sha256": "1465dd567638db98e176bf1db6f25e7d8aab7765fa7171b742707597149aac61"
+    },
+    {
+      "order": 19,
+      "path": "engine/official-secure-random-source.patch",
+      "bytes": 12892,
+      "sha256": "65f9b666ac923f2fa70734e9ebca3b4fd77001e2a405f8350de17055696c07d2"
+    },
+    {
+      "order": 20,
+      "path": "engine/official-audio-start-contract.patch",
+      "bytes": 7927,
+      "sha256": "1889f8441e7ae293a0c09c406f834077b81c5708200892f2b352a472a4bfcaa8"
+    }
+  ],
+  "dependencies": [
+    {
+      "path": "convert/assets/godot-bridge.js",
+      "bytes": 15735,
+      "sha256": "85cb71a58f74ece87d43a3ef587e77ca8f921dbb72502debabe00c92d39057c0"
+    },
+    {
+      "path": "convert/assets/persistent-file-transport.js",
+      "bytes": 7689,
+      "sha256": "d71b883b2d11d1767c4d353d841732b06698dd01217a41fdae2235c5347abdad"
+    },
+    {
+      "path": "convert/assets/persistent-memfs.js",
+      "bytes": 24804,
+      "sha256": "49ea92808f433e0274d6940db64cff7a0db64257c9961e6d55922285ce268b2d"
+    },
+    {
+      "path": "convert/assets/persistent-session.js",
+      "bytes": 15971,
+      "sha256": "50f0d67a588132fa171aafb510f3bd2800ba3f89f020d22eb584191b6b8081c4"
+    },
+    {
+      "path": "convert/assets/secure-random-host.js",
+      "bytes": 13177,
+      "sha256": "2e04abe0b0b4ad0efb50b91f803bd1e1a89f71890a2093fa84ff45a96fa773b0"
+    },
+    {
+      "path": "convert/assets/secure-random-lifecycle.js",
+      "bytes": 6075,
+      "sha256": "efc859d92b900debc9075c7bbc0c4605059c839081f86c8774110b973e4cc411"
+    },
+    {
+      "path": "convert/assets/wx-compat.js",
+      "bytes": 8705,
+      "sha256": "7ffae262b0b0ac4c9e694a55205f18398838955aff14ab7a4cd136e26987364a"
+    },
+    {
+      "path": "convert/lib/secure-random-bridge.mjs",
+      "bytes": 5618,
+      "sha256": "a7025a3ef0afb1193a46d1103ce4c646421f0ede77f8ef109366a0ceea6d5030"
+    },
+    {
+      "path": "docs/evidence/OFFICIAL_BASIC_CAPABILITY_COMBINATION_20261105.json",
+      "bytes": 15910,
+      "sha256": "68ab3e72ea9f91f2875e5c6f70155d225eab40d61e34fe2f7c262ec05b82938b"
+    },
+    {
+      "path": "docs/evidence/OFFICIAL_SECURE_RANDOM_BRIDGE_20261105.json",
+      "bytes": 4546,
+      "sha256": "e976d9f0e26839029cb7ff17f2bb27f93b464a4c99f16168f8d2e28a91775e1b"
+    },
+    {
+      "path": "docs/evidence/OFFICIAL_SHADER_GLUE_PREPARATION_20261105.json",
+      "bytes": 12611,
+      "sha256": "9bdaa1b2f67874465f56e67c2bdd4204d73aee24e90f2763db61f00265a9e6c5"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/baseline-shader-diagnostic.patch",
+      "bytes": 24303,
+      "sha256": "84204452f43c04ef40ad4efcdd37e132f11ea429a42d029b63f6222d3e781ee6"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/build-settings-20261103.json",
+      "bytes": 5925,
+      "sha256": "28f4976b3b73183fe1efd4d3f04737df2dc3ebfa37458ccb9804a724f0143405"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery-recipe.json",
+      "bytes": 8345,
+      "sha256": "281c3d256ba3010b6dc15b7d6c64b3121bd520807f91f25b15c8aa8d8a52774a"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery-windows-link.patch",
+      "bytes": 1211,
+      "sha256": "52065f189ef7c30e41b3ed1fd5cce106b4a259ac0b0b1f3d41bce25bdc6a5220"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/delivery.mjs",
+      "bytes": 12340,
+      "sha256": "61c63e3b89d212a5c5415dc09344896dd47f654f5789d7fa973b09d0ac335e99"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/libemscriptenglx-4.0.10-026e.a",
+      "bytes": 3866614,
+      "sha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/scene-alpha-output.patch",
+      "bytes": 10470,
+      "sha256": "57256151a301271b360be588da88fdb503471c0b7097c0d2ea4aa637012b0fce"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/scene-alpha-restore.patch",
+      "bytes": 790,
+      "sha256": "24e7d2f318f87b09ad585354e4d6006e010e7c5f2de21f629e05829cfdf0a514"
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/scene-light-output.patch",
+      "bytes": 6483,
+      "sha256": "c9f371b648d8dddda224fc1e334225e376c6608bae3eefa75dd416907fadbac6"
+    },
+    {
+      "path": "engine/audit-pair.mjs",
+      "bytes": 5668,
+      "sha256": "49fae45fb894b5100fd691bec43fb951f297dded37ffb730b7bfea9cf1d6cb2b"
+    },
+    {
+      "path": "engine/conservative-glx.gdbuild",
+      "bytes": 334,
+      "sha256": "14e9dc1a98af01974f93c77b74a151541d3831402ee028b066020229711f2699"
+    },
+    {
+      "path": "engine/fixed-engine-policy.json",
+      "bytes": 2627,
+      "sha256": "13a552bb952398795f1fe453b246dc050f598a9dee276b6784dfa3f687418561"
+    },
+    {
+      "path": "engine/fixed-source-audit.mjs",
+      "bytes": 9667,
+      "sha256": "353748e5cd9ebb744d1e22077373ee998cdfd3ca17c6bc7ed3b2fc21cc937d6d"
+    },
+    {
+      "path": "engine/fixed-toolchain-cache.json",
+      "bytes": 3334,
+      "sha256": "19579d64bf6d8cafddf555131565173f772fb572c9cb7bf1f292ce28657490b1"
+    },
+    {
+      "path": "engine/functional-acceptance/stage.mjs",
+      "bytes": 12073,
+      "sha256": "23a610c2e21f4314ed8a18c97e7574dfb99456d35bc419f1795f508463803b44"
+    },
+    {
+      "path": "engine/official-audio-lifecycle.json",
+      "bytes": 3433,
+      "sha256": "8470be830c41fcca91c15b833df8a80723d55df946d41d53e212e8984533ce5b"
+    },
+    {
+      "path": "engine/official-audio-lifecycle.patch",
+      "bytes": 18668,
+      "sha256": "d14de0afd45e66fc623cfcbcfc617683e2afa0ebb129909752db5fa98e16f570"
+    },
+    {
+      "path": "engine/official-audio-source.json",
+      "bytes": 20535,
+      "sha256": "02237b30f47575851eba1dfa583e7273ea0fb967b70f2e01ce726ad3c3691265"
+    },
+    {
+      "path": "engine/official-audio-source.patch",
+      "bytes": 68489,
+      "sha256": "80bd9f95e94c8cab1c03e2776be11756c3dcd1f3a17420ed600a6f6e50c0ed63"
+    },
+    {
+      "path": "engine/official-audio-start-contract.json",
+      "bytes": 2873,
+      "sha256": "395121985d46714f0744f2aeaf30d401d95fe6330619446604a1d662b2a10365"
+    },
+    {
+      "path": "engine/official-audio-start-contract.mjs",
+      "bytes": 9981,
+      "sha256": "ab87a6b82a30c7969cf84022b61373fc375048b8f87c50a7e92f821943d9bed7"
+    },
+    {
+      "path": "engine/official-audio-start-contract.patch",
+      "bytes": 7927,
+      "sha256": "1889f8441e7ae293a0c09c406f834077b81c5708200892f2b352a472a4bfcaa8"
+    },
+    {
+      "path": "engine/official-basic-capability-combination.json",
+      "bytes": 2522,
+      "sha256": "a01787cd8ca68cbf70ab66633b63556f1d414d450cdf5658261be3a06211467c"
+    },
+    {
+      "path": "engine/official-basic-capability-combination.mjs",
+      "bytes": 10263,
+      "sha256": "8726f0abd08862e85f2ad44e60fb43b31607cf4ee94b524575f0a39fd8107e32"
+    },
+    {
+      "path": "engine/official-file-errors.json",
+      "bytes": 1939,
+      "sha256": "9524831aae683b55630ecc02da773910aaed6bd1473fc0bc73fcf9fda7179607"
+    },
+    {
+      "path": "engine/official-file-errors.patch",
+      "bytes": 2284,
+      "sha256": "c2c210f07a654bcf05334ad57c7de7723245840d0abc87464db3c123aa399b70"
+    },
+    {
+      "path": "engine/official-glx-context-source.json",
+      "bytes": 2460,
+      "sha256": "d8e7cd3d6ad7c769eed997f6b878037b49d1b21e87d686dbb68ade4a4237db04"
+    },
+    {
+      "path": "engine/official-glx-context-source.patch",
+      "bytes": 8090,
+      "sha256": "022456eae38ce11f9fb4f6b27a4fb3f2f00582c4c1d63c823ca87d220dd7e503"
+    },
+    {
+      "path": "engine/official-glx-detect.json",
+      "bytes": 9504,
+      "sha256": "48924701268048ccfdde10fd9dd85852bf8e3c1c9be5d1a1b8cbbd5fbe039143"
+    },
+    {
+      "path": "engine/official-glx-detect.patch",
+      "bytes": 6258,
+      "sha256": "9eb2f529efb783319d384b54b1e0f7f0599ecd5545356eb1784bda956e2ad252"
+    },
+    {
+      "path": "engine/official-graphics-conditional-seed.json",
+      "bytes": 6086,
+      "sha256": "ee4f7a3b25e1f538cb58142aa1dd6dbac76df5b9fa0b468c5d0a76635a4a337a"
+    },
+    {
+      "path": "engine/official-graphics-conditional-seed.patch",
+      "bytes": 10977,
+      "sha256": "c971a9fb791d30423d52769177202b8b0f581f206dec8172fc7e3c7957d4f5c4"
+    },
+    {
+      "path": "engine/official-graphics-postprocess.json",
+      "bytes": 3504,
+      "sha256": "30f277c4d36f8899d3c50f3e8e29ef643a5940a85ca033a2f7a25830d2d1145b"
+    },
+    {
+      "path": "engine/official-graphics-postprocess.mjs",
+      "bytes": 4155,
+      "sha256": "55df51bb5a8af2f9ce06d3b0bd0132516b9f791b1dbfb4610dc9b69baab6c552"
+    },
+    {
+      "path": "engine/official-graphics-source-set-audit.mjs",
+      "bytes": 5304,
+      "sha256": "0ae5c4118969a99baacae6e22502990bbb2cf74f21739b6b595b8be9df1dc65d"
+    },
+    {
+      "path": "engine/official-http-selection.json",
+      "bytes": 3163,
+      "sha256": "8b1dcd13c3db963d883a841e60ca5c83109c50ee8d0bbd44336e1a31366b43a8"
+    },
+    {
+      "path": "engine/official-http-selection.patch",
+      "bytes": 558,
+      "sha256": "581717e6b4a0b610669f59c761cba5c8f51fbe1ab31bf487bfbaec86d79b97bf"
+    },
+    {
+      "path": "engine/official-http-source.json",
+      "bytes": 5532,
+      "sha256": "b67622bd1811e9c76566779306284e0e53980e519b4f10208c4d5a24cd4275b2"
+    },
+    {
+      "path": "engine/official-http-source.patch",
+      "bytes": 13407,
+      "sha256": "39df4a2a0eca32bc30befe69e3c1886e196520b4870c577416a259c97fd3a411"
+    },
+    {
+      "path": "engine/official-input-source.json",
+      "bytes": 9049,
+      "sha256": "7b2fc3c3fe4dddac96fee5dcab3106a399309d15d48b9537eccc6ddc59651ab1"
+    },
+    {
+      "path": "engine/official-input-source.patch",
+      "bytes": 8859,
+      "sha256": "b90bc31341eb0d1760786b72218cc82e876f8e860f239e2b168b89bc46cab9c8"
+    },
+    {
+      "path": "engine/official-jsbridge-source.json",
+      "bytes": 6823,
+      "sha256": "9f8a44c601e74e123ab94f0d5bb5e46184e7ee27b8b9e6b0ca7d3742cfbaa655"
+    },
+    {
+      "path": "engine/official-jsbridge-source.patch",
+      "bytes": 3399,
+      "sha256": "800e7cfcb793a8d8cde5b873ab527b86cab9868f9492b20974b86c8c4246b4c4"
+    },
+    {
+      "path": "engine/official-platform-combination-audit.mjs",
+      "bytes": 8286,
+      "sha256": "1e608c6cc276ca414a28c1217d0ef9a67e4ddb3f44c9e1dc77136b560e098d3b"
+    },
+    {
+      "path": "engine/official-platform-followup-audit.mjs",
+      "bytes": 5906,
+      "sha256": "f35e128943e0181ef22d541c1a08a6c6e19eaf4a8ef9527fcb37a90f3c197839"
+    },
+    {
+      "path": "engine/official-platform-source-audit.mjs",
+      "bytes": 5699,
+      "sha256": "897dc448a2efac4166b3a3edf17717ef6237b9157944631a8dd519e5a87626aa"
+    },
+    {
+      "path": "engine/official-render-file-audit.mjs",
+      "bytes": 4001,
+      "sha256": "6f80cd0133177fa357e08c58e8447f9920023d6a00ba1b9d2d3623b7497c7361"
+    },
+    {
+      "path": "engine/official-render-fixes.json",
+      "bytes": 2267,
+      "sha256": "e7d5b9441d13bac6005bbd3b02651e31bb1de1b5553be88bab17f82265d9a3d9"
+    },
+    {
+      "path": "engine/official-secure-random-source-audit.mjs",
+      "bytes": 7424,
+      "sha256": "c277949a57d665989041e1311a3e86bbc5720c5710f01e7f0df7126fa51d59b6"
+    },
+    {
+      "path": "engine/official-secure-random-source.json",
+      "bytes": 6042,
+      "sha256": "8ba607338580006fd8173d3a679e059ae1d804791b5f6313bd61cc1543219ad8"
+    },
+    {
+      "path": "engine/official-secure-random-source.patch",
+      "bytes": 12892,
+      "sha256": "65f9b666ac923f2fa70734e9ebca3b4fd77001e2a405f8350de17055696c07d2"
+    },
+    {
+      "path": "engine/official-shader-diagnostics-audit.mjs",
+      "bytes": 5226,
+      "sha256": "57ca5740162e405571e89f89784c0f25921aed6ffad99b6e2d30f8fe9ef7522d"
+    },
+    {
+      "path": "engine/official-shader-diagnostics.json",
+      "bytes": 7386,
+      "sha256": "94cffe1e522d6601fe050224200d59531e91b8dd3775fe65a958c474b345a652"
+    },
+    {
+      "path": "engine/official-shader-diagnostics.patch",
+      "bytes": 23569,
+      "sha256": "857e8a91596ae14e9bed15349878da88e3b679392487fd12c6f54351fe6b0f20"
+    },
+    {
+      "path": "engine/official-shader-glue-reference.mjs",
+      "bytes": 5034,
+      "sha256": "b41b42deb454f0064407659a9fe5fd4fce3bdd5b738d9a0b231daabc901117c8"
+    },
+    {
+      "path": "engine/official-storage-source-audit.mjs",
+      "bytes": 5583,
+      "sha256": "284922a72a9f6a1f23ffde16ddbf99a28c6101fa67302f2985e455bb9600e69b"
+    },
+    {
+      "path": "engine/official-storage-source.json",
+      "bytes": 3953,
+      "sha256": "04ff380772e45f678f43657c2b650472cda9728e9c886f5d93739416398c62e5"
+    },
+    {
+      "path": "engine/official-storage-source.patch",
+      "bytes": 22114,
+      "sha256": "87f4f5de71c73f149a85b7ef1abf26bd81171fb904e3a8e739eeca07bea3f0ed"
+    },
+    {
+      "path": "engine/official-upstream-storage-combination-audit.mjs",
+      "bytes": 5418,
+      "sha256": "aeab3c6e8db052ee612c6534fe81b69702d3de27602c647fd98fcf90a7fc2620"
+    },
+    {
+      "path": "engine/official-upstream-storage-tail.json",
+      "bytes": 13962,
+      "sha256": "70ee3b9cd0975674b3e93fe371208d762a367d5d504c5bed87778d15e82add86"
+    },
+    {
+      "path": "engine/official-upstream-storage-tail.mjs",
+      "bytes": 6213,
+      "sha256": "403fce722051d9d7872a88e21d9179a133ee7a1914715c4011b57480193027ac"
+    },
+    {
+      "path": "engine/official-upstream-storage-tail.patch",
+      "bytes": 14621,
+      "sha256": "e0ecbee1969d8c26e09933cb87bb1bbc5f9e4613e6df0a7a449e26120dbabe7c"
+    },
+    {
+      "path": "engine/official-websocket-combination-audit.mjs",
+      "bytes": 7329,
+      "sha256": "5ab7e0273fbd5cd680444783356eb609d333aee4e67559b8a5e71c9af0c74af7"
+    },
+    {
+      "path": "engine/official-websocket-combination.json",
+      "bytes": 3371,
+      "sha256": "daeace257dfe87394aced2271af1412e023c45de1d0977f785e1071242124f42"
+    },
+    {
+      "path": "engine/persistent-factory-source.mjs",
+      "bytes": 9833,
+      "sha256": "4648553cd4d0296dbd33cd4f6c5bb58bc0267a530ffdd8893ca8db4abc9e5265"
+    },
+    {
+      "path": "engine/shader-failure/instrument-glue.cjs",
+      "bytes": 2181,
+      "sha256": "5778bd25ed34a050bd2285b53886953528299e9ceb677573aee5a2b8efff76d0"
+    },
+    {
+      "path": "engine/shader-type-return/instrument-glue.cjs",
+      "bytes": 1961,
+      "sha256": "f60329e242d84b3dcc24fb579812de6538a148ebf6c4904f2af2cac34c607c7c"
+    },
+    {
+      "path": "engine/startup-prewarm/scene.mjs",
+      "bytes": 4751,
+      "sha256": "323ce7fc8ce016a1447c854ebd0903f590f8c7bd4a7f249d9808fc1500468759"
+    },
+    {
+      "path": "engine/upstream-wxmemfs-correctness.mjs",
+      "bytes": 8003,
+      "sha256": "dab5a20670e68c51b40e68e0549d82e4c14a8715505ea642fa92d42200bb4743"
+    },
+    {
+      "path": "engine/upstream-wxmemfs-correctness.patch",
+      "bytes": 6166,
+      "sha256": "5fdb4725dc430839bc76166817a5aae60188dafb6b4f12b008fef3bf42fa2d4c"
+    },
+    {
+      "path": "engine/upstream-wxmemfs-read-contract.mjs",
+      "bytes": 7697,
+      "sha256": "920b7b1b93a9b85f97f5d70d1ef407a91de179235d37561fda11e8efdde9953f"
+    },
+    {
+      "path": "engine/upstream-wxmemfs-read-contract.patch",
+      "bytes": 8556,
+      "sha256": "404c69d1c60fcb559b6dbc0c731a6b5d1b3f92762c3efdfbbf2e230fa79b259b"
+    },
+    {
+      "path": "engine/upstream-wxmemfs.LICENSE",
+      "bytes": 1078,
+      "sha256": "0f637dfcc5630c028c84fe4e39242fe76b1d36dd28a9871637deaf12156971e6"
+    },
+    {
+      "path": "engine/wechat-file-error-guard-followup.patch",
+      "bytes": 704,
+      "sha256": "6035b65d0fd02217f9edb0e85d2fa6e83ba7b62b667ad970fd780bdb773be0c8"
+    },
+    {
+      "path": "engine/wechat-file-error-propagation.patch",
+      "bytes": 3225,
+      "sha256": "d28031fd122b5badc203718f0f877b75aa83921561f445a84d4612bdb0258228"
+    },
+    {
+      "path": "engine/wechat-http-whole-response.patch",
+      "bytes": 13537,
+      "sha256": "155dffe3223dc01b2b234cb5b095c85c539c3fead4d83d8acb7d035353491d0a"
+    },
+    {
+      "path": "engine/wechat-input-contract-v2.patch",
+      "bytes": 3515,
+      "sha256": "58dcbe5e42adbd180b550eab0b04bcca26e292f187ba9a5138d591672163d36a"
+    },
+    {
+      "path": "engine/wechat-persistent-init.patch",
+      "bytes": 8437,
+      "sha256": "5959b3f9bce964a4e2f52cd935b9205249e2f3cb39a6cc30aaf43dfbfe6fddd3"
+    },
+    {
+      "path": "engine/wechat-websocket-error-privacy.patch",
+      "bytes": 861,
+      "sha256": "1465dd567638db98e176bf1db6f25e7d8aab7765fa7171b742707597149aac61"
+    },
+    {
+      "path": "engine/wechat-websocket-lifecycle.patch",
+      "bytes": 5631,
+      "sha256": "f3ebbca6bfecf9f61330a589c80aa2adeb29eef64bae162db77f6c60b78b03b2"
+    },
+    {
+      "path": "examples/glx-smoke/full-engine.gdbuild",
+      "bytes": 93,
+      "sha256": "920ca801a58fe5bfb0f56aa39a1d523adae9658233189d6518b17e3c5b98e81b"
+    }
+  ],
+  "profiles": {
+    "full": {
+      "path": "examples/glx-smoke/full-engine.gdbuild",
+      "bytes": 93,
+      "sha256": "920ca801a58fe5bfb0f56aa39a1d523adae9658233189d6518b17e3c5b98e81b"
+    },
+    "conservative": {
+      "path": "engine/conservative-glx.gdbuild",
+      "bytes": 334,
+      "sha256": "14e9dc1a98af01974f93c77b74a151541d3831402ee028b066020229711f2699"
+    }
+  },
+  "evidence": "docs/evidence/OFFICIAL_BASIC_CAPABILITY_COMBINATION_20261105.json",
+  "secureRandomBridgeEvidence": "docs/evidence/OFFICIAL_SECURE_RANDOM_BRIDGE_20261105.json",
+  "donorArguments": "engine/alpha-preserve-lighting/build-settings-20261103.json",
+  "toolchainPolicy": "engine/fixed-toolchain-cache.json",
+  "parameterDonorOnly": true
+}

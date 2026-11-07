@@ -1,0 +1,58 @@
+{
+  "schema": "wxslim-official-render-fixes-source-v1",
+  "status": "SOURCE_REPLAY_MATCHES_RETAINED_SHADER_ONLY",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "forkCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "input": {
+    "path": "drivers/gles3/shaders/scene.glsl",
+    "bytes": 99241,
+    "sha256": "2c77be0c85b7ab1a85ed8009c77cdb6216f1494d43083592213ad68f9e812977",
+    "gitBlob": "cd210e8304c1f1b57d4e0b7c270d364034cc3a32",
+    "equalsFixedFork": true
+  },
+  "patches": [
+    {
+      "path": "engine/alpha-preserve-lighting/scene-alpha-restore.patch",
+      "bytes": 790,
+      "sha256": "24e7d2f318f87b09ad585354e4d6006e010e7c5f2de21f629e05829cfdf0a514",
+      "output": {
+        "bytes": 99557,
+        "sha256": "6be44c1d7085b8b4402efcbb8afc16e6b2425138b00c953c5c3ec4968577a7fc"
+      }
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/scene-light-output.patch",
+      "bytes": 6483,
+      "sha256": "c9f371b648d8dddda224fc1e334225e376c6608bae3eefa75dd416907fadbac6",
+      "output": {
+        "bytes": 101081,
+        "sha256": "347a37e84e26a3b8790b0a89f7e8aedf05a6bf7f10768f5b159aeee3aa577cf4"
+      }
+    },
+    {
+      "path": "engine/alpha-preserve-lighting/scene-alpha-output.patch",
+      "bytes": 10470,
+      "sha256": "57256151a301271b360be588da88fdb503471c0b7097c0d2ea4aa637012b0fce",
+      "output": {
+        "bytes": 101794,
+        "sha256": "6a957961db53b6225daaaf5f69253f80ca22a75a98c30b3ab5a21a65ab4da967"
+      }
+    }
+  ],
+  "output": {
+    "path": "drivers/gles3/shaders/scene.glsl",
+    "bytes": 101794,
+    "sha256": "6a957961db53b6225daaaf5f69253f80ca22a75a98c30b3ab5a21a65ab4da967"
+  },
+  "matchesRetainedSuccessfulSource": true,
+  "patchesChanged": false,
+  "meaning": "Existing alpha preservation and explicit lighting/alpha outputs are replayed byte-for-byte, not reimplemented and not a new shader fix.",
+  "baselineDiagnostics": "NOT_INCLUDED_HERE; separate shader_gles3/SCsub/postprocess dependency remains to audit.",
+  "globalIdReturn0": "NOT_CHANGED_NOT_IMPLEMENTED_BY_GLSL_PATCH",
+  "build": false,
+  "runtime": false,
+  "remaining": [
+    "shader failure baseline source and generated-JS instrumentation",
+    "final linked source/variant verification and actual GLX acceptance"
+  ]
+}

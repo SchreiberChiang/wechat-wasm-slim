@@ -1,0 +1,22 @@
+{
+  "schema": "wxslim-official-route-v1",
+  "id": "repaired-full-026e-return0-v1",
+  "engine": {
+    "js": {"bytes": 469385, "sha256": "d65d751899b46b3292a46cd48ee4a39b6aa63e03176a90f28f153ef1407c1a2a"},
+    "wasm": {"bytes": 65186879, "sha256": "e7b88edf517c66b20a176443e8baec63aaefcfa011d9777b89ea0a2e7ba577c3"},
+    "sourceCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+    "librarySha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+    "emscripten": "4.0.10",
+    "profile": "full",
+    "globalId": "return 0",
+    "provenanceReport": "docs/GODOT_WECHAT_STAGE0_20261104.md",
+    "nativeMapping": {"_glxInit":"xn","_glxInitBufferDataAndGlState":"yn","_glxUpdateContextId":"wn","_glxCommandBufferFlush":"zn"}
+  },
+  "pckVersion": "4.7.2",
+  "transformer": {"version":"1.0.35","sha256":"f5b2d4ebbe2d077821309a455f60e397bb559ef342e51dd1b8f9a040a85e586e"},
+  "plugin": {"name":"WXGameKit","provider":"wxe5a48f1ed5f544b7","version":"1.3.15"},
+  "contextAttributes": {"alpha":false,"stencil":true,"antialias":false,"powerPreference":"high-performance"},
+  "options": {"renderMode":"glx","orientation":"portrait","locale":"en","name":"glx-official-simple","compat":true,"splitBridge":false,"loadingPage":"on","timing":false},
+  "interface": "assets/simple-delivery-interface.js",
+  "limits": ["Fixed full pair only; trimmed engines require their own audited recipe", "No engine execution or device acceptance inferred from static checks", "No community host archive or sourceProject required", "New PCK content requires separate game/interface and device acceptance"]
+}

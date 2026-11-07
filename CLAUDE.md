@@ -1,0 +1,17 @@
+# Claude 的工作目录与合并流程
+
+**在本 source 项目创建本地开发分支，并把界面或功能改动合并回这里。** 这是后续唯一维护的源码。release 是用打包脚本生成、供用户安装的发行物。
+
+| 改动 | 源码入口 |
+|---|---|
+| Godot 停靠栏、按钮、表单和状态文案 | editor/workbench/addons/wxslim_readonly/plugin.gd、panel.gd、resource_config_form.gd |
+| 表单字段、执行确认、进度及打开工具 | editor/workbench/adapter.mjs、action-confirmation.mjs 及同目录各表单 |
+| 导出、组包、资源、存档、取消 | wxslim.mjs、lib/、convert/ |
+| 自建引擎、GLX、补丁、裁剪 | engine/，涉及固定来源时需重建及独立验证 |
+| 安装或打包 | packaging/install.mjs、packaging/build-release.mjs、runtime-files.json |
+
+1. 从本版本创建功能分支，在源码中完成改动及回归。把用户日常导出和高级自建入口分组。在窄侧栏、大字号下能读到当前引擎、输入、输出和真实任务状态。
+2. 沿用共享 CLI 的请求 schema、状态码、确认摘要、取消边界和配对审核。保留路径冲突、用户 AppID 来源和空间预算的检查。注册插件时继续将编辑器文件排除出游戏 PCK。安装项目自己的任务日志必须在游戏缓存之外。
+3. 改变了任何运行文件引用时更新打包白名单。按 README 的本地测试，另外用空白游戏安装 release，核对面板→导出→重复转换→打开、拒绝已有输出、取消、实际文件指纹。
+4. 合并到 source 的本地基线后，再用 packaging/build-release.mjs 生成新发行版。用更新后的 install.mjs 更新测试工程。将版本号、打包清单、实测包号和未验项一同交付。编辑器界面修订不自动获得引擎或设备验收结论。
+5. 项目只在本机维护。另建副本、大型编译、预览上传、真机验收及清理沿用用户的逐轮授权。合并源码和生成本地安装版不需要联系其他会话。

@@ -1,0 +1,13 @@
+{
+  "type": "build_profile",
+  "disabled_classes": [],
+  "disabled_build_options": {
+    "module_gltf_enabled": false,
+    "module_fbx_enabled": false,
+    "module_vhacd_enabled": false,
+    "module_webxr_enabled": false,
+    "module_mobile_vr_enabled": false,
+    "module_enet_enabled": false,
+    "module_upnp_enabled": false
+  }
+}

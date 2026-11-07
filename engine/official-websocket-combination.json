@@ -1,0 +1,50 @@
+{
+  "schema": "wxslim-official-websocket-combination-source-v1",
+  "status": "SOURCE_ONLY_UNAPPLIED_NOT_BUILD_READY",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "predecessor": {
+    "module": {"path":"engine/official-upstream-storage-combination-audit.mjs","bytes":5418,"sha256":"aeab3c6e8db052ee612c6534fe81b69702d3de27602c647fd98fcf90a7fc2620"},
+    "metadata": {"path":"engine/official-upstream-storage-tail.json","bytes":13962,"sha256":"70ee3b9cd0975674b3e93fe371208d762a367d5d504c5bed87778d15e82add86"},
+    "inputFiles":21,
+    "patchCount":16,
+    "outputFiles":26
+  },
+  "inputs": [
+    {"path":"modules/websocket/library_godot_websocket.js","bytes":7655,"sha256":"8a013eb7b968a296573eee6b432aac9d069913c5536a6119d63614845d38a590"},
+    {"path":"modules/websocket/emws_peer.cpp","bytes":8248,"sha256":"4d1b4f88cc4f348915e26afda90a0456aac76ad4b80c6796df0c0f48f02ad167"}
+  ],
+  "patches": [
+    {"path":"engine/wechat-websocket-lifecycle.patch","bytes":5631,"sha256":"f3ebbca6bfecf9f61330a589c80aa2adeb29eef64bae162db77f6c60b78b03b2","target":"modules/websocket/library_godot_websocket.js"},
+    {"path":"engine/wechat-websocket-error-privacy.patch","bytes":861,"sha256":"1465dd567638db98e176bf1db6f25e7d8aab7765fa7171b742707597149aac61","target":"modules/websocket/emws_peer.cpp"}
+  ],
+  "outputs": [
+    {"path":"modules/websocket/library_godot_websocket.js","bytes":9860,"sha256":"d6a7d738f45b313f43d20cba130a279e8f7d26b33eef884d1892d7a72b773b65","added":false},
+    {"path":"modules/websocket/emws_peer.cpp","bytes":8220,"sha256":"64dd4dda388ffd23394238972e25be7e7c125db39f3dfc3bb7b5c114316ffec5","added":false}
+  ],
+  "abi": [
+    {"name":"godot_js_websocket_create__sig","signature":"iiiiiiii"},
+    {"name":"godot_js_websocket_send__sig","signature":"iiiii"},
+    {"name":"godot_js_websocket_buffered_amount__sig","signature":"ii"},
+    {"name":"godot_js_websocket_close__sig","signature":"viii"},
+    {"name":"godot_js_websocket_destroy__sig","signature":"vi"}
+  ],
+  "cppChangedLines":[81,86],
+  "provenance":"The two official fixed raw files were read in memory and matched the existing df3 patch parents byte-for-byte; existing patches are reused, not duplicated.",
+  "ordinaryWeb": {
+    "scope":"Existing web WebSocket module; both patches are unconditional, not WeChat-only",
+    "changes":["JS creation/send failures and lifecycle cleanup follow the existing reviewed patch","Two C++ invalid URL/scheme diagnostics use fixed messages"],
+    "preserved":["Five JS ABI signatures","Payload and normal callbacks","Explicit close and bufferedAmount behavior"],
+    "wholeFilesUnchanged":false
+  },
+  "newExports":[],
+  "newCompilerParameters":[],
+  "scsubChangedByThisTail":false,
+  "remaining":[
+    "Source replay is not a build or runtime result; prior models do not substitute for emitted-pair checks",
+    "Compile/link the new official full/conservative pairs and audit emitted JS/WASM independently",
+    "Validate actual WebSocket host route, C++ callback delivery and normal-browser regression",
+    "Independent SocketTask session remains unwired; fallback async send/close outcomes remain unclosed",
+    "Two fixed diagnostics are not full-chain URL/input log sanitization; nested parser diagnostics remain outside this patch",
+    "No inherited runtime, network or device acceptance; preserve source/license notices"
+  ]
+}

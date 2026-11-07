@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "files": {
+    "engines/full/godot.prepared.js": {
+      "bytes": 446605,
+      "sha256": "54a18a0d5022979420a968f84616757f73cbdd2f0f36a94050e36a776ed1cf1e"
+    },
+    "engines/full/godot.wasm": {
+      "bytes": 65187084,
+      "sha256": "5dfe6064bc773569ad782eca8e07688c6d4a3f57fe590a5af2e730811da5fe16"
+    },
+    "tools/wx-transformer-v1.0.35-win.exe": {
+      "bytes": 46401062,
+      "sha256": "f5b2d4ebbe2d077821309a455f60e397bb559ef342e51dd1b8f9a040a85e586e"
+    },
+    "engines/conservative/godot.prepared.js": {
+      "bytes": 429639,
+      "sha256": "76362b5fc584cd515b42f6f4af2263f857cc20accf0ac9e9d241991e958a1940"
+    },
+    "engines/conservative/godot.wasm": {
+      "bytes": 62428779,
+      "sha256": "99dbe672e48c2847eae2c5a3e553b8f8594b949ff57c93da103713ba2d224915"
+    },
+    "engines/pure-2d/godot.prepared.js": {
+      "bytes": 424243,
+      "sha256": "9fb6e1857f2866ba7ce6e68429b295aaee398e7026f11fb078415e1a4702a84e"
+    },
+    "engines/pure-2d/godot.wasm": {
+      "bytes": 52243631,
+      "sha256": "4585d1710ac4b942fb0305073c7b9a925f90a429ff4a74294ddc7775cd0fd2e4"
+    }
+  },
+  "pairs": {
+    "full": {
+      "profile": "full-official-c050-capability-dev",
+      "js": "engines/full/godot.prepared.js",
+      "wasm": "engines/full/godot.wasm",
+      "acceptedHistoricalGame": "wxslim-742f9bc185be0fce0bbd",
+      "requiresPreparedSource": false
+    },
+    "conservative": {
+      "profile": "custom-official-c050-dev",
+      "js": "engines/conservative/godot.prepared.js",
+      "wasm": "engines/conservative/godot.wasm",
+      "acceptedHistoricalGame": "wxslim-737408065d9db41750ad",
+      "requiresPreparedSource": true
+    },
+    "pure-2d": {
+      "profile": "custom-official-c050-dev",
+      "js": "engines/pure-2d/godot.prepared.js",
+      "wasm": "engines/pure-2d/godot.wasm",
+      "acceptedHistoricalGame": "wxslim-b31899b5730cfd5e9a86",
+      "requiresPreparedSource": true
+    }
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "schema": "wxslim-secure-random-bridge-review-v1",
+  "createdAt": "2026-11-05T13:27:55.268Z",
+  "status": "PASS_SOURCE_MODELS_ONLY_NOT_BUILD_READY",
+  "files": [
+    {
+      "path": "convert/assets/godot-bridge.js",
+      "bytes": 15735,
+      "sha256": "85cb71a58f74ece87d43a3ef587e77ca8f921dbb72502debabe00c92d39057c0"
+    },
+    {
+      "path": "convert/assets/secure-random-host.js",
+      "bytes": 13177,
+      "sha256": "2e04abe0b0b4ad0efb50b91f803bd1e1a89f71890a2093fa84ff45a96fa773b0"
+    },
+    {
+      "path": "convert/assets/secure-random-lifecycle.js",
+      "bytes": 6075,
+      "sha256": "efc859d92b900debc9075c7bbc0c4605059c839081f86c8774110b973e4cc411"
+    },
+    {
+      "path": "convert/lib/secure-random-bridge.mjs",
+      "bytes": 5618,
+      "sha256": "a7025a3ef0afb1193a46d1103ce4c646421f0ede77f8ef109366a0ceea6d5030"
+    },
+    {
+      "path": "tests/secure-random-bridge-tests.mjs",
+      "bytes": 15036,
+      "sha256": "afc9d22ad8a4b33d5fe3b856e03332238ad33aa4955cc6cb0e2f842f209603a9"
+    }
+  ],
+  "derivation": {
+    "schema": "wxslim-secure-random-bridge-v1",
+    "status": "SOURCE_ONLY_NOT_INTEGRATED",
+    "base": {
+      "bytes": 15735,
+      "sha256": "85cb71a58f74ece87d43a3ef587e77ca8f921dbb72502debabe00c92d39057c0"
+    },
+    "host": {
+      "bytes": 13177,
+      "sha256": "2e04abe0b0b4ad0efb50b91f803bd1e1a89f71890a2093fa84ff45a96fa773b0"
+    },
+    "lifecycle": {
+      "bytes": 6075,
+      "sha256": "efc859d92b900debc9075c7bbc0c4605059c839081f86c8774110b973e4cc411"
+    },
+    "derived": {
+      "bytes": 36772,
+      "sha256": "f57a2002c3704e87c6174c263ebf06bc50b0bd888a5e5ea705508c14ae46e20e"
+    },
+    "editLineEndings": "CRLF",
+    "changes": [
+      "LOCAL_FACTORIES",
+      "SYNCHRONOUS_START_OWNER",
+      "OWNER",
+      "PREPARE_FACTORY_READY",
+      "ENGINE_EXIT",
+      "CALL_MAIN_FAILED",
+      "STARTUP_FAILED",
+      "RELEASE_ONLY_BEFORE_FACTORY"
+    ],
+    "outsideEditsBytesUnchanged": true,
+    "runtime": "NOT_RUN",
+    "nativeTerminationBeforeBinding": "UNKNOWN",
+    "limits": [
+      "No conversion/profile registration",
+      "Existing engine crypto prelude is unchanged",
+      "A host hook failure defers native cleanup; host rejection stays original",
+      "Native export failure is recorded, never reported as termination success"
+    ]
+  },
+  "attempts": [
+    {
+      "log": "secure-random-bridge-model-20261105-2126.log",
+      "bytes": 1569,
+      "sha256": "534687172a41499325d3db08be929a197f8d0733bcd541d6d3080b085df40a79",
+      "result": "FAILED_BEFORE_TEST_CASES_FIXED_CRLF_ANCHOR"
+    },
+    {
+      "log": "secure-random-bridge-model-20261105-2129.log",
+      "bytes": 4796,
+      "sha256": "ec0025f5e839fa63b721f6832cba0a2d73d4e61d98b68f294eddf2c34f8d71a4",
+      "result": "16_PASS_1_FAIL_FAKE_TIMER_PENDING_REMOVAL"
+    },
+    {
+      "log": "secure-random-bridge-model-20261105-2131.log",
+      "bytes": 4109,
+      "sha256": "d9ac81804facff92d249d55b27edb05b45887618eaeeb7973d2f705efb68af2a",
+      "result": "17_PASS_0_FAIL_0_SKIP"
+    }
+  ],
+  "validation": {
+    "modelTests": 17,
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 133.2798,
+    "actualDerivedBridgeUsed": true,
+    "actualEntropyHostUsed": true,
+    "platform": "FAKE",
+    "timers": "FAKE_ONE_SHOT",
+    "factory": "FAKE",
+    "nativeExport": "FAKE",
+    "nativeCompiled": false,
+    "wasmInstantiated": false,
+    "realEntropyAcquired": false,
+    "deviceOperated": false,
+    "conversionRegistered": false
+  },
+  "reviewedCorrections": [
+    "Factory rejection after publishing own-data native export now terminates that owned context.",
+    "Deferred cleanup status is published; bounded cleanup error cannot replace original exception.",
+    "Synchronous start ownership prevents duplicate pending preparation or state replacement.",
+    "Fixed base EOL is respected without normalizing original bytes.",
+    "Fake timers remove fired one-shot handles before callbacks, matching timer scheduling semantics."
+  ],
+  "limits": [
+    "Existing crypto prelude direct stop(0) behavior is unchanged; only new host hooks defer cleanup outside seed-hook stack.",
+    "Real SDK entropy/timer behavior, Emscripten factory timing, mbedTLS imports/exports and C shutdown have not run.",
+    "Module export missing before failure remains UNBOUND_UNKNOWN; no successful termination is fabricated.",
+    "Separate derivation is not registered in converter, build recipe or current phone package."
+  ],
+  "packageWritten": false,
+  "compilerRun": false,
+  "uploaded": false
+}

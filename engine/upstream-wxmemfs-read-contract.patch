@@ -1,0 +1,181 @@
+diff --git a/platform/web/js/libs/library_godot_memfs.js b/platform/web/js/libs/library_godot_memfs.js
+--- a/platform/web/js/libs/library_godot_memfs.js
++++ b/platform/web/js/libs/library_godot_memfs.js
+@@ -141,47 +141,46 @@
+     },
+ 
+     // 加载: 微信文件系统 -> node.contents
+-    loadNode: function (node, wxPath) {
+-        // 检查是否已经有内容在内存中
+-        if (node.contents !== null && node.contents !== undefined) {
+-            WXMEMFS.log('[WXMEMFS] Node already has contents, skip loading:', wxPath);
+-            return;  // 内存中已有数据,无需加载
+-        }
+-
+-        // 检查是否已经尝试过加载
+-        if (WXMEMFS.lazyLoadedNodes.has(node)) {
+-            WXMEMFS.log('[WXMEMFS] Node already attempted load:', wxPath);
+-            return;  // 已经尝试过加载(可能失败或成功)
+-        }
+-
+-        try {
+-            // 使用 undefined 作为 encoding,返回 ArrayBuffer
+-            var buffer = wx.getFileSystemManager().readFileSync(wxPath, undefined, 0);
+-
+-            if (buffer.byteLength > 0) {
+-                node.contents = new Uint8Array(buffer);
+-                node.usedBytes = buffer.byteLength;
+-            } else {
+-                node.contents = new Uint8Array(0);
+-                node.usedBytes = 0;
+-            }
+-
+-            WXMEMFS.lazyLoadedNodes.add(node);
+-            WXMEMFS.log('[WXMEMFS] Loaded:', wxPath, buffer.byteLength, 'bytes');
+-        } catch (e) {
+-            // 文件不存在或读取失败
+-            WXMEMFS.log('[WXMEMFS] Load failed (file may not exist):', wxPath, e.message);
+-
+-            // 标记为已尝试加载,避免重复尝试
+-            WXMEMFS.lazyLoadedNodes.add(node);
+-
+-            // 初始化为空内容
+-            if (node.contents === null || node.contents === undefined) {
+-                node.contents = new Uint8Array(0);
+-                node.usedBytes = 0;
+-            }
+-        }
+-    },
++    loadNode: function (node, wxPath) {
++        // Valid cached data and the existing local truncation marker retain
++        // their original meaning. Do not reload stale native bytes over them.
++        if (node.contents !== null && node.contents !== undefined) return;
++        if (WXMEMFS.lazyLoadedNodes.has(node)) return;
++
++        try {
++            var fileSystem = wx.getFileSystemManager();
++            var stats = fileSystem.statSync(wxPath, false);
++            var isFile = stats && typeof stats === 'object' && !Array.isArray(stats) ? stats.isFile : null;
++            if (typeof isFile !== 'function' || isFile.call(stats) !== true) {
++                throw new Error('WXMEMFS_NATIVE_FILE_REQUIRED');
++            }
++            var size = stats.size;
++            if (!Number.isSafeInteger(size) || size < 0) {
++                throw new Error('WXMEMFS_NATIVE_SIZE_INVALID');
++            }
++            var contents;
++            if (size === 0) {
++                // readFileSync position 0 is not valid on every platform for
++                // an empty file. Only actual successful metadata permits this.
++                contents = new Uint8Array(0);
++            } else {
++                var buffer = fileSystem.readFileSync(wxPath, undefined, 0);
++                var length = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, 'byteLength').get.call(buffer);
++                if (length !== size) throw new Error('WXMEMFS_NATIVE_LENGTH_CHANGED');
++                contents = new Uint8Array(buffer);
++            }
++            // Commit only a fully validated load, never an exception fallback.
++            node.contents = contents;
++            node.usedBytes = size;
++            WXMEMFS.lazyLoadedNodes.add(node);
++            try { WXMEMFS.log('[WXMEMFS] Loaded:', wxPath, size, 'bytes'); } catch (_) {}
++        } catch (cause) {
++            try { console.error('[WXMEMFS] Native load failed:', cause); } catch (_) {}
++            var failure = new FS.ErrnoError(29);
++            Object.defineProperty(failure, 'cause', {value: cause});
++            throw failure;
++        }
++    },
+ 
+     // ============ 继承 MEMFS 的工具方法 ============
+ 
+@@ -560,42 +559,53 @@
+     // ============ Stream Operations ============
+ 
+     stream_ops: {
+-        open: function (stream) {
+-            var node = stream.node;
+-            var wxPath = WXMEMFS.getWxPath(stream.path);
+-
+-            WXMEMFS.log('[WXMEMFS] open:', stream.path, 'flags:', stream.flags);
+-
+-            // 写模式 (O_TRUNC): 清空内容
+-            if (stream.flags & 512) {  // O_TRUNC
+-                WXMEMFS.log('[WXMEMFS] O_TRUNC: clearing contents');
+-                WXMEMFS.resizeFileStorage(node, 0);
+-                // 标记为已加载,避免后续尝试加载
+-                WXMEMFS.lazyLoadedNodes.add(node);
+-            } else {
+-                // 读模式: 尝试懒加载 (仅在非 TRUNC 时)
+-                var flags = stream.flags & 2097155;  // O_ACCMODE
+-                if (flags === 0 || flags === 2) {  // O_RDONLY or O_RDWR
+-                    WXMEMFS.loadNode(node, wxPath);
+-                }
+-            }
+-
+-            // 分配 wxfd (我们不实际打开微信 fd,只是用于索引)
+-            var wxfd = WXMEMFS.fdCounter++;
+-            stream.wxfd = wxfd;
+-
+-            WXMEMFS.openStreams[wxfd] = {
+-                node: node,
+-                wxPath: wxPath,
+-                flags: stream.flags,
+-                dirty: !!node._wxslimTruncated
+-            };
+-
+-            // 增加引用计数
+-            var refCount = WXMEMFS.incrementRefCount(node);
+-
+-            WXMEMFS.log('[WXMEMFS] opened: wxfd', wxfd, 'path:', wxPath, 'refCount:', refCount);
+-        },
++        open: function (stream) {
++            var node = stream.node;
++            var sdkfd = stream.fd;
++            var wxfd, record, refCount;
++            try {
++                var wxPath = WXMEMFS.getWxPath(stream.path);
++                try { WXMEMFS.log('[WXMEMFS] open:', stream.path, 'flags:', stream.flags); } catch (_) {}
++
++                if (stream.flags & 512) {  // O_TRUNC (normally stripped by SDK FS.open).
++                    WXMEMFS.resizeFileStorage(node, 0);
++                    WXMEMFS.lazyLoadedNodes.add(node);
++                } else {
++                    var flags = stream.flags & 2097155;
++                    if (flags === 0 || flags === 2) WXMEMFS.loadNode(node, wxPath);
++                }
++
++                wxfd = WXMEMFS.fdCounter++;
++                record = {node: node, wxPath: wxPath, flags: stream.flags, dirty: !!node._wxslimTruncated};
++                stream.wxfd = wxfd;
++                WXMEMFS.openStreams[wxfd] = record;
++
++                // Native WeakMap.set has no user callbacks. Commit the count
++                // last, after all preparation that can fail. Do not infer
++                // ownership from a total that another open could increment.
++                var refs = WXMEMFS.nodeRefCounts;
++                refCount = (WeakMap.prototype.get.call(refs, node) || 0) + 1;
++                WeakMap.prototype.set.call(refs, node, refCount);
++            } catch (cause) {
++                // The fixed SDK registered this stream before invoking open.
++                // Do not use FS.close: it can persist data from a failed open.
++                var cleanupErrors = [];
++                try {
++                    if (record && WXMEMFS.openStreams[wxfd] === record) delete WXMEMFS.openStreams[wxfd];
++                    if (stream.wxfd === wxfd) delete stream.wxfd;
++                } catch (cleanupError) { cleanupErrors.push(cleanupError); }
++                try {
++                    if (FS.streams[sdkfd] === stream) FS.closeStream(sdkfd);
++                } catch (cleanupError) { cleanupErrors.push(cleanupError); }
++                stream.fd = null;
++                var failure = cause instanceof FS.ErrnoError && cause.errno === 29 ? cause : new FS.ErrnoError(29);
++                if (failure !== cause) Object.defineProperty(failure, 'cause', {value: cause});
++                if (cleanupErrors.length) Object.defineProperty(failure, 'cleanupErrors', {value: cleanupErrors});
++                try { console.error('[WXMEMFS] Open failed:', failure, cause, cleanupErrors); } catch (_) {}
++                throw failure;
++            }
++            try { WXMEMFS.log('[WXMEMFS] opened: wxfd', wxfd, 'path:', wxPath, 'refCount:', refCount); } catch (_) {}
++        },
+ 
+         close: function (stream) {
+             if (!stream.wxfd || !WXMEMFS.openStreams[stream.wxfd]) {

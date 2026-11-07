@@ -1,0 +1,56 @@
+{
+  "schema": "wxslim-official-file-errors-source-v1",
+  "status": "SOURCE_ONLY_UNAPPLIED",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "forkCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "input": {
+    "path": "drivers/unix/file_access_unix.cpp",
+    "bytes": 18396,
+    "sha256": "06a957f49525afd96a7563dd653583867d738763d38c39f5b17c874a9a298dcd",
+    "gitBlob": "68df35d6de8cf0b2c9e09bdeb628107643106c5a",
+    "equalsFixedFork": true
+  },
+  "patch": {
+    "path": "engine/official-file-errors.patch",
+    "bytes": 2284,
+    "sha256": "c2c210f07a654bcf05334ad57c7de7723245840d0abc87464db3c123aa399b70"
+  },
+  "output": {
+    "path": "drivers/unix/file_access_unix.cpp",
+    "bytes": 20048,
+    "sha256": "3ea539e3cbb06e411256d88bea6734f4686a5dcb7e329fdade22e8416720066c"
+  },
+  "derivedFrom": [
+    {
+      "path": "engine/wechat-file-error-propagation.patch",
+      "bytes": 3225,
+      "sha256": "d28031fd122b5badc203718f0f877b75aa83921561f445a84d4612bdb0258228",
+      "output": {
+        "bytes": 20038,
+        "sha256": "967c3c47f67f38d1ffcffd6d0bdc0ca1b4a2b5f2a43dba26fda5ba1b083e1792"
+      }
+    },
+    {
+      "path": "engine/wechat-file-error-guard-followup.patch",
+      "bytes": 704,
+      "sha256": "6035b65d0fd02217f9edb0e85d2fa6e83ba7b62b667ad970fd780bdb773be0c8",
+      "output": {
+        "bytes": 20048,
+        "sha256": "3ea539e3cbb06e411256d88bea6734f4686a5dcb7e329fdade22e8416720066c"
+      }
+    }
+  ],
+  "conditions": {
+    "macro": "WEB_ENABLED && WECHAT_GLX_EXPERIMENTAL",
+    "regions": 2,
+    "nonWechatProjectionEqualsOfficial": true,
+    "obsoleteMacroAbsent": true
+  },
+  "limitations": [
+    "C++ source replay only; not compiled or actual FILE failure behavior.",
+    "Current storage missing-directory classification and failure are unchanged.",
+    "Must inspect actual recompiled object and final linked branch before admission."
+  ],
+  "build": false,
+  "runtime": false
+}

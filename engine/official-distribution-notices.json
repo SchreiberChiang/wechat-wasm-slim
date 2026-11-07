@@ -1,0 +1,40 @@
+{
+  "schema": "wxslim-official-distribution-notices-v1",
+  "sourceCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "upstreamStorageCommit": "099277108e30c0af92bcbbbe7171fa073ae37606",
+  "librarySha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+  "output": "WXSLIM-THIRD-PARTY-NOTICES.txt",
+  "files": [
+    {
+      "title": "Godot engine license",
+      "path": "engine/alpha-preserve-lighting/LICENSE.godot.txt",
+      "bytes": 1149,
+      "sha256": "b0435e3b3e4e55238f05f4b306f30524a1b2e20147810d436eaa554fa6855c80"
+    },
+    {
+      "title": "Godot third-party notices",
+      "path": "engine/official-godot-COPYRIGHT.txt",
+      "bytes": 100108,
+      "sha256": "cb1980c88089573bcacd7221d777c689bb8bbd778799f24c27fca0fe5f774d6d"
+    },
+    {
+      "title": "Godot contributors",
+      "path": "engine/official-godot-AUTHORS.md",
+      "bytes": 10948,
+      "sha256": "6ca51d335b9de108ea53c5621e820c187d98c6faf92e14c8413ddb946b5e56cf"
+    },
+    {
+      "title": "Upstream storage license",
+      "path": "engine/upstream-wxmemfs.LICENSE",
+      "bytes": 1078,
+      "sha256": "0f637dfcc5630c028c84fe4e39242fe76b1d36dd28a9871637deaf12156971e6"
+    },
+    {
+      "title": "WeChat GLX component notice",
+      "path": "engine/alpha-preserve-lighting/GLX_LIBRARY_NOTICE.md",
+      "bytes": 1099,
+      "sha256": "776ace6ad0288a2f19536fc935995927b82a06dd7ebdbfd1047d2be2f3468d33"
+    }
+  ],
+  "scope": "Fixed c050 engine and reused storage source. Game assets, official converter/SDK terms and repository-owned license need separate handling."
+}

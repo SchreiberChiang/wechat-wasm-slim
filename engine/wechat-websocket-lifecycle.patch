@@ -1,0 +1,193 @@
+diff --git a/modules/websocket/library_godot_websocket.js b/modules/websocket/library_godot_websocket.js
+--- a/modules/websocket/library_godot_websocket.js
++++ b/modules/websocket/library_godot_websocket.js
+@@ -32,6 +32,34 @@
+ 	// Our socket implementation that forwards events to C++.
+ 	$GodotWebSocket__deps: ['$IDHandler', '$GodotRuntime'],
+ 	$GodotWebSocket: {
++		_callback_states: new WeakMap(),
++
++		// Fixed stage only: never inspect URLs, events, or exception payloads.
++		_error: function (stage) {
++			try {
++				GodotRuntime.error('WebSocket failure: ' + stage);
++			} catch (e) {
++				// Logging must not prevent cleanup or change failure sentinels.
++			}
++		},
++
++		_dispose: function (socket) {
++			// Keep trying if an individual event property rejects clearing.
++			['onopen', 'onmessage', 'onerror', 'onclose'].forEach(function (name) {
++				try {
++					socket[name] = null;
++				} catch (e) {
++					GodotWebSocket._error('detach');
++				}
++			});
++			try {
++				if (socket.readyState < socket.CLOSING) {
++					socket.close(3001, 'destroyed');
++				}
++			} catch (e) {
++				GodotWebSocket._error('dispose-close');
++			}
++		},
+ 		// Connection opened, report selected protocol
+ 		_onopen: function (p_id, callback, event) {
+ 			const ref = IDHandler.get(p_id);
+@@ -39,8 +67,11 @@
+ 				return; // Godot object is gone.
+ 			}
+ 			const c_str = GodotRuntime.allocString(ref.protocol);
+-			callback(c_str);
+-			GodotRuntime.free(c_str);
++			try {
++				callback(c_str);
++			} finally {
++				GodotRuntime.free(c_str);
++			}
+ 		},
+ 
+ 		// Message received, report content and type (UTF8 vs binary)
+@@ -65,9 +96,12 @@
+ 			}
+ 			const len = buffer.length * buffer.BYTES_PER_ELEMENT;
+ 			const out = GodotRuntime.malloc(len);
+-			HEAPU8.set(buffer, out);
+-			callback(out, len, is_string);
+-			GodotRuntime.free(out);
++			try {
++				HEAPU8.set(buffer, out);
++				callback(out, len, is_string);
++			} finally {
++				GodotRuntime.free(out);
++			}
+ 		},
+ 
+ 		// An error happened, 'onclose' will be called after this.
+@@ -86,8 +120,11 @@
+ 				return; // Godot object is gone.
+ 			}
+ 			const c_str = GodotRuntime.allocString(event.reason);
+-			callback(event.code, c_str, event.wasClean ? 1 : 0);
+-			GodotRuntime.free(c_str);
++			try {
++				callback(event.code, c_str, event.wasClean ? 1 : 0);
++			} finally {
++				GodotRuntime.free(c_str);
++			}
+ 		},
+ 
+ 		// Send a message
+@@ -96,8 +133,26 @@
+ 			if (!ref || ref.readyState !== ref.OPEN) {
+ 				return 1; // Godot object is gone or socket is not in a ready state.
+ 			}
+-			ref.send(p_data);
+-			return 0;
++			const state = GodotWebSocket._callback_states.get(ref);
++			const previous = state ? state.operation : null;
++			const operation = { callbackFailed: false };
++			if (state) {
++				state.operation = operation;
++			}
++			try {
++				ref.send(p_data);
++				return 0;
++			} catch (e) {
++				if (operation.callbackFailed) {
++					throw e;
++				}
++				GodotWebSocket._error('send');
++				return 1;
++			} finally {
++				if (state) {
++					state.operation = previous;
++				}
++			}
+ 		},
+ 
+ 		// Get current bufferedAmount
+@@ -110,12 +165,48 @@
+ 		},
+ 
+ 		create: function (socket, p_on_open, p_on_message, p_on_error, p_on_close) {
+-			const id = IDHandler.add(socket);
+-			socket.onopen = GodotWebSocket._onopen.bind(null, id, p_on_open);
+-			socket.onmessage = GodotWebSocket._onmessage.bind(null, id, p_on_message);
+-			socket.onerror = GodotWebSocket._onerror.bind(null, id, p_on_error);
+-			socket.onclose = GodotWebSocket._onclose.bind(null, id, p_on_close);
+-			return id;
++			let id = null;
++			let stage = 'create-binary-type';
++			const operation = { callbackFailed: false };
++			const state = { operation: operation };
++			// Track only real C++ callback exceptions across synchronous host calls.
++			const guard = function (callback) {
++				return function () {
++					try {
++						return callback.apply(null, arguments);
++					} catch (e) {
++						if (state.operation) {
++							state.operation.callbackFailed = true;
++						}
++						throw e;
++					}
++				};
++			};
++			GodotWebSocket._callback_states.set(socket, state);
++			try {
++				socket.binaryType = 'arraybuffer';
++				stage = 'create-register';
++				id = IDHandler.add(socket);
++				stage = 'create-handlers';
++				socket.onopen = GodotWebSocket._onopen.bind(null, id, guard(p_on_open));
++				socket.onmessage = GodotWebSocket._onmessage.bind(null, id, guard(p_on_message));
++				socket.onerror = GodotWebSocket._onerror.bind(null, id, guard(p_on_error));
++				socket.onclose = GodotWebSocket._onclose.bind(null, id, guard(p_on_close));
++				return id;
++			} catch (e) {
++				if (id !== null) {
++					IDHandler.remove(id);
++				}
++				GodotWebSocket._callback_states.delete(socket);
++				GodotWebSocket._dispose(socket);
++				if (operation.callbackFailed) {
++					throw e;
++				}
++				GodotWebSocket._error(stage);
++				return -1;
++			} finally {
++				state.operation = null;
++			}
+ 		},
+ 
+ 		// Closes the JavaScript WebSocket (if not already closing) associated to a given C++ object.
+@@ -134,12 +225,9 @@
+ 			if (!ref) {
+ 				return;
+ 			}
+-			GodotWebSocket.close(p_id, 3001, 'destroyed');
+ 			IDHandler.remove(p_id);
+-			ref.onopen = null;
+-			ref.onmessage = null;
+-			ref.onerror = null;
+-			ref.onclose = null;
++			GodotWebSocket._callback_states.delete(ref);
++			GodotWebSocket._dispose(ref);
+ 		},
+ 	},
+ 
+@@ -160,9 +248,9 @@
+ 				socket = new WebSocket(url);
+ 			}
+ 		} catch (e) {
+-			return 0;
++			GodotWebSocket._error('create-constructor');
++			return -1;
+ 		}
+-		socket.binaryType = 'arraybuffer';
+ 		return GodotWebSocket.create(socket, on_open, on_message, on_error, on_close);
+ 	},
+ 

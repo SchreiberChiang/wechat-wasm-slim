@@ -1,0 +1,288 @@
+{
+  "schema": "wxslim-capability-demo-desktop-v1",
+  "at": "2026-11-04T14:11:38.797Z",
+  "status": "DESKTOP_WEBGL2_OBSERVATIONS_ONLY",
+  "packageId": "wxslim-161514e9c37eb16dffeb",
+  "session": "mw26wgeg-71pam9mn",
+  "parentPackageId": "wxslim-548ddf5fb92e31cb8fe6",
+  "environment": {
+    "kind": "WeChat developer-tools simulator",
+    "version": "2.02.2609231 RC",
+    "sdk": "3.17.6",
+    "actualBackend": "webgl",
+    "webgl2": true,
+    "deviceGLX": false
+  },
+  "engine": {
+    "js": {
+      "bytes": 452177,
+      "sha256": "d907a7a64f236d9e4ddc2dc9d15e20eca5fc0f5f8b7f9ebbab40af3417a33364"
+    },
+    "wasm": {
+      "bytes": 62428566,
+      "sha256": "17b079cf1b90a6a77d3737922c8dcaafb7786e9e570318b7301ce04740355cb5"
+    },
+    "framework": {
+      "bytes": 438629,
+      "sha256": "51daf122738b88ef94aa084f398772486a7570f19b1e5fa66aa88f4b76e3ff21"
+    },
+    "returnZero": true,
+    "library": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+    "imports": 749,
+    "exports": 41,
+    "jsImportBindings": 1133,
+    "compilerRerun": false
+  },
+  "pck": {
+    "bytes": 22492,
+    "sha256": "2bca737e7d8a25b0fbb992fc0222055398734d605427d0ba60ead33fedbc6161"
+  },
+  "sourcePins": {
+    "project.godot": {
+      "source": "../engine/alpha-preserve-lighting/delivery-project.godot",
+      "bytes": 535,
+      "sha256": "3f3f2328672dc3ecac27fd4fea45748becf4c1bd70dca67809792d51737a10f6"
+    },
+    "export_presets.cfg": {
+      "source": "../engine/alpha-preserve-lighting/delivery-exports.cfg",
+      "bytes": 401,
+      "sha256": "281b1372f09c9a8a69134c18aa083e98854b949538eeca11a15a08e28ddf4b67"
+    },
+    "simple.tscn": {
+      "source": "../engine/alpha-preserve-lighting/delivery-simple.tscn",
+      "bytes": 272,
+      "sha256": "e30041a713efc469a0b429369003f89f055071331a14c975919a8ee70059f531"
+    },
+    "simple.gd": {
+      "source": "../engine/alpha-preserve-lighting/delivery-simple.gd",
+      "bytes": 3980,
+      "sha256": "cef4be0bca66bf226400bbe60901def0f3a425beca9ecfb447e7ac3f72a9034a"
+    },
+    "capability-observation.gd": {
+      "source": "./godot-capability-observation.gd",
+      "bytes": 16286,
+      "sha256": "954ee0d2666c41170a0626a52e9c8b1f86e680d9fd1e8c1a1fea8d66a52dc4db"
+    }
+  },
+  "interfaces": {
+    "bytes": 11346,
+    "sha256": "db721b2c63caf0d3223dd79ef10af3d473d658911563f53019be7e5ff81d6c9b"
+  },
+  "validation": {
+    "node": {
+      "pass": 24,
+      "fail": 0,
+      "skip": 0,
+      "durationMs": 206.1439
+    },
+    "godot": {
+      "initialImportParseErrorRetained": true,
+      "typeInferenceFixedOnly": true,
+      "successfulImportMs": 3444,
+      "firstExportMs": 3435,
+      "layoutExportMs": 4218,
+      "nativeLayoutSamples": 5,
+      "layout": {
+        "collapsedHeight": 38,
+        "expandedHeight": 460,
+        "viewport": [
+          640,
+          840
+        ]
+      }
+    },
+    "parentFilesChecked": 29,
+    "candidateFilesChecked": 30,
+    "allRecordedHashesMatch": true
+  },
+  "observations": {
+    "rendering": "Cube texture, red translucent panel and shadow visible; cube orientation changed across captures",
+    "panel": "expanded and collapsed by actual clicks",
+    "input": "Desktop mouse drag delivered simulator ScreenTouch down/move/up; NOT physical phone touch",
+    "touchDown": 1,
+    "touchMove": 1,
+    "touchUp": 1,
+    "activeTouches": 0,
+    "manualToneRequest": 1,
+    "toneFinishedSignal": 1,
+    "audible": "NOT_OBSERVED",
+    "wxHide": 0,
+    "wxShow": 1,
+    "godotPauseResume": "No device background transition tested",
+    "visualScope": "This desktop frame only; not GLX acceptance"
+  },
+  "events": [
+    {
+      "audio": "NOT_INFERRED",
+      "details": {
+        "hostDroppedEvents": "0",
+        "sequence": "1"
+      },
+      "event": "WX_SEQUENCE_CHANGED",
+      "logIndex": 2,
+      "packageId": "wxslim-161514e9c37eb16dffeb",
+      "session": "mw26wgeg-71pam9mn",
+      "touch": "NOT_INFERRED",
+      "visual": "NOT_INFERRED"
+    },
+    {
+      "audio": "NOT_INFERRED",
+      "details": {
+        "observation": "wx host: wechat / wiring observing; hide/show 0/1; last show; seq 1 / dropped 0; overflow false. Warnings: none reported (dropped 0). No pause policy inferred."
+      },
+      "event": "HOST_PROJECTION_CHANGED",
+      "logIndex": 3,
+      "packageId": "wxslim-161514e9c37eb16dffeb",
+      "session": "mw26wgeg-71pam9mn",
+      "touch": "NOT_INFERRED",
+      "visual": "NOT_INFERRED"
+    },
+    {
+      "audio": "NOT_INFERRED",
+      "details": {},
+      "event": "PANEL_EXPANDED",
+      "logIndex": 4,
+      "packageId": "wxslim-161514e9c37eb16dffeb",
+      "session": "mw26wgeg-71pam9mn",
+      "touch": "NOT_INFERRED",
+      "visual": "NOT_INFERRED"
+    },
+    {
+      "audio": "NOT_INFERRED",
+      "details": {
+        "count": 1,
+        "finishedCount": 0
+      },
+      "event": "MANUAL_TONE_REQUEST",
+      "logIndex": 5,
+      "packageId": "wxslim-161514e9c37eb16dffeb",
+      "session": "mw26wgeg-71pam9mn",
+      "touch": "NOT_INFERRED",
+      "visual": "NOT_INFERRED"
+    },
+    {
+      "audio": "NOT_INFERRED",
+      "details": {
+        "count": 1,
+        "requestCount": 1
+      },
+      "event": "TONE_FINISHED_SIGNAL",
+      "logIndex": 6,
+      "packageId": "wxslim-161514e9c37eb16dffeb",
+      "session": "mw26wgeg-71pam9mn",
+      "touch": "NOT_INFERRED",
+      "visual": "NOT_INFERRED"
+    },
+    {
+      "audio": "NOT_INFERRED",
+      "details": {
+        "activeCount": 1,
+        "count": 1,
+        "index": 0,
+        "inside": true
+      },
+      "event": "TOUCH_DOWN",
+      "logIndex": 7,
+      "packageId": "wxslim-161514e9c37eb16dffeb",
+      "session": "mw26wgeg-71pam9mn",
+      "touch": "NOT_INFERRED",
+      "visual": "NOT_INFERRED"
+    },
+    {
+      "audio": "NOT_INFERRED",
+      "details": {
+        "activeCount": 0,
+        "count": 1,
+        "index": 0,
+        "inside": true
+      },
+      "event": "TOUCH_UP",
+      "logIndex": 8,
+      "packageId": "wxslim-161514e9c37eb16dffeb",
+      "session": "mw26wgeg-71pam9mn",
+      "touch": "NOT_INFERRED",
+      "visual": "NOT_INFERRED"
+    },
+    {
+      "audio": "NOT_INFERRED",
+      "details": {},
+      "event": "PANEL_COLLAPSED",
+      "logIndex": 9,
+      "packageId": "wxslim-161514e9c37eb16dffeb",
+      "session": "mw26wgeg-71pam9mn",
+      "touch": "NOT_INFERRED",
+      "visual": "NOT_INFERRED"
+    }
+  ],
+  "retainedWarnings": [
+    "WXGameKit requests WX.ReportGameStart during development; not changed",
+    "worker reportRealtimeAction fail not support observed in DevTools console",
+    "HarmonyOS compatibility notice and existing render summary warnings preserved"
+  ],
+  "toolLimitations": [
+    "CLI canvas action returned canvas not found; actual UI fallback completed only in approved window",
+    "automation_evaluate did not resolve the isolated game interface; not evidence of missing in-game interface",
+    "General console response contains two truncated serialized strings and incomplete event coverage; targeted observation response includes this session indices2-9 untruncated. Raw returned files retained; not called a complete vConsole dump."
+  ],
+  "artifacts": [
+    {
+      "path": "PREPARATION_RESULT-2.json",
+      "bytes": 1601,
+      "sha256": "400bc1983a8e64fb91f077b07f4b3d26f9d753a1e0f906bc59888542ada20652"
+    },
+    {
+      "path": "LAYOUT_REVISION_DIFF.json",
+      "bytes": 1269,
+      "sha256": "1a9bc62a6e378f18c560f5a71f614cb6bd8cff279d4c18d17153a72d9c4ae3bb"
+    },
+    {
+      "path": "OFFICIAL_AUDIT.json",
+      "bytes": 11112,
+      "sha256": "3757a6674d79ddfff5ff76dfbc96040f57cc40582517178e5876e3958520ae5d"
+    },
+    {
+      "path": "STAGE_RESULT.json",
+      "bytes": 3465,
+      "sha256": "136cad30cc71d21c144796247f5cc2147eb9f9f4536f07cc2edc9acb45798c95"
+    },
+    {
+      "path": "logs/FINAL_CONSOLE.private.log",
+      "bytes": 23253,
+      "sha256": "6e1a54ed165657ca33cd950ea434fa7800564d63bf94c4f33cb4e9178387fc08"
+    },
+    {
+      "path": "logs/FINAL_OBSERVATIONS.private.log",
+      "bytes": 4072,
+      "sha256": "b3e3fd56aa3474748a8b5588cda0c67f771111940ccb48c1a1b20aac1e36ab4e"
+    },
+    {
+      "path": "logs/LAYOUT_R2_INTERACTION.jpg",
+      "bytes": 43183,
+      "sha256": "56d791febf0649e9b20e18d049afd9cde8f446494bf8c001dec92c5fae81d68b"
+    },
+    {
+      "path": "logs/FINAL_COLLAPSED.jpg",
+      "bytes": 29186,
+      "sha256": "528ecfa8c1cb82773df455702eadec9c86bac601b63f6a2d880339e69a6ebc82"
+    }
+  ],
+  "storageBeforeThisReceipt": {
+    "bytes": 9958588,
+    "files": 124,
+    "budgetBytes": 41943040
+  },
+  "notRun": [
+    "phone upload",
+    "device GLX",
+    "physical multitouch",
+    "hearing confirmation",
+    "background recovery",
+    "Chinese IME",
+    "persistent save",
+    "network",
+    "full plugin execute/cancel"
+  ],
+  "pluginScope": "Readonly local plugin preserved; not published",
+  "converterRerun": false,
+  "engineRebuild": false
+}

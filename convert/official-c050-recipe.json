@@ -1,0 +1,51 @@
+{
+  "schema":"wxslim-official-route-v1",
+  "id":"official-c050-full-development-026e-return0-v3",
+  "validation":"DEVELOPMENT_SOURCE_AND_PAIR_CHECKED_RUNTIME_PENDING",
+  "allowedPurposes":["inspect","development-test"],
+  "admission":"NOT_ADMITTED",
+  "engine":{
+    "js":{"bytes":442149,"sha256":"ddc98bb00e2bec4db7c3fdd3b200bc170faaa9628c119ec84512ecf1c5b323e4"},
+    "wasm":{"bytes":65186782,"sha256":"12dc2e40e1044345fbcd153497643bcd7b952705b1074da139f8b50048894861"},
+    "sourceCommit":"c050c09b105c3715e1caa57a7109cd752047fd89",
+    "librarySha256":"026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+    "emscripten":"4.0.10",
+    "profile":"full-official-c050-dev",
+    "moduleSet":"full",
+    "globalId":"return 0",
+    "preparation":"Seven reviewed source rules including Mini Game window-title and favicon no-ops; exact prepared JS required, raw JS is not accepted",
+    "nativeMapping":{
+      "_glxUpdateContextId":"xn","_glxInit":"yn","_glxInitBufferDataAndGlState":"zn","_glxCommandBufferFlush":"An",
+      "_glxShowOpenData":"Bn","_glxHideOpenData":"Cn","_glxPushBindTexture":"Dn","_glxIsTexture":"En",
+      "_glxGetBoundTexture2D":"Fn","_glxGetTextureIdMapValue":"Gn","_glxPushTexImage2DPlaceholder":"Hn",
+      "_glBindTexture":"In","_glCompressedTexImage2D":"Jn","_glCompressedTexSubImage2D":"Kn","_glIsTexture":"Ln",
+      "_glTexImage2D":"Mn","_glTexSubImage2D":"Nn","_glTexStorage2D":"On","_glxGetVideoTempBuffer":"Pn",
+      "_glxVideoUpdateToTexture":"Qn","_glxVideoDestroy":"Rn","_free":"Sn","__Z14godot_web_mainiPPc":"Tn",
+      "_main":"Un","_malloc":"Vn","__emwebxr_on_input_event":"Xn","__emwebxr_on_simple_event":"Yn",
+      "_godot_wechat_random_buffer":"_n"
+    }
+  },
+  "hostAdapter":{
+    "schema":"wxslim-official-c050-host-adapter-v1",
+    "id":"official-c050-secure-random-and-storage-v1",
+    "base":{"bytes":15735,"sha256":"85cb71a58f74ece87d43a3ef587e77ca8f921dbb72502debabe00c92d39057c0"},
+    "host":{"bytes":13177,"sha256":"2e04abe0b0b4ad0efb50b91f803bd1e1a89f71890a2093fa84ff45a96fa773b0"},
+    "lifecycle":{"bytes":6075,"sha256":"efc859d92b900debc9075c7bbc0c4605059c839081f86c8774110b973e4cc411"},
+    "derived":{"bytes":36772,"sha256":"f57a2002c3704e87c6174c263ebf06bc50b0bd888a5e5ea705508c14ae46e20e"},
+    "storage":{"backend":"upstream-wxmemfs","derivedSourceSha256":"8a60f258503496d554a20b68d62a0abfbbc87064e59c5912a8ad41d5346c16cf"},
+    "secureRandomMode":"WECHAT_CTR_DRBG_V1"
+  },
+  "pckVersion":"4.7.2",
+  "transformer":{"version":"1.0.35","sha256":"f5b2d4ebbe2d077821309a455f60e397bb559ef342e51dd1b8f9a040a85e586e"},
+  "plugin":{"name":"WXGameKit","provider":"wxe5a48f1ed5f544b7","version":"1.3.15"},
+  "contextAttributes":{"alpha":false,"stencil":true,"antialias":false,"powerPreference":"high-performance"},
+  "options":{"renderMode":"glx","orientation":"portrait","locale":"en","name":"glx-official-c050-dev","compat":true,"splitBridge":false,"loadingPage":"on","timing":false},
+  "interface":"assets/simple-delivery-interface.js",
+  "limits":[
+    "Explicit development input only; supported-use is denied",
+    "No runtime, phone, visual, persistence or production acceptance inherited from other profiles",
+    "Exact prepared pair and explicit secure-random host contract; no storage adapter substitution",
+    "Static conversion success is not engine runtime admission",
+    "No conservative variant is registered for this official commit"
+  ]
+}

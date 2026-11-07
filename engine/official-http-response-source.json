@@ -1,0 +1,96 @@
+{
+  "schema": "wxslim-official-http-response-source-v1",
+  "status": "SOURCE_ONLY_UNAPPLIED_NOT_BUILD_READY",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "inputs": [
+    {
+      "path": "platform/web/js/libs/library_wxslim_fetch.js",
+      "bytes": 12888,
+      "sha256": "4bdaefe74d6cfd7c77b919fe71a9bc0b462701fb5eff358bc4259f5bc33cba10"
+    },
+    {
+      "path": "platform/web/http_client_web.cpp",
+      "bytes": 9722,
+      "sha256": "ebd199b1b79a4dfdf8ea9b8b19b518b0ede083104a0cf8b7218ece97df8b1ff6"
+    },
+    {
+      "path": "platform/web/http_client_web.h",
+      "bytes": 4720,
+      "sha256": "4f38e788c3c5af798cf5426fa19667b773771c45b5eb701521ce78757d0d817f"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "platform/web/js/libs/library_wxslim_fetch.js",
+      "bytes": 13524,
+      "sha256": "4a365c9a42b8fa9d0fd2b9ccb32c7eb4bcc1c2ce2c793959019f023ad2eb5f48"
+    },
+    {
+      "path": "platform/web/http_client_web.cpp",
+      "bytes": 10239,
+      "sha256": "f9bf25cf51a15d12913f810def34ef84cb6ba0bc4bd3bbc37bb6180af24b2ec9"
+    },
+    {
+      "path": "platform/web/http_client_web.h",
+      "bytes": 4762,
+      "sha256": "69f109a0a40ee04731f3e1291ee2611c0254e1eddb0475c83f00438341c180c3"
+    }
+  ],
+  "patch": {
+    "path": "engine/official-http-response-source.patch",
+    "bytes": 4400,
+    "sha256": "6873efb8eff6e610a3b40c74796ace1236c01fd0b3441bf0655f0ccbdbaecbad"
+  },
+  "unchanged": [
+    {
+      "path": "platform/web/js/libs/library_godot_fetch.js",
+      "bytes": 8303,
+      "sha256": "47a515b15a93650ce3d45dbbd906818ecec191e8f0a1a5cb19de59043166e74f"
+    },
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 5459,
+      "sha256": "94677374bcddeb1805833f892e4ff5a4698da22b66e90e6d1529fafb04c5e99d"
+    }
+  ],
+  "newExports": [],
+  "newJsAbi": [],
+  "cppLayoutChange": "One private availability bool; requires recompiling affected C++ consumers.",
+  "portPolicy": "Only wx.request URL in library_wxslim_fetch.js normalizes HTTP:80/HTTPS:443, including explicit defaults. Preserve userinfo/IPv6/other ports/path/query/fragment. Ordinary browser fetch unchanged.",
+  "responsePolicy": "One successfully parsed valid HTTP response makes headers available even if empty; get_response_headers consumes once. New request and close clear availability. Pending, JS error, invalid status and header parse failure cannot set availability. All four connection-error transitions invalidate availability; consumed headers do not become available again. Unknown JS fetch states cannot create availability.",
+  "applied": false,
+  "compiled": false,
+  "runtime": "NOT_RUN",
+  "network": "NOT_RUN",
+  "phone": "NOT_RUN",
+  "limitations": [
+    "Offline actual JS functions with modeled wx/heap are not platform or WASM evidence.",
+    "C++ source/replay assertions are not C++ execution.",
+    "C++ response fix affects ordinary browser web client too; regression must be tested before use.",
+    "No recipe, engine checkout, scenes, previous source patch/metadata or successful package changed.",
+    "No streaming, retry, WebSocket, production endpoint or credentials."
+  ],
+  "validation": {
+    "node": "v24.18.0",
+    "test": "tests/official-http-response-source-tests.mjs",
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "negativeGates": [
+      {
+        "name": "missing explicit source",
+        "exitCode": 1
+      },
+      {
+        "name": "non-source directory",
+        "exitCode": 1
+      }
+    ],
+    "scope": "Actual candidate/browser JS functions with modeled wx/heap; exact source replay and C++ textual contract only.",
+    "tap": {
+      "path": ".local/official-http-response-source-20261106.tap",
+      "bytes": 1769,
+      "sha256": "218473326234613e4ed8e87efdbab9ed8fa47892a7dbada2af6bde1b715be1ce"
+    }
+  }
+}

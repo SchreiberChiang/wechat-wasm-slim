@@ -1,0 +1,26 @@
+diff --git a/drivers/gles3/shaders/scene.glsl b/drivers/gles3/shaders/scene.glsl
+index cd210e8..8a4cc6d 100644
+--- a/drivers/gles3/shaders/scene.glsl
++++ b/drivers/gles3/shaders/scene.glsl
+@@ -2377,6 +2377,10 @@ void main() {
+ #endif
+ 
+ #ifndef MODE_RENDER_DEPTH
++#if !defined(USE_SHADOW_TO_OPACITY) && !defined(LIGHT_CODE_USED)
++	// Nothing below writes alpha here, but the inout light parameter came back as 0 on a phone GLX driver.
++	float alpha_before_lights = alpha;
++#endif
+ 
+ #ifndef FOG_DISABLED
+ #ifndef CUSTOM_FOG_USED
+@@ -2718,6 +2722,10 @@ void main() {
+ #endif // BASE_PASS
+ #endif // !MODE_UNSHADED
+ 
++#if !defined(USE_SHADOW_TO_OPACITY) && !defined(LIGHT_CODE_USED)
++	alpha = alpha_before_lights;
++#endif
++
+ #endif // !MODE_RENDER_DEPTH
+ 
+ #if defined(USE_SHADOW_TO_OPACITY)

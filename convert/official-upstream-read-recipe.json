@@ -1,0 +1,42 @@
+{
+  "schema": "wxslim-official-route-v1",
+  "id": "full-upstream-read-development-026e-return0-v1",
+  "validation": "DEVELOPMENT_SOURCE_AND_PAIR_CHECKED_RUNTIME_PENDING",
+  "engine": {
+    "js": {"bytes":498208,"sha256":"a477709bbb2ffba7a27510b2fd8e5f34658736d0871dc6ee7667ddc59edde429"},
+    "wasm": {"bytes":65187548,"sha256":"8a3cb9a07b8b657e3cf8906e546333bf51dff6c90b3a3d5422287a87c0efefd2"},
+    "sourceCommit":"df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+    "librarySha256":"026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+    "emscripten":"4.0.10",
+    "profile":"full-upstream-read-dev",
+    "moduleSet":"full",
+    "globalId":"return 0",
+    "provenanceReport":"docs/UPSTREAM_STORAGE_READ_CONTRACT_20261105.md",
+    "nativeMapping":{"_glxInit":"xn","_glxInitBufferDataAndGlState":"yn","_glxUpdateContextId":"wn","_glxCommandBufferFlush":"zn"}
+  },
+  "adapter": {
+    "id":"upstream-wxmemfs-read-contract-v1",
+    "source":{"bytes":30148,"sha256":"a96d4cde41cf91a83a77cb4eb6f23d40e3231f3c4d1a84465198a5e128c77d95"},
+    "patches":[
+      {"path":"engine/upstream-wxmemfs-correctness.patch","bytes":6166,"sha256":"5fdb4725dc430839bc76166817a5aae60188dafb6b4f12b008fef3bf42fa2d4c"},
+      {"path":"engine/upstream-wxmemfs-read-contract.patch","bytes":8556,"sha256":"404c69d1c60fcb559b6dbc0c731a6b5d1b3f92762c3efdfbbf2e230fa79b259b"}
+    ],
+    "derivedSource":{"bytes":33705,"sha256":"8a60f258503496d554a20b68d62a0abfbbc87064e59c5912a8ad41d5346c16cf"},
+    "effectiveJs":{"bytes":533227,"sha256":"d0fc17ef88172447ce4a1c2e76e9ec79384b9473714dde15c723c6b48d55a4d1"},
+    "storageBackend":"upstream-wxmemfs"
+  },
+  "pckVersion":"4.7.2",
+  "transformer":{"version":"1.0.35","sha256":"f5b2d4ebbe2d077821309a455f60e397bb559ef342e51dd1b8f9a040a85e586e"},
+  "plugin":{"name":"WXGameKit","provider":"wxe5a48f1ed5f544b7","version":"1.3.15"},
+  "contextAttributes":{"alpha":false,"stencil":true,"antialias":false,"powerPreference":"high-performance"},
+  "options":{"renderMode":"glx","orientation":"portrait","locale":"en","name":"glx-upstream-read-dev","compat":true,"splitBridge":false,"loadingPage":"on","timing":false},
+  "interface":"assets/simple-delivery-interface.js",
+  "limits":[
+    "Explicit development profile; no inherited runtime, phone or save acceptance",
+    "Raw pinned pair only; never supply a previous framework or already adapted engine",
+    "Readable upstream source is an explicit hash-checked dependency, no private path default",
+    "Old inactive custom storage functions remain in the pair; host must select upstream mount",
+    "No conservative variant of this storage pair is registered",
+    "No diagnostic scene, observer or cloud forwarding is added to the user game"
+  ]
+}

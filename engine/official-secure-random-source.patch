@@ -1,0 +1,246 @@
+diff --git a/core/crypto/crypto_core.cpp b/core/crypto/crypto_core.cpp
+--- a/core/crypto/crypto_core.cpp
++++ b/core/crypto/crypto_core.cpp
+@@ -44,6 +44,79 @@
+ #include <mbedtls/compat-2.x.h>
+ #endif
+ 
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
++// Independent, single-threaded context: never call OS entropy or RandomGenerator.
++#if defined(THREADS_ENABLED)
++#error WXSLIM_RANDOM_REQUIRES_SINGLE_THREAD
++#endif
++#if !defined(MBEDTLS_AES_C) || !defined(MBEDTLS_CTR_DRBG_C) || defined(MBEDTLS_AES_ALT) || defined(MBEDTLS_CTR_DRBG_USE_PSA_CRYPTO) || defined(MBEDTLS_THREADING_C)
++#error WXSLIM_RANDOM_REQUIRES_AUDITED_BUILTIN_AES_CTR_DRBG
++#endif
++#if MBEDTLS_CTR_DRBG_KEYSIZE != 32 || MBEDTLS_CTR_DRBG_MAX_REQUEST != 1024 || MBEDTLS_CTR_DRBG_RESEED_INTERVAL != 10000
++#error WXSLIM_RANDOM_REQUIRES_AUDITED_CTR_DRBG_DEFAULTS
++#endif
++extern "C" int godot_js_wechat_entropy_take(unsigned char *p_buffer, int p_size);
++namespace {
++static mbedtls_ctr_drbg_context wxslim_random_context;
++static unsigned char wxslim_random_output[1024];
++static bool wxslim_random_initialized = false;
++static bool wxslim_random_busy = false;
++static bool wxslim_random_failed = false;
++static bool wxslim_random_seeded = false;
++static void wxslim_random_zero(unsigned char *p_buffer, size_t p_size) {
++	volatile unsigned char *out = p_buffer;
++	while (p_size--) {
++		*out++ = 0;
++	}
++}
++static void wxslim_random_stop() {
++	wxslim_random_failed = true;
++	wxslim_random_zero(wxslim_random_output, sizeof(wxslim_random_output));
++	// A reentrant stop latches immediately; the outer operation frees on unwind.
++	if (wxslim_random_initialized && !wxslim_random_busy) {
++		mbedtls_ctr_drbg_free(&wxslim_random_context);
++		wxslim_random_zero(reinterpret_cast<unsigned char *>(&wxslim_random_context), sizeof(wxslim_random_context));
++		wxslim_random_initialized = false;
++	}
++}
++static int wxslim_random_entropy(void *, unsigned char *p_buffer, size_t p_size) {
++	if (wxslim_random_failed || p_size != 48 || godot_js_wechat_entropy_take(p_buffer, 48) != 0) {
++		wxslim_random_zero(p_buffer, p_size);
++		return MBEDTLS_ERR_CTR_DRBG_ENTROPY_SOURCE_FAILED;
++	}
++	return 0;
++}
++} // namespace
++// wasm32 ABI: size=0 permanently terminates; 1..1024 returns private output or 0.
++extern "C" unsigned char *godot_wechat_random_buffer(int p_size) {
++	if (p_size == 0 || p_size < 0 || p_size > 1024 || wxslim_random_failed || wxslim_random_busy) {
++		wxslim_random_stop();
++		return nullptr;
++	}
++	wxslim_random_busy = true;
++	if (!wxslim_random_initialized) {
++		mbedtls_ctr_drbg_init(&wxslim_random_context);
++		wxslim_random_initialized = true;
++		mbedtls_ctr_drbg_set_entropy_len(&wxslim_random_context, 48);
++	}
++	int result = 0;
++	if (!wxslim_random_seeded) {
++		result = mbedtls_ctr_drbg_seed(&wxslim_random_context, wxslim_random_entropy, nullptr, nullptr, 0);
++		wxslim_random_seeded = result == 0;
++	}
++	wxslim_random_zero(wxslim_random_output, sizeof(wxslim_random_output));
++	if (result == 0 && !wxslim_random_failed) {
++		result = mbedtls_ctr_drbg_random(&wxslim_random_context, wxslim_random_output, static_cast<size_t>(p_size));
++	}
++	wxslim_random_busy = false;
++	if (result != 0 || wxslim_random_failed) {
++		wxslim_random_stop();
++		return nullptr;
++	}
++	return wxslim_random_output;
++}
++#endif
++
+ // RandomGenerator
+ CryptoCore::RandomGenerator::RandomGenerator() {
+ 	entropy = memalloc(sizeof(mbedtls_entropy_context));
+diff --git a/platform/web/detect.py b/platform/web/detect.py
+--- a/platform/web/detect.py
++++ b/platform/web/detect.py
+@@ -130,6 +130,7 @@
+     env.Append(CXXFLAGS=["-fexceptions"])
+     env.Append(LINKFLAGS=["-fexceptions"])
+     env.Append(CPPDEFINES=["WECHAT_GLX_EXPERIMENTAL"])
++    env["EXPORTED_FUNCTIONS"] += ["_godot_wechat_random_buffer"]
+     # LEGACY_COMPATIBILITY: these are inherited success-recipe settings,
+     # not evidence that unresolved symbols or null writes are safe.
+     env.Append(LINKFLAGS=["-sCHECK_NULL_WRITES=0"])
+diff --git a/platform/web/SCsub b/platform/web/SCsub
+--- a/platform/web/SCsub
++++ b/platform/web/SCsub
+@@ -141,3 +141,8 @@
+ # 1 - wasm file
+ # 2 - wasm side (when dlink is enabled).
+ env.CreateTemplateZip(js_wrapped, build[1], build[2] if len(build) > 2 else None)
++
++# Owned synchronous entropy bridge; browser builds keep their original crypto path.
++if env["use_wx_glx"]:
++    sys_env.AddJSPre(["js/libs/library_godot_crypto.js"])
++    sys_env.AddJSLibraries(["js/libs/library_godot_wechat_entropy.js"])
+diff --git a/platform/web/js/libs/library_godot_crypto.js b/platform/web/js/libs/library_godot_crypto.js
+new file mode 100644
+--- /dev/null
++++ b/platform/web/js/libs/library_godot_crypto.js
+@@ -0,0 +1,80 @@
++/**************************************************************************/
++/*  library_godot_crypto.js                                                       */
++/**************************************************************************/
++/*                         This file is part of:                          */
++/*                             GODOT ENGINE                               */
++/*                        https://godotengine.org                         */
++/**************************************************************************/
++/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
++/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
++/*                                                                        */
++/* Permission is hereby granted, free of charge, to any person obtaining  */
++/* a copy of this software and associated documentation files (the        */
++/* "Software"), to deal in the Software without restriction, including    */
++/* without limitation the rights to use, copy, modify, merge, publish,    */
++/* distribute, sublicense, and/or sell copies of the Software, and to     */
++/* permit persons to whom the Software is furnished to do so, subject to  */
++/* the following conditions:                                              */
++/*                                                                        */
++/* The above copyright notice and this permission notice shall be         */
++/* included in all copies or substantial portions of the Software.        */
++/*                                                                        */
++/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
++/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
++/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
++/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
++/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
++/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
++/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
++/**************************************************************************/
++
++// Owned secure-random adapter. Selected only by use_wx_glx; no global mutation.
++// Host MUST prepare raw entropy before invoking the factory and bind all hooks.
++var crypto = (function (browserCrypto) {
++	var mode = Module['__wxslimSecureRandomMode'];
++	if (mode !== 'WECHAT_CTR_DRBG_V1') {
++		if (mode !== undefined || typeof wx !== 'undefined') {
++			throw new Error('WXSLIM_RANDOM_MODE_REQUIRED');
++		}
++		return browserCrypto;
++	}
++	if (typeof Module['__wxslimEntropyTake'] !== 'function' || typeof Module['__wxslimEntropyAssertReady'] !== 'function') {
++		throw new Error('WXSLIM_RANDOM_HOST_REQUIRED');
++	}
++	var busy = false, failed = false;
++	function terminate() {
++		failed = true;
++		var stop = Module['_godot_wechat_random_buffer'];
++		if (typeof stop === 'function') {
++			try { stop(0); } catch (_) { /* Remain failed; no fallback. */ }
++		}
++	}
++	return { getRandomValues: function (view) {
++		var bytes;
++		try {
++			if (!(view instanceof Uint8Array) || view.byteLength > 65536) throw new Error('WXSLIM_RANDOM_VIEW');
++			bytes = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
++			if (failed || busy) throw new Error('WXSLIM_RANDOM_NOT_READY');
++			busy = true;
++			if (Module['__wxslimEntropyAssertReady']() !== undefined) throw new Error('WXSLIM_RANDOM_HEALTH_RESULT');
++			var read = Module['_godot_wechat_random_buffer'];
++			if (typeof read !== 'function') throw new Error('WXSLIM_RANDOM_EXPORT_REQUIRED');
++			for (var offset = 0; offset < bytes.length; offset += 1024) {
++				var size = Math.min(1024, bytes.length - offset), pointer = 0;
++				try {
++					if (Module['__wxslimEntropyAssertReady']() !== undefined) throw new Error('WXSLIM_RANDOM_HEALTH_RESULT');
++					pointer = read(size);
++					if (failed || !Number.isInteger(pointer) || pointer <= 0 || pointer > HEAPU8.length - 1024) throw new Error('WXSLIM_RANDOM_NATIVE_FAILED');
++					bytes.set(HEAPU8.subarray(pointer, pointer + size), offset);
++				} finally {
++					if (Number.isInteger(pointer) && pointer > 0 && pointer <= HEAPU8.length - 1024) HEAPU8.fill(0, pointer, pointer + 1024);
++				}
++			}
++			return view;
++		} catch (_) {
++			terminate();
++			if (bytes) { try { bytes.fill(0); } catch (_) { /* Detached caller view cannot be recovered. */ } }
++			throw new Error('WXSLIM_RANDOM_FAILED');
++		} finally { busy = false; }
++	} };
++})(typeof globalThis !== 'undefined' ? globalThis.crypto : undefined);
+diff --git a/platform/web/js/libs/library_godot_wechat_entropy.js b/platform/web/js/libs/library_godot_wechat_entropy.js
+new file mode 100644
+--- /dev/null
++++ b/platform/web/js/libs/library_godot_wechat_entropy.js
+@@ -0,0 +1,50 @@
++/**************************************************************************/
++/*  library_godot_wechat_entropy.js                                                       */
++/**************************************************************************/
++/*                         This file is part of:                          */
++/*                             GODOT ENGINE                               */
++/*                        https://godotengine.org                         */
++/**************************************************************************/
++/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
++/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
++/*                                                                        */
++/* Permission is hereby granted, free of charge, to any person obtaining  */
++/* a copy of this software and associated documentation files (the        */
++/* "Software"), to deal in the Software without restriction, including    */
++/* without limitation the rights to use, copy, modify, merge, publish,    */
++/* distribute, sublicense, and/or sell copies of the Software, and to     */
++/* permit persons to whom the Software is furnished to do so, subject to  */
++/* the following conditions:                                              */
++/*                                                                        */
++/* The above copyright notice and this permission notice shall be         */
++/* included in all copies or substantial portions of the Software.        */
++/*                                                                        */
++/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
++/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
++/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
++/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
++/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
++/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
++/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
++/**************************************************************************/
++
++// Raw entropy only: this adapter must never call crypto, randomFill or the DRBG.
++var GodotWechatEntropy = {
++	godot_js_wechat_entropy_take__sig: 'iii',
++	godot_js_wechat_entropy_take: function (pointer, size) {
++		var view;
++		try {
++			if (!Number.isInteger(pointer) || !Number.isInteger(size) || pointer <= 0 || size !== 48 || pointer > HEAPU8.length - size) return -1;
++			view = HEAPU8.subarray(pointer, pointer + size);
++			if (typeof Module['__wxslimEntropyTake'] !== 'function') throw new Error('HOST');
++			var accepted = Module['__wxslimEntropyTake'](view);
++			if (accepted !== size || view.buffer !== HEAPU8.buffer) throw new Error('LENGTH_OR_HEAP_CHANGED');
++			return 0;
++		} catch (_) {
++			if (view) { try { view.fill(0); } catch (_) { /* Detached prior heap. */ } }
++			if (Number.isInteger(pointer) && pointer > 0 && size === 48 && pointer <= HEAPU8.length - size) HEAPU8.fill(0, pointer, pointer + size);
++			return -1;
++		}
++	},
++};
++mergeInto(LibraryManager.library, GodotWechatEntropy);

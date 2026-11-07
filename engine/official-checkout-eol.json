@@ -1,0 +1,373 @@
+{
+  "schema": "wxslim-fixed-official-checkout-eol-v1",
+  "commit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "trackedFiles": 13985,
+  "policy": "Exact fixed-c050 LF-to-CRLF expansion for these 25 paths only; all other raw blob bytes are unchanged. No normalization of disk input.",
+  "attributes": [
+    {
+      "path": ".gitattributes",
+      "gitBlob": "943d6b5d7cec34e3a76838c40425b00ce5a49738",
+      "bytes": 598,
+      "sha256": "4a3538d14d5487a818129076d4aad6ea16eee47c1050a30f5ac0924feecfc83e"
+    },
+    {
+      "path": "platform/android/java/app/src/instrumented/assets/.gitattributes",
+      "gitBlob": "8ad74f78d9c9b9b8f3d68772c6d5aa0cb3fe47e9",
+      "bytes": 80,
+      "sha256": "21b01a606c9f85f18bb9230245f00ab104df7409cbb2fe9423f6751ca72ba754"
+    }
+  ],
+  "files": [
+    {
+      "path": "misc/msvs/nmake.substitution.props",
+      "mode": "100644",
+      "gitBlob": "3f94fc4c1e7ef8ff11b2d0c43d72f8821a38099f",
+      "blob": {
+        "bytes": 1730,
+        "sha256": "092d1453a26d86a2fede8c5e2d08178de3a23e85634c29fdbbf81a93df709427"
+      },
+      "checkout": {
+        "bytes": 1768,
+        "sha256": "c193343e693ec3e16973d7bed9e62883e224c66f8c71a1e1ac5adfc68d3c5a15"
+      },
+      "lfCount": 38
+    },
+    {
+      "path": "misc/msvs/props.template",
+      "mode": "100644",
+      "gitBlob": "57483703056e1a0af5039557a346688e284d3331",
+      "blob": {
+        "bytes": 1477,
+        "sha256": "30aa78a75fc8de888cfb3713aa02d757d28e84e844a206abcc9b9a607b07b021"
+      },
+      "checkout": {
+        "bytes": 1504,
+        "sha256": "3f4f1b2fe444f6309b42af7e3e67f1c0d769dba66f22558e88004c55cf42af19"
+      },
+      "lfCount": 27
+    },
+    {
+      "path": "misc/msvs/sln.template",
+      "mode": "100644",
+      "gitBlob": "25d9d88a496b25ca2c12a3e23733200a6545a256",
+      "blob": {
+        "bytes": 673,
+        "sha256": "df731d1bf54d382599f5eefe4d067af2f2bfaba17ed8165da243d932ca9a64c1"
+      },
+      "checkout": {
+        "bytes": 693,
+        "sha256": "27b2796578a2bf916cf30d34b3340e3a681b90c4a80400efc6fec1ca32943aee"
+      },
+      "lfCount": 20
+    },
+    {
+      "path": "misc/msvs/vcxproj.filters.template",
+      "mode": "100644",
+      "gitBlob": "4fe7822bfd47506b18e1aab7b024528589a77f64",
+      "blob": {
+        "bytes": 656,
+        "sha256": "fedd5474839219ab1aee4f65097e335f6642408ebf3939636bdce148aeaf7c2f"
+      },
+      "checkout": {
+        "bytes": 683,
+        "sha256": "4671dc6d620a63887f30d2771ca3b35d8a3133484c81a9745da0389db9ce44ef"
+      },
+      "lfCount": 27
+    },
+    {
+      "path": "misc/msvs/vcxproj.template",
+      "mode": "100644",
+      "gitBlob": "0261e906b4691ab2939634f52509a9a1d9428ea4",
+      "blob": {
+        "bytes": 2204,
+        "sha256": "8eb53c7e698bce8e930ba21a59ebcbd157a834857654a993754093284d6fb6ec"
+      },
+      "checkout": {
+        "bytes": 2248,
+        "sha256": "b27e8f905042e7677c67b723923989dd811008f3376dd2b684b628cd7dd1910d"
+      },
+      "lfCount": 44
+    },
+    {
+      "path": "modules/mono/editor/Godot.NET.Sdk/Godot.NET.Sdk.sln",
+      "mode": "100644",
+      "gitBlob": "2c78645493365878dd7f1be9ff94363b732d59ed",
+      "blob": {
+        "bytes": 3201,
+        "sha256": "cc9c36312195f09f7f352e86732d099ae8c2b2a718ce80dcca1f08fb7593b9dc"
+      },
+      "checkout": {
+        "bytes": 3250,
+        "sha256": "9caae973ae19039448b4eb237a385472f046029e425140d36010f7842cf38d3f"
+      },
+      "lfCount": 49
+    },
+    {
+      "path": "modules/mono/editor/Godot.NET.Sdk/Godot.NET.Sdk/Godot.NET.Sdk.csproj",
+      "mode": "100644",
+      "gitBlob": "1e256dd1bf322af60f68988495b9bb8e5b9252fa",
+      "blob": {
+        "bytes": 1867,
+        "sha256": "ef42b933dacc7b62233cf7cd4111b918d5a3676898cd5482cb317e74948b3527"
+      },
+      "checkout": {
+        "bytes": 1910,
+        "sha256": "4d0987bf83760ac765229c967b240ca7b66b68b40f3b7adc0d1024a492f5fa11"
+      },
+      "lfCount": 43
+    },
+    {
+      "path": "modules/mono/editor/Godot.NET.Sdk/Godot.SourceGenerators.Sample/Godot.SourceGenerators.Sample.csproj",
+      "mode": "100644",
+      "gitBlob": "bbb180914cce240ad9e9f90cd130a43c5d353d13",
+      "blob": {
+        "bytes": 1645,
+        "sha256": "ba024ad9abd148ae4b3fb0ff5d1babca49a986b09797517b13c06815d0534345"
+      },
+      "checkout": {
+        "bytes": 1680,
+        "sha256": "f0f9b931c8a37bc78913bbd214ba9e3a980971d46ddb7415cb87542e33cd6355"
+      },
+      "lfCount": 35
+    },
+    {
+      "path": "modules/mono/editor/Godot.NET.Sdk/Godot.SourceGenerators.Tests/Godot.SourceGenerators.Tests.csproj",
+      "mode": "100644",
+      "gitBlob": "e5e50738b2768202c8f31194b9b85a7fb674807c",
+      "blob": {
+        "bytes": 2243,
+        "sha256": "867b1c63a98807744a90677782b6cddf74511e3c21bfbbd9894f2e90ad795d7c"
+      },
+      "checkout": {
+        "bytes": 2292,
+        "sha256": "b234af717204d96cadb6bc1e67544c827fd223e6a0230eb253af829ba28edf68"
+      },
+      "lfCount": 49
+    },
+    {
+      "path": "modules/mono/editor/Godot.NET.Sdk/Godot.SourceGenerators/Godot.SourceGenerators.csproj",
+      "mode": "100644",
+      "gitBlob": "8f6c70cf9b31226c65d3d14d01149fd0f1e07237",
+      "blob": {
+        "bytes": 1872,
+        "sha256": "ff679c338dcbbdf71de26f258dcaf9e38021695cdcafc124628b874437059160"
+      },
+      "checkout": {
+        "bytes": 1912,
+        "sha256": "c1bfb92ccad9f79742a9cf1172785deb656dfb383e12526572c6be554b51947a"
+      },
+      "lfCount": 40
+    },
+    {
+      "path": "modules/mono/editor/GodotTools/GodotTools.BuildLogger/GodotTools.BuildLogger.csproj",
+      "mode": "100644",
+      "gitBlob": "eee61077b2ffe4d11097fded96008f9b1219ef14",
+      "blob": {
+        "bytes": 400,
+        "sha256": "d2d98a3d8ceb2326dfca924f41be73749becf161a44bf5c8c7d521c5b4d59d90"
+      },
+      "checkout": {
+        "bytes": 411,
+        "sha256": "c1e4705e17ab336652873289114b1bf69a4b0dac2b216b434ee8f2076578a6ed"
+      },
+      "lfCount": 11
+    },
+    {
+      "path": "modules/mono/editor/GodotTools/GodotTools.Core/GodotTools.Core.csproj",
+      "mode": "100644",
+      "gitBlob": "833f6b269a6a1b32ea49b1ac644e44d957fa378b",
+      "blob": {
+        "bytes": 269,
+        "sha256": "77773990ed65f169f09b530519a14809509635529a7a44723d1726917ff5bd2f"
+      },
+      "checkout": {
+        "bytes": 279,
+        "sha256": "ba1dbc2c9b1536f5649196670fff3daaf132be0d7b5f9a0c4d1b2400d2df174a"
+      },
+      "lfCount": 10
+    },
+    {
+      "path": "modules/mono/editor/GodotTools/GodotTools.IdeMessaging.CLI/GodotTools.IdeMessaging.CLI.csproj",
+      "mode": "100644",
+      "gitBlob": "1b86e58f9e27aa939232b704b455f48e2544aab5",
+      "blob": {
+        "bytes": 519,
+        "sha256": "28d7e71d81e5cda750ba7c60b6fb8abb926e7df33d98f9891d6813626866b970"
+      },
+      "checkout": {
+        "bytes": 534,
+        "sha256": "bed26296884ef3df731d62cb0b2dd78b4e6026ca14481780e3e5a1d59cd58c66"
+      },
+      "lfCount": 15
+    },
+    {
+      "path": "modules/mono/editor/GodotTools/GodotTools.IdeMessaging/GodotTools.IdeMessaging.csproj",
+      "mode": "100644",
+      "gitBlob": "2ee28715bfdcf1cfa1c6e3fe5f62dd9baf666539",
+      "blob": {
+        "bytes": 1232,
+        "sha256": "fdc279e38d2421ba96b828a937d4c940fdc3b87147de39b56b76102f50632a78"
+      },
+      "checkout": {
+        "bytes": 1258,
+        "sha256": "890266cbbe7b922201a983af9b6732495a5e1a4bed0c35342747b90a72282617"
+      },
+      "lfCount": 26
+    },
+    {
+      "path": "modules/mono/editor/GodotTools/GodotTools.OpenVisualStudio/GodotTools.OpenVisualStudio.csproj",
+      "mode": "100644",
+      "gitBlob": "406814bd2e5c1b1163240d85257906da2dd53093",
+      "blob": {
+        "bytes": 949,
+        "sha256": "eef252d8d2f00441e1f000548e5199dbd4786314a7451317b27d6c717558f0e3"
+      },
+      "checkout": {
+        "bytes": 968,
+        "sha256": "ff2cf9bed8dce06f3a2d30e9bf7e1c51826ae9e708b8218d8b570452a704bdb5"
+      },
+      "lfCount": 19
+    },
+    {
+      "path": "modules/mono/editor/GodotTools/GodotTools.ProjectEditor/GodotTools.ProjectEditor.csproj",
+      "mode": "100644",
+      "gitBlob": "157e2bac79cbbeea65e837f5701f86b54cadc0a0",
+      "blob": {
+        "bytes": 839,
+        "sha256": "0f548d901f3e2ec4c0d4ded8742a1ca46b4c319c8d42793251e2eff817fb5d07"
+      },
+      "checkout": {
+        "bytes": 861,
+        "sha256": "46362d30801d7c583eeed3d1fd7532fd5022c77cd1331caa26d0c40e556f5aa1"
+      },
+      "lfCount": 22
+    },
+    {
+      "path": "modules/mono/editor/GodotTools/GodotTools.Shared/GodotTools.Shared.csproj",
+      "mode": "100644",
+      "gitBlob": "a281853f682c4ebde61d78663b8723e9fe567a9d",
+      "blob": {
+        "bytes": 395,
+        "sha256": "0cf9aff2ec162a8418f0619fb3ea8bb18202c0b0419f7ebe3aebd9a4cd87caa2"
+      },
+      "checkout": {
+        "bytes": 407,
+        "sha256": "60f6112047994dd80949d3161f975a5335f9feb54db53e26d9c617c29304bc17"
+      },
+      "lfCount": 12
+    },
+    {
+      "path": "modules/mono/editor/GodotTools/GodotTools.sln",
+      "mode": "100644",
+      "gitBlob": "1182e2467bc76dc2628f8598716585c843cd91ff",
+      "blob": {
+        "bytes": 5277,
+        "sha256": "9bdb49b7b940c41123bfccfdbfcb3e82f0177ffcaba7e5077d2a61c68dd82a09"
+      },
+      "checkout": {
+        "bytes": 5350,
+        "sha256": "e15ce9b237ba15b85b6813bff1eaea678cb39028fbbf8ffa6e91736f2bf6f15a"
+      },
+      "lfCount": 73
+    },
+    {
+      "path": "modules/mono/editor/GodotTools/GodotTools/GodotTools.csproj",
+      "mode": "100644",
+      "gitBlob": "3a3d1277f94636854296dbd0dfb94e074bca820c",
+      "blob": {
+        "bytes": 3237,
+        "sha256": "ec1b93b6be6f0b7fc9f31d1fa0c4637ecba17b1dd1d571d9e495cd4d43fd27ef"
+      },
+      "checkout": {
+        "bytes": 3301,
+        "sha256": "7ea829b007f23f321ef3b786f15e5c8f70f94b730d94ee73e6885a4306974340"
+      },
+      "lfCount": 64
+    },
+    {
+      "path": "modules/mono/glue/GodotSharp/Godot.SourceGenerators.Internal/Godot.SourceGenerators.Internal.csproj",
+      "mode": "100644",
+      "gitBlob": "d291199ad04d04768823f74478eded8f3283cd61",
+      "blob": {
+        "bytes": 512,
+        "sha256": "0536b708186115f871657e3802f022eb7e687c7fb82b2f4f6092a9f3984aadbd"
+      },
+      "checkout": {
+        "bytes": 527,
+        "sha256": "ac93a4f1e44ffbb51dcf6c8b266a9ad8e4f3d604637e9e8e7ea7ea603bf7b15b"
+      },
+      "lfCount": 15
+    },
+    {
+      "path": "modules/mono/glue/GodotSharp/GodotPlugins/GodotPlugins.csproj",
+      "mode": "100644",
+      "gitBlob": "6d557c1eacf3fd8adef601ba22b90662cc0732e5",
+      "blob": {
+        "bytes": 495,
+        "sha256": "6b9dd471f0613be16fbd63799d9c47938b88b7231448863ca7502ea0a31eb0d6"
+      },
+      "checkout": {
+        "bytes": 513,
+        "sha256": "97176b10a88bb9ee0f0fdc221ed1fc7e87f927d1044f9d06ea7f83e4c86956fa"
+      },
+      "lfCount": 18
+    },
+    {
+      "path": "modules/mono/glue/GodotSharp/GodotSharp.sln",
+      "mode": "100644",
+      "gitBlob": "81ff7d75505e5780d07373251841c7e33ea38701",
+      "blob": {
+        "bytes": 2632,
+        "sha256": "21142705aaace9be4be0a276af0352e29d99a95f002cd543549b1b548d352a31"
+      },
+      "checkout": {
+        "bytes": 2675,
+        "sha256": "bdf8c71973c3884add8900cf2fe6f5df8a3df033aa84d89360c932606f9dedc1"
+      },
+      "lfCount": 43
+    },
+    {
+      "path": "modules/mono/glue/GodotSharp/GodotSharp/GodotSharp.csproj",
+      "mode": "100644",
+      "gitBlob": "5a92d3c799cb172f41f792c471c2cab546907095",
+      "blob": {
+        "bytes": 7636,
+        "sha256": "1bec4bd819969eaeee47516a8138655f82239fdc65973199c7c2a86f0646caee"
+      },
+      "checkout": {
+        "bytes": 7794,
+        "sha256": "1b5142d638cc61e0f05a230427b69e9de3ece92162e0d4b02118b2d230f2c727"
+      },
+      "lfCount": 158
+    },
+    {
+      "path": "modules/mono/glue/GodotSharp/GodotSharpEditor/GodotSharpEditor.csproj",
+      "mode": "100644",
+      "gitBlob": "192f7c32cc961ef6c85f5e2d0c0d4375d2c06a11",
+      "blob": {
+        "bytes": 2267,
+        "sha256": "f70600d99c422f28778227c43125c6a332942b8b52f602e8fa24f54c685856f9"
+      },
+      "checkout": {
+        "bytes": 2316,
+        "sha256": "6a94dd8f92ed4570124fcbb985af03aa361d0ffbeb9085fadd952a2e3c20eccd"
+      },
+      "lfCount": 49
+    },
+    {
+      "path": "platform/android/java/gradlew.bat",
+      "mode": "100644",
+      "gitBlob": "107acd32c4e687021ef32db511e8a206129b88ec",
+      "blob": {
+        "bytes": 2674,
+        "sha256": "c46a27c79007746de5922b17abb6230d64ad8b1ba3ad1585ee5c6543c2a9b129"
+      },
+      "checkout": {
+        "bytes": 2763,
+        "sha256": "af835f98787e9269af5a046edcb821a592fed372139df7b947b471a63cfc236b"
+      },
+      "lfCount": 89
+    }
+  ],
+  "sourceWritten": false
+}

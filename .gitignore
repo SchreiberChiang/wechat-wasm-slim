@@ -1,0 +1,7 @@
+editor/workbench/local-config.json
+editor/workbench/logs/
+.godot/
+**/.godot/
+*.private.*
+node_modules/
+__pycache__/

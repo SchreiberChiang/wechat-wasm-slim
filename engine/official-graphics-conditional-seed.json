@@ -1,0 +1,148 @@
+{
+  "schema": "wxslim-official-graphics-seed-v1",
+  "status": "SOURCE_ONLY_NOT_BUILDABLE_PLATFORM",
+  "baseRepository": "godotengine/godot",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "derivationRepository": "citizenll/godot",
+  "derivationCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "patch": {
+    "file": "engine/official-graphics-conditional-seed.patch",
+    "bytes": 10977,
+    "sha256": "c971a9fb791d30423d52769177202b8b0f581f206dec8172fc7e3c7957d4f5c4"
+  },
+  "inputs": [
+    {
+      "path": "platform/web/display_server_web.cpp",
+      "bytes": 49511,
+      "sha256": "2e4b1ebf3b08b39494e47f8b699797140d79d5c821263094c3997bb85af63b4e",
+      "gitBlob": "496bf8982689a850f2710e0fce9de08ad153c901",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/platform/web/display_server_web.cpp"
+    },
+    {
+      "path": "platform/web/display_server_web.h",
+      "bytes": 16550,
+      "sha256": "327c4a774f1f5c136f819311c6f1bce2faa86df3300ac6fa62e79fd43cb5b8ac",
+      "gitBlob": "9b3901c3b75c0c7a18c5ed427bc55be19f51579a",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/platform/web/display_server_web.h"
+    },
+    {
+      "path": "platform/web/godot_js.h",
+      "bytes": 7600,
+      "sha256": "7942335057dc849fae1f6c04665bdf4aeb27ecdab732bd1d3413c303328c8b16",
+      "lfSha256": "7942335057dc849fae1f6c04665bdf4aeb27ecdab732bd1d3413c303328c8b16",
+      "gitBlob": "29b291d566a4c63a65e7de10ed081f4f1bb36c96",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/platform/web/godot_js.h"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_display.js",
+      "bytes": 26637,
+      "sha256": "aa16efa5058eb20828a5a3c45f5952a11320c5050f83d1ed0548cd527e61163d",
+      "gitBlob": "81172591155ea563e5c0d00d5fc6ba40d7cc66fd",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/platform/web/js/libs/library_godot_display.js"
+    },
+    {
+      "path": "servers/rendering/renderer_canvas_cull.cpp",
+      "bytes": 101406,
+      "sha256": "8d4f85652d69a3aec8378a391f5d5cff5f8aeb795243bedd56dff5c79f5d88a7",
+      "gitBlob": "9a0c442d8fc9ec500ade6520c758ec39315eda2f",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/servers/rendering/renderer_canvas_cull.cpp"
+    },
+    {
+      "path": "drivers/gles3/storage/utilities.cpp",
+      "bytes": 18908,
+      "sha256": "8bf1c99190175b2f1aced92a27fae5bd5f360bcfa7c72a59992b13ca87b31fc4",
+      "gitBlob": "383d38c92f540aee1d4d19b285a41c703dd8da7a",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/drivers/gles3/storage/utilities.cpp"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "platform/web/display_server_web.cpp",
+      "bytes": 49864,
+      "sha256": "e462b18a1f8f5be4e6b40c82fb549b93de78239387db1c30f7aac89f3a665eaa"
+    },
+    {
+      "path": "platform/web/display_server_web.h",
+      "bytes": 16580,
+      "sha256": "52f77625f2370be75cc0f199b63c0be87c9db1bd27b4d93b9a7d4d6adb4ee08e"
+    },
+    {
+      "path": "platform/web/godot_js.h",
+      "bytes": 7649,
+      "sha256": "ad248d3c6d61181dad38a2161b6decdbeab89c9b2fadec9582b9665900ea0918"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_display.js",
+      "bytes": 26928,
+      "sha256": "f1ddd92cff6b7fae79eac3c41007fdab9b4aa9c29513024fa1799427e5518aa5"
+    },
+    {
+      "path": "servers/rendering/renderer_canvas_cull.cpp",
+      "bytes": 106472,
+      "sha256": "3e4a3060df39b46cd61e939970a0a853da1b2a71fe22237c80b99fd8a3e3110e"
+    },
+    {
+      "path": "drivers/gles3/storage/utilities.cpp",
+      "bytes": 19064,
+      "sha256": "5ebd9f0339d54b702c1e6faa591bb1ccd326dd96b893cc11de7b3c4406f4932c"
+    }
+  ],
+  "sourceProvenance": [
+    {
+      "path": "platform/web/godot_js.h",
+      "bytes": 7649,
+      "sha256": "ad248d3c6d61181dad38a2161b6decdbeab89c9b2fadec9582b9665900ea0918",
+      "lfSha256": "ad248d3c6d61181dad38a2161b6decdbeab89c9b2fadec9582b9665900ea0918"
+    },
+    {
+      "path": "platform/web/display_server_web.cpp",
+      "bytes": 49900,
+      "sha256": "0ec8154ce80fbb52352e504a2d52bbefc8584f1987909b26e3ed3fb10943cc23"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_display.js",
+      "bytes": 27598,
+      "sha256": "6b407e7cbc9201a6172c3fe6ebe274ace6402276d11037a41aef18bb8ef3ce33"
+    },
+    {
+      "path": "servers/rendering/renderer_canvas_cull.cpp",
+      "bytes": 106472,
+      "sha256": "3e4a3060df39b46cd61e939970a0a853da1b2a71fe22237c80b99fd8a3e3110e"
+    },
+    {
+      "path": "drivers/gles3/storage/utilities.cpp",
+      "bytes": 19064,
+      "sha256": "5ebd9f0339d54b702c1e6faa591bb1ccd326dd96b893cc11de7b3c4406f4932c"
+    },
+    {
+      "path": "platform/web/display_server_web.h",
+      "bytes": 16580,
+      "sha256": "52f77625f2370be75cc0f199b63c0be87c9db1bd27b4d93b9a7d4d6adb4ee08e"
+    }
+  ],
+  "intendedOrder": "Official c050 base -> this six-file seed -> remaining platform units -> separately rebase verified rendering patches. No assembled recipe exists yet.",
+  "validation": {
+    "strictForwardReplay": true,
+    "strictReverseReplay": true,
+    "duplicateRejected": true,
+    "displayJsParsed": true,
+    "hunkCount": 13
+  },
+  "notIncluded": [
+    "platform/web/detect.py",
+    "platform/web/js/patches/patch_em_gl.js",
+    "godot_process.js",
+    "filesystem/audio/input/network/JSBridge platform units",
+    "alpha/shadow patches and return0 output transformation"
+  ],
+  "licenseCleared": false,
+  "applied": false,
+  "compiled": false,
+  "runtime": "NOT_RUN",
+  "remaining": [
+    "Explicit GLX build option/library/SDK/exception/longjmp/export policy with browser defaults preserved",
+    "Separate platform guarded GL context hook with actual native ABI/source/license evidence",
+    "Graphics-only fail-closed generated-glue postprocessor; no WXMEMFS/title/random/audio copying",
+    "Browser/WX backend build and actual rendering/visual/lifecycle acceptance"
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "schema": "wxslim-official-audio-pending-pause-source-v1",
+  "status": "SOURCE_ONLY_NOT_APPLIED",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "file": "platform/web/js/libs/library_godot_audio.js",
+  "input": {
+    "bytes": 123483,
+    "sha256": "d990e5d6dbbb860883812009b303c1e950ee7c59c8902ad34db7e301f623ba5e"
+  },
+  "output": {
+    "bytes": 123854,
+    "sha256": "9fb0c52a2a71c7d40cb81c24d5b80dff12e7fed99b01007c9269a63526d47d7d"
+  },
+  "patch": {
+    "bytes": 13182,
+    "sha256": "5a95ebd5309be3bc3b18cc066d845b6bb9edd95987db90ed955efb7c94690fac"
+  },
+  "preparation": {
+    "schema": "wxslim-official-audio-pending-pause-v1",
+    "status": "SOURCE_ONLY_NOT_APPLIED",
+    "input": {
+      "bytes": 123483,
+      "sha256": "d990e5d6dbbb860883812009b303c1e950ee7c59c8902ad34db7e301f623ba5e"
+    },
+    "output": {
+      "bytes": 123854,
+      "sha256": "9fb0c52a2a71c7d40cb81c24d5b80dff12e7fed99b01007c9269a63526d47d7d"
+    },
+    "changedMethods": [
+      "_GodotAudio.$GodotAudio.WX.startSample",
+      "_GodotAudio.$GodotAudio.WX.setPause"
+    ],
+    "unrelatedMembersUnchanged": true,
+    "backendSelectionUnchanged": true,
+    "poolPolicyUnchanged": true,
+    "errorContractsUnchanged": true,
+    "productionABIUnchanged": true,
+    "hideShowWiring": "NOT_ADDED",
+    "engineExecuted": false,
+    "platformExecuted": false,
+    "build": "NOT_RUN",
+    "runtime": "NOT_RUN"
+  },
+  "checks": {
+    "status": "PASS_SOURCE_AND_MODELS_ONLY",
+    "tests": 17,
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "log": ".local/official-audio-pending-pause-20261106.log",
+    "logFormat": "NODE_DEFAULT_SPEC_TEXT_NOT_TAP",
+    "logIdentity": {
+      "bytes": 1423,
+      "sha256": "4fc499372d91639568d7df230dd1216a84330a5196f9aea8a4f27e255d457ab0"
+    },
+    "negativeControl": "Original pinned source loses pending pause in modeled load completion",
+    "sourceUnchanged": true,
+    "scope": "AST-extracted actual JS with modeled platform/heap; no factory/WASM/engine/device execution"
+  },
+  "scope": "Persist pending pause intent only; no host/hide-show/backend/pool/ABI changes",
+  "build": "NOT_RUN",
+  "conversion": "NOT_RUN",
+  "phone": "NOT_RUN"
+}

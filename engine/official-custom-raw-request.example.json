@@ -1,0 +1,20 @@
+{
+  "schema": "wxslim-official-custom-raw-build-request-v1",
+  "profile": "custom",
+  "features": {
+    "schema": "wxslim-custom-wasm-plan-v1",
+    "dimensions": "2d",
+    "disabledModules": ["enet", "fbx", "gltf", "mobile_vr", "upnp", "vhacd", "webxr"],
+    "disabledClasses": []
+  },
+  "work": "D:/YOUR_APPROVED_NEW_BUILD_DIRECTORY",
+  "sdk": "D:/YOUR_FIXED_TOOLS/emsdk",
+  "python": "D:/YOUR_FIXED_TOOLS/venv/Scripts/python.exe",
+  "library": "D:/YOUR_VERIFIED_INPUTS/libemscriptenglx.a",
+  "sconsWheel": "D:/YOUR_FIXED_INPUTS/scons-4.11.1-py3-none-any.whl",
+  "sdkArchive": "D:/YOUR_FIXED_INPUTS/emsdk-fixed.zip",
+  "gitExecutable": "D:/YOUR_GIT/cmd/git.exe",
+  "upstreamSource": "D:/YOUR_VERIFIED_INPUTS/upstream-source.js",
+  "jobs": 6,
+  "budgetBytes": 8589934592
+}

@@ -1,0 +1,7 @@
+{
+  "schema": "wxslim-custom-pair-preparation-v1",
+  "rawTaskRoot": "YOUR_SUCCESSFUL_CUSTOM_RAW_TASK",
+  "rawTaskId": "YOUR_SUCCESSFUL_TASK_UUID",
+  "outputJs": "YOUR_APPROVED_EXISTING_OUTPUT_DIRECTORY/godot.prepared.js",
+  "receipt": "YOUR_APPROVED_EXISTING_OUTPUT_DIRECTORY/PAIR_PREPARATION.json"
+}

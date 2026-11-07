@@ -1,0 +1,105 @@
+diff --git a/platform/web/js/libs/library_godot_input.js b/platform/web/js/libs/library_godot_input.js
+--- a/platform/web/js/libs/library_godot_input.js
++++ b/platform/web/js/libs/library_godot_input.js
+@@ -57,6 +57,8 @@
+ 		},
+ 
+ 		init: function (ime_cb, key_cb, code, key) {
++			// Do not abandon callbacks or a failed cleanup from a previous instance.
++			if (GodotIME.ime) GodotIME.clear();
+ 			function ime_event_cb(type, event) {
+ 				if (GodotIME.ime) {
+ 					const ptr = GodotRuntime.allocString(event.value);
+@@ -93,6 +95,7 @@
+ 				}
+ 			}
+ 			let inputCb = evt => {
++				if (GodotIME.ime !== ime || !GodotIME.active) return;
+ 				if (!evt || typeof evt.value !== "string") {
+ 					return
+ 				}
+@@ -113,6 +116,7 @@
+ 				GodotIME.initialText = lastValue
+ 			}
+ 			let inputConfirm = evt => {
++				if (GodotIME.ime !== ime || !GodotIME.active) return;
+ 				const value = (evt && typeof evt.value === "string") ? evt.value : lastValue
+ 				ime_event_cb(2, { value: "" })
+ 				clearExistingText(currentLength)
+@@ -124,10 +128,7 @@
+ 				ime.hide();
+ 			}
+ 			let inputComplete = evt => {
+-				if (!GodotIME.active) {
+-					ime.hide();
+-					return
+-				}
++				if (GodotIME.ime !== ime || !GodotIME.active) return;
+ 				const value = (evt && typeof evt.value === "string") ? evt.value : lastValue
+ 				ime_event_cb(2, { value: "" })
+ 				clearExistingText(currentLength)
+@@ -140,7 +141,9 @@
+ 			}
+ 			let ime = {
+ 				activeTime: 0,
++				cleanupError: null,
+ 				show() {
++					if (ime.cleanupError !== null) throw ime.cleanupError;
+ 					let delta = Date.now() - ime.activeTime
+ 					if (delta < 100) {
+ 						return
+@@ -168,14 +171,21 @@
+ 					__globalAdapter.onKeyboardComplete(inputComplete);
+ 				},
+ 				hide() {
++					if (ime.cleanupError !== null) throw ime.cleanupError;
+ 					if (!GodotIME.active)
+ 						return;
+-					__globalAdapter.hideKeyboard();
++					GodotIME.active = false;
+ 					ime.activeTime = Date.now()
+-					GodotIME.active = false;
+-					__globalAdapter.offKeyboardInput(inputCb);
+-					__globalAdapter.offKeyboardConfirm(inputConfirm);
+-					__globalAdapter.offKeyboardComplete(inputComplete)
++					try {
++						__globalAdapter.offKeyboardInput(inputCb);
++						__globalAdapter.offKeyboardConfirm(inputConfirm);
++						__globalAdapter.offKeyboardComplete(inputComplete);
++						__globalAdapter.hideKeyboard();
++					} catch (error) {
++						// Preserve the first failure; do not claim a later clear succeeded.
++						ime.cleanupError = error instanceof Error ? error : new Error(String(error));
++						throw ime.cleanupError;
++					}
+ 				}
+ 			};
+ 			GodotIME.ime = ime
+@@ -183,7 +193,7 @@
+ 
+ 		clear: function () {
+ 			if (GodotIME.ime) {
+-				GodotIME.ime.remove();
++				GodotIME.ime.hide();
+ 				GodotIME.ime = null;
+ 			}
+ 		},
+@@ -544,7 +554,8 @@
+ 			const rel_pos_x = evt.movementX * rw;
+ 			const rel_pos_y = evt.movementY * rh;
+ 			const modifiers = GodotInput.getModifiers(evt);
+-			func(pos[0], pos[1], rel_pos_x, rel_pos_y, modifiers);
++			const pressure = Number.isFinite(evt.pressure) ? evt.pressure : 0;
++			func(pos[0], pos[1], rel_pos_x, rel_pos_y, modifiers, pressure);
+ 		}
+ 		GodotEventListeners.add(window, 'mousemove', move_cb, false);
+ 	},
+@@ -554,7 +565,7 @@
+ 	godot_js_input_mouse_wheel_cb: function (callback) {
+ 		const func = GodotRuntime.get_func(callback);
+ 		function wheel_cb(evt) {
+-			if (func(evt['deltaX'] || 0, evt['deltaY'] || 0)) {
++			if (func(evt.deltaMode ?? 0, evt['deltaX'] || 0, evt['deltaY'] || 0)) {
+ 				evt.preventDefault();
+ 			}
+ 		}

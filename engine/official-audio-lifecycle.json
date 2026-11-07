@@ -1,0 +1,88 @@
+{
+  "schema": "wxslim-official-audio-lifecycle-v1",
+  "status": "SOURCE_ONLY_LIFECYCLE_MODEL_CANDIDATE",
+  "dependsOn": {
+    "file": "engine/official-audio-source.patch",
+    "bytes": 68489,
+    "sha256": "80bd9f95e94c8cab1c03e2776be11756c3dcd1f3a17420ed600a6f6e50c0ed63"
+  },
+  "patch": {
+    "file": "engine/official-audio-lifecycle.patch",
+    "bytes": 18668,
+    "sha256": "d14de0afd45e66fc623cfcbcfc617683e2afa0ebb129909752db5fa98e16f570"
+  },
+  "inputs": [
+    {
+      "path": "platform/web/js/libs/library_godot_audio.js",
+      "bytes": 110956,
+      "sha256": "4da4fc9b099b200ca00ea92c5a35c6e30f19f71e77fe18e46f5327cebf32576d"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "platform/web/js/libs/library_godot_audio.js",
+      "bytes": 119843,
+      "sha256": "32639f0b66998182f95e34bbec772fe2bfa8270634f2ce31d686cef74ee0e524"
+    }
+  ],
+  "changedMethods": [
+    "_GodotAudio.$GodotAudio.WX.notifyFinished",
+    "_GodotAudio.$GodotAudio.WX.destroyContext",
+    "_GodotAudio.$GodotAudio.WX.releaseContext",
+    "_GodotAudio.$GodotAudio.WX.resetContext",
+    "_GodotAudio.$GodotAudio.WX.cleanupPlayback",
+    "_GodotAudio.$GodotAudio.WX.startSample",
+    "_GodotAudio.$GodotAudio.WX.ensureSubpackage",
+    "_GodotAudio.$GodotAudio.WX.releaseCache",
+    "_GodotAudio.$GodotAudio.close_async"
+  ],
+  "scope": [
+    "whole-engine native invalidation before cleanup",
+    "best-effort teardown with fixed failure receipt",
+    "finished allocation finally-free preserving original callback throws",
+    "exact active identity for late completion/error and reused playback IDs",
+    "then(success,failure) does not classify callback throws as subpackage failure",
+    "narrow setup/play call scopes preserve callback exceptions including thrown primitives",
+    "non-WeChat original close_async body preserved",
+    "close reference release suppresses invalid-cache file/index removal; other release rules unchanged"
+  ],
+  "unchanged": {
+    "nativeABI": "viiiiiiiiii",
+    "defaultNativeMinSeconds": 3,
+    "defaultCacheBytes": 8388608,
+    "SCsub": true,
+    "host": true,
+    "cacheFilesNotDeletedByClose": true
+  },
+  "asyncExceptionBoundary": {
+    "internal": "startSample Promise rejects original callback value",
+    "productionVoidABI": "godot_audio_sample_start ignores returned Promise, unchanged",
+    "newExternalErrorChannel": false,
+    "platformObservability": "NOT_RUN_NOT_PROVEN",
+    "fullyClosed": false
+  },
+  "remaining": [
+    "existing native cache/manifest registration and privacy limitations from base review",
+    "real official build/link and SDK device/audio acceptance",
+    "actual observability/handling of internal rejected Promise across void native ABI",
+    "host ownership and packaged native resource admission",
+    "source license review"
+  ],
+  "build": "NOT_RUN",
+  "runtime": "NOT_RUN",
+  "integrated": false,
+  "validation": {
+    "status": "PASS_REPLAY_AND_ISOLATED_ACTUAL_METHOD_MODELS_ONLY",
+    "testFile": "tests/official-audio-lifecycle-tests.mjs",
+    "testFileSha256": "49c670706deaf22001b859c317dd2d17374587958922572d8d6cf3ed34895c98",
+    "command": "node tests/official-audio-lifecycle-tests.mjs --fetch-fixed-audio",
+    "passed": 26,
+    "failed": 0,
+    "skipped": 0,
+    "nodeReportedDurationMs": 65.6589,
+    "stdoutLogSaved": false,
+    "engineExecuted": false,
+    "platformAPIs": "FAKE_MODEL_ONLY",
+    "asyncRejectionObserved": "INTERNAL_PROMISE_MODEL_ONLY"
+  }
+}

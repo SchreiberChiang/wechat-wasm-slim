@@ -1,0 +1,18 @@
+{
+  "schema": "wxslim-official-toolchain-downloads-v1",
+  "emscriptenVersion": "4.0.10",
+  "release": "8103ffedfb0c42d231c6af6859a5a1a832260b43",
+  "provenance": "Fixed successful toolchain inputs from delivery-downloads.json; community host intentionally excluded. URLs not re-fetched by this source preparation.",
+  "driverExecutableSha256": "9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de",
+  "archives": [
+    {"name":"node-v24.18.0-win-x64.zip","url":"https://nodejs.org/dist/v24.18.0/node-v24.18.0-win-x64.zip","bytes":37176245,"sha256":"0ae68406b42d7725661da979b1403ec9926da205c6770827f33aac9d8f26e821","prefix":"node-v24.18.0-win-x64/","target":"tools/driver-node"},
+    {"name":"emscripten-4.0.10-wasm-binaries.zip","url":"https://storage.googleapis.com/webassembly/emscripten-releases-builds/win/8103ffedfb0c42d231c6af6859a5a1a832260b43/wasm-binaries.zip","bytes":539321345,"sha256":"1a66825e85fda039f57d39c98ae2bdb96a18e53745159e9599f69679be18439f","prefix":"install/","target":"tools/emsdk/upstream"},
+    {"name":"node-v24.19.0-win-x64.zip","url":"https://nodejs.org/dist/v24.19.0/node-v24.19.0-win-x64.zip","bytes":37304352,"sha256":"57f71ab3652e797d84acddc79c81cc9ff1c6ddb2a1974cdb83f00fee9bff4c73","prefix":"node-v24.19.0-win-x64/","target":"tools/emsdk/node/24.19.0_64bit"},
+    {"name":"python-3.13.3-0-win-amd64.zip","url":"https://storage.googleapis.com/webassembly/emscripten-releases-builds/deps/python-3.13.3-0-win-amd64.zip","bytes":29736374,"sha256":"6fe7a540c6b8b185780467cf7495e884ee62316ec4abb19e1c735b8a77c62465","prefix":"","target":"tools/emsdk/python/3.13.3_64bit"}
+  ],
+  "metadata": [
+    {"name":"emsdk-4.0.10.py","url":"https://raw.githubusercontent.com/emscripten-core/emsdk/4.0.10/emsdk.py","sha256":"07ca12876cbc49283c4b2d441b0ebe8a741c31c5f776abe59c9f3f7364b4524b"},
+    {"name":"emsdk-4.0.10-tags.json","url":"https://raw.githubusercontent.com/emscripten-core/emsdk/4.0.10/emscripten-releases-tags.json","sha256":"70c566d0212d79f041d18a3841c1eee521953f42cc60fc4c90bfe1ad74736f78"}
+  ],
+  "thinTargets": ["libal","libc","libc++","libc++abi","libcompiler_rt","libdlmalloc","libGL-webgl2","libhtml5","libsockets","libstubs"]
+}
