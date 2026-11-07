@@ -1,0 +1,21 @@
+{
+  "schema": "wxslim-quick-flow-2d-acceptance-v1",
+  "at": "2026-11-07T13:55:00Z",
+  "sourceCommit": "0d69352",
+  "merged": "codex/portable-proof-20261107 (a302b22, portable-pair) merged into claude/panel-simplify, baseline codex/glx-plugin fast-forwarded",
+  "release": {"directory": "../release-0d69352", "files": 336, "bytes": 234624197,
+    "manifestIdentity": "e923c485600ea4d37069592273e1b049ffb6190010df328256af1f70aede89a2",
+    "builtFrom": "clean git worktree of 0d69352 (removed after build)"},
+  "tests": {"total": 372, "pass": 319, "fail": 14, "failNote": "same 14 pre-existing failures that need external inputs"},
+  "route": "blank Node2D game, release installed with install.mjs --update, quick-adapter plan + run + open as the panel launches them",
+  "settings": {"template": "2d", "confirmNo3d": true, "glx": true, "orientation": "portrait", "subpackages": "none"},
+  "convertConfig": {"engineProfile": "custom-official-c050-dev", "js": "release engines/pure-2d/godot.prepared.js",
+    "customPreparation": "portable-proof-01/proof/pure-2d.json (found beside the release)",
+    "projectUsage": {"pckSha256Prefix": "1ae265fe26c4", "removedModules": 11, "removedFeaturesUnused": true}},
+  "run": {"status": "SUCCESS", "seconds": 232, "steps": ["export", "convert", "devtools"],
+    "convertPackageId": "wxslim-20abcac1461973b48ee3", "devtoolsPackageId": "wxslim-ef1399df82d2a5cd9fa2"},
+  "open": {"status": "SUCCESS", "visual": "NOT_VERIFIED"},
+  "feasibilityBeforeWiring": {"route": "shared form + task core on a blank-game PCK", "planSeconds": 67, "totalSeconds": 232,
+    "convertPackageId": "wxslim-d06b08e396cae00a6f02", "devtoolsPackageId": "wxslim-af19c2766352d7902c06"},
+  "notVerified": ["devtools picture of the 2D package", "panel GUI clicks for the 2D checkbox", "real device", "a real 2D game beyond the blank Node2D scene"]
+}
