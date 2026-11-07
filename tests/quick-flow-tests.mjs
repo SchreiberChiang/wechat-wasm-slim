@@ -36,9 +36,9 @@ function fixture(overrides = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wxslim-quick-test-'));
   temporary.push(root);
   const release = path.join(root, 'release'), project = path.join(root, 'game'), output = path.join(root, 'out');
-  const proof = path.join(root, 'portable-proof-01', 'proof');
-  for (const dir of [release, project, output, proof, path.join(release, 'engines', 'full'), path.join(release, 'engines', 'pure-2d'), path.join(release, 'tools')]) fs.mkdirSync(dir, {recursive: true});
-  fs.writeFileSync(path.join(proof, 'pure-2d.json'), JSON.stringify({schema: 'wxslim-retained-pair-location-v1', profile: 'pure-2d'}));
+  const fingerprint = path.join(release, 'engines', 'pure-2d', 'fingerprint.json');
+  for (const dir of [release, project, output, path.join(release, 'engines', 'full'), path.join(release, 'engines', 'pure-2d'), path.join(release, 'tools')]) fs.mkdirSync(dir, {recursive: true});
+  fs.copyFileSync(new URL('../offline/vendor/engines/pure-2d/fingerprint.json', import.meta.url), fingerprint);
   fs.writeFileSync(path.join(release, 'RELEASE.json'), '{}');
   fs.writeFileSync(path.join(release, 'profiles.json'), JSON.stringify({
     schema: 1, files: {'engines/full/godot.prepared.js': {}, 'engines/full/godot.wasm': {}, 'tools/wx-transformer-v1.0.35-win.exe': {}},
@@ -52,7 +52,7 @@ function fixture(overrides = {}) {
   fs.writeFileSync(editor, 'x');
   const settings = {schema: QUICK_SETTINGS_SCHEMA, template: 'full', orientation: 'landscape', glx: true, devtoolsPreview: false, output, ...overrides};
   fs.writeFileSync(path.join(project, 'wxslim-export.json'), JSON.stringify(settings));
-  return {root, release, project, output, editor, proof, options: {project, editor, release, now: NOW}};
+  return {root, release, project, output, editor, fingerprint, options: {project, editor, release, now: NOW}};
 }
 
 test('a timestamp collision never adds a result to a run owned by another caller', async () => {
@@ -551,7 +551,7 @@ test('adapter: runs lists the output; cancel by run directory only for unfinishe
   assert.equal((await call('2-5', 'runs', {output: 'relative'})).code, 'QUICK_ADAPTER_RUNS');
 });
 
-test('2d: the run converts with the pure-2D pair, the located proof and a declaration bound to this PCK', async () => {
+test('2d: the run converts with the pure-2D pair, the installed fingerprint and a declaration bound to this PCK', async () => {
   const f = fixture({template: '2d', confirmNo3d: true});
   const service = fakeService();
   const result = await quickRun(f.options, {service});
@@ -559,7 +559,7 @@ test('2d: the run converts with the pure-2D pair, the located proof and a declar
   const config = JSON.parse(fs.readFileSync(path.join(result.run, 'requests', 'convert-config.json'), 'utf8'));
   assert.equal(config.engineProfile, 'custom-official-c050-dev');
   assert.equal(config.js, path.join(f.release, 'engines', 'pure-2d', 'godot.prepared.js'));
-  assert.equal(config.customPreparation, path.join(f.proof, 'pure-2d.json'));
+  assert.equal(config.customPreparation, f.fingerprint);
   const pck = fs.readFileSync(path.join(result.run, 'pck', 'full.pck'));
   assert.deepEqual(config.projectUsage.pck, {bytes: pck.length, sha256: createHash('sha256').update(pck).digest('hex')});
   assert.equal(config.projectUsage.removedFeaturesUnused, true);
@@ -567,29 +567,25 @@ test('2d: the run converts with the pure-2D pair, the located proof and a declar
   assert.equal(config.projectUsage.engine3dRemoved, true);
 });
 
-test('2d: no confirmation or no proof directory blocks before anything is written', async () => {
+test('2d: no confirmation or no installed fingerprint blocks before anything is written', async () => {
   const unconfirmed = fixture({template: '2d'});
   const blocked = await quickRun(unconfirmed.options, {service: fakeService()});
   assert.equal(blocked.status, 'BLOCKED');
   assert.ok(blocked.blockers.some(b => b.code === 'QUICK_2D_NEEDS_CONFIRMATION'));
   const noProof = fixture({template: '2d', confirmNo3d: true});
-  fs.rmSync(path.join(noProof.proof, 'pure-2d.json'));
+  fs.rmSync(noProof.fingerprint);
   const service = fakeService();
   const result = await quickRun({...noProof.options, env: {}}, {service});
   assert.equal(result.status, 'BLOCKED');
-  assert.ok(result.blockers.some(b => b.code === 'QUICK_PAIR_PROOF_NOT_FOUND'));
+  assert.ok(result.blockers.some(b => b.code === 'QUICK_PAIR_FINGERPRINT'));
   assert.deepEqual(service.calls, []);
   assert.deepEqual(fs.readdirSync(noProof.output), []);
 });
 
-test('2d: proof lookup uses the setting, then the environment, then the folder beside the release', () => {
+test('2d: legacy proof settings cannot override or repair the installed fingerprint', () => {
   const f = fixture();
-  const other = path.join(f.root, 'elsewhere');
-  fs.mkdirSync(other);
-  fs.writeFileSync(path.join(other, 'pure-2d.json'), JSON.stringify({schema: 'wxslim-retained-pair-location-v1', profile: 'pure-2d'}));
-  assert.equal(resolvePairProof(f.release, other, {}), path.join(other, 'pure-2d.json'));
-  assert.equal(resolvePairProof(f.release, '', {WXSLIM_PAIR_PROOF: other}), path.join(other, 'pure-2d.json'));
-  assert.equal(resolvePairProof(f.release, '', {}), path.join(f.proof, 'pure-2d.json'));
-  fs.writeFileSync(path.join(other, 'pure-2d.json'), JSON.stringify({schema: 'wxslim-retained-pair-location-v1', profile: 'conservative'}));
-  assert.equal(resolvePairProof(f.release, other, {}), path.join(f.proof, 'pure-2d.json'), 'a location file for another profile is not used');
+  const other = path.join(f.root, 'old-proof');
+  assert.equal(resolvePairProof(f.release, other, {WXSLIM_PAIR_PROOF:other}), f.fingerprint);
+  fs.copyFileSync(new URL('../offline/vendor/engines/conservative/fingerprint.json', import.meta.url), f.fingerprint);
+  assert.throws(() => resolvePairProof(f.release, other, {}), {code:'QUICK_PAIR_FINGERPRINT'});
 });

@@ -90,10 +90,11 @@ export function checkFixedPair(glue, wasm, profile = 'full') {
   }
   assert(/registerAfterDoFrame\(function\(\)\{return Module\._glxCommandBufferFlush\(\);?\}\)/.test(text));
   assert(text.includes('Module.wxContextGlobal.batchRenderAsync(') && text.includes('Module.wxContextGlobal.swapWindow('));
-  const customProvenance=recipe.validation==='FAILED_CUSTOM_RAW_RETAINED_BYTES_RECHECKED'
+  const bundled=profile===CUSTOM_PAIR_PROFILE && customConversionContext()?.bundled;
+  const customProvenance=bundled?'MATCHES_BUNDLED_ENGINE_FINGERPRINT':recipe.validation==='FAILED_CUSTOM_RAW_RETAINED_BYTES_RECHECKED'
     ?'MATCHES_RETAINED_FAILED_CUSTOM_RAW_AND_PREPARATION':'MATCHES_COMPLETED_CUSTOM_RAW_AND_PREPARATION';
   return {schema:'wxslim-fixed-prebuilt-pair-v1', imports, exports, nativeMapping:recipe.engine.nativeMapping,
-    jsImportBindings:Object.keys(bindings).length, pairing:'PASS_STATIC_ONLY', provenance:profile===CUSTOM_PAIR_PROFILE?customProvenance:isDevelopmentEngineProfile(profile)?'MATCHES_REGISTERED_DEVELOPMENT_INPUT_BYTES':'MATCHES_REGISTERED_RELEASE_BYTES', buildRecordReaudited:profile===CUSTOM_PAIR_PROFILE,
+    jsImportBindings:Object.keys(bindings).length, pairing:'PASS_STATIC_ONLY', provenance:profile===CUSTOM_PAIR_PROFILE?customProvenance:isDevelopmentEngineProfile(profile)?'MATCHES_REGISTERED_DEVELOPMENT_INPUT_BYTES':'MATCHES_REGISTERED_RELEASE_BYTES', buildRecordReaudited:profile===CUSTOM_PAIR_PROFILE && !bundled,
     profile, engineProfile:profile, ...getRecipeIdentity(profile),
     ...(isOfficialC050Profile(profile)?{admission:'NOT_ADMITTED',allowedPurposes:recipe.allowedPurposes,
       hostContract:'NOT_VERIFIED_BY_PAIR_CHECK',runtime:'NOT_RUN',phone:'NOT_RUN',

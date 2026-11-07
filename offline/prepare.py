@@ -91,6 +91,12 @@ def prepare(directory, bootstrapped):
             shutil.copyfileobj(src,dest)
     python = state/PYTHON/'python.exe'
     git = state/'git-windows/mingw64/bin/git.exe'
+    prepare_test_sources(state,python,git)
+    subprocess.run([node,OFFLINE/'prepare-editor.mjs',state],check=True,cwd=state,creationflags=subprocess.CREATE_NO_WINDOW)
+    print(f'Offline tools and verified source objects are ready in {state}')
+
+
+def prepare_test_sources(state,python,git):
     env = {k:v for k,v in os.environ.items() if not k.upper().startswith('GIT_')}
     env.update(GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL='NUL',PYTHONDONTWRITEBYTECODE='1')
     def run(*args):
@@ -106,15 +112,39 @@ def prepare(directory, bootstrapped):
         (repo/'shallow').write_bytes((commit+'\n').encode('ascii'))
         run(git,'-C',repo,'update-ref','refs/heads/main',commit)
         run(git,'-C',repo,'fsck','--full','--strict')
-    run(node,OFFLINE/'prepare-editor.mjs',state)
     request = {'gitExecutable':str(git),'upstreamSource':str(OFFLINE/'upstream/library_godot_memfs.js')}
     with (state/'source-request.json').open('x',encoding='utf-8') as out:
         json.dump(request,out)
-    print(f'Offline tools and verified source objects are ready in {state}')
+
+
+def prepare_local_tests(directory, git, node):
+    state = directory.absolute()
+    git, node, python = [p.resolve(strict=True) for p in (git,node,Path(sys.executable))]
+    if (sys.platform != 'win32' or sys.version_info[:3] != (3,14,0) or state.resolve() != state
+            or state.is_relative_to(OFFLINE.parent) or OFFLINE.parent.is_relative_to(state)):
+        raise ValueError('Use Windows Python 3.14.0 and a new ordinary directory outside the source')
+    if subprocess.check_output([node,'--version'],text=True).strip() != 'v24.18.0':
+        raise ValueError('Use Node 24.18.0')
+    inputs = load(OFFLINE/'inputs.json')['files']
+    for name,spec in inputs.items():
+        if name.startswith(('vendor/','upstream/','fixtures/')):
+            verify(target(OFFLINE,name),spec)
+    state.mkdir()
+    prepare_test_sources(state,python,git)
+    with (state/'test-tools.json').open('x',encoding='utf-8') as out:
+        json.dump({'node':str(node),'git':str(git)},out)
+    print(f'Local regression inputs ready in {state}')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('directory',type=Path)
     parser.add_argument('--bootstrapped',action='store_true')
+    parser.add_argument('--local-test-tools',nargs=2,metavar=('GIT_EXE','NODE_EXE'),type=Path)
     args = parser.parse_args()
-    prepare(args.directory,args.bootstrapped)
+    if args.local_test_tools:
+        if args.bootstrapped:
+            parser.error('Choose one preparation mode')
+        prepare_local_tests(args.directory,*args.local_test_tools)
+    else:
+        prepare(args.directory,args.bootstrapped)

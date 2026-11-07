@@ -72,18 +72,19 @@ for(const entry of audit.files){
 }
 let pairAudit;
 if(recipe!=='full' || rebuiltPreparation){
-  const proof=env.WXSLIM_PAIR_PROOF || path.join(path.dirname(release),'proof');
-  const location=rebuiltPreparation || fs.realpathSync(path.join(proof,recipe+'.json'));
+  const location=rebuiltPreparation || fs.realpathSync(path.join(release,'engines',recipe,'fingerprint.json'));
   const config=JSON.parse(fs.readFileSync(path.join(result.run,'requests/convert-config.json'),'utf8'));
-  assert.equal(path.relative(location,fs.realpathSync(config.customPreparation)),'','Unexpected proof selected');
+  assert.equal(path.relative(location,fs.realpathSync(config.customPreparation)),'','Unexpected engine preparation selected');
   if (rebuiltPreparation) {
     assert.equal(sha(config.wasm),plan.rebuiltEngine.wasmSha256);
     assert.equal(config.projectUsage.pck.sha256,sha(pck));
   }
   pairAudit=JSON.parse(call('pair-review',node,[path.join(release,'runtime/convert/official.mjs'),
     'custom-output-audit',location,output]));
-  assert.equal(pairAudit.status,'PASS_SOURCE_STATIC_ONLY');
-  assert(pairAudit.sourceBuildReaudited && pairAudit.sevenRulesPreserved && pairAudit.hostBridgeExact);
+  assert.equal(pairAudit.status,rebuiltPreparation?'PASS_SOURCE_STATIC_ONLY':'PASS_FINGERPRINT_STATIC_ONLY');
+  assert.equal(pairAudit.sourceBuildReaudited,Boolean(rebuiltPreparation));
+  if (!rebuiltPreparation) assert.equal(pairAudit.pairFingerprintVerified,true);
+  assert(pairAudit.sevenRulesPreserved && pairAudit.hostBridgeExact);
 }
 const evidence={recipe,packageId:audit.packageId,files:audit.files.length,pckSha256:sha(pck),resources,
   sourceAudit:pairAudit?.status,...(rebuiltPreparation ? {rebuiltEngine:plan.rebuiltEngine} : {}),

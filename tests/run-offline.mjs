@@ -8,6 +8,9 @@ const source = fileURLToPath(new URL('../', import.meta.url));
 const [stateDirectory, ...args] = process.argv.slice(2);
 assert(stateDirectory && !args.length, 'Usage: node tests/run-offline.mjs PREPARED_TOOL_DIRECTORY');
 const state = fs.realpathSync(stateDirectory);
+const localToolFile = path.join(state, 'test-tools.json');
+const tools = fs.existsSync(localToolFile) ? JSON.parse(fs.readFileSync(localToolFile)) :
+  {git:path.join(state, 'git-windows/mingw64/bin/git.exe'), node:path.join(state,'node.exe')};
 const sourceFile = name => path.join(source, 'offline', name);
 const required = {
   OFFICIAL_CAPTURE_RAW_DIR: sourceFile('fixtures/c050'),
@@ -21,7 +24,7 @@ const required = {
   WXSLIM_EXISTING_CAPABILITY_PROJECT: sourceFile('fixtures/stored'),
   WXSLIM_MODEL_PYTHON: path.join(state, 'venv/Scripts/python.exe'),
   WXSLIM_FIXED_PYTHON: path.join(state, 'venv/Scripts/python.exe'),
-  WXSLIM_PINNED_GIT_EXE: path.join(state, 'git-windows/mingw64/bin/git.exe'),
+  WXSLIM_PINNED_GIT_EXE: fs.realpathSync(tools.git),
   WXSLIM_C050_GIT: path.join(state, 'c050.git'),
   WXSLIM_FIXED_ENGINE_SOURCE: path.join(state, 'df3.git'),
   WXSLIM_SHADER_DF3_ROOT: path.join(state, 'df3.git'),
@@ -40,7 +43,7 @@ const files = ['editor/workbench', 'tests'].flatMap(dir =>
 // evidence directory. The offline suite selects every project input itself.
 const environment = Object.fromEntries(Object.entries(process.env).filter(([key]) =>
   !/^(?:WXSLIM_|OFFICIAL_CAPTURE_RAW_DIR$)/i.test(key)));
-const result = spawnSync(path.join(state, 'node.exe'),
+const result = spawnSync(fs.realpathSync(tools.node),
   ['--test', '--test-concurrency=4', '--test-reporter=tap', ...files], {
     cwd: source, windowsHide: true, stdio: ['ignore','pipe','inherit'], encoding:'utf8', maxBuffer:64*2**20,
     env: {...environment, ...required,

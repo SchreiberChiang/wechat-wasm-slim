@@ -33,17 +33,15 @@ function include(out, file, fixed) {
   files.set(out,{file:real,record});
 }
 for (const file of json(path.join(source,'packaging/runtime-files.json'))) include('runtime/'+file,path.join(source,file));
-const archived = 'offline/pair-review/';
-const archiveLock = read(path.join(source,archived,'lock.json'));
-assert.equal(pin(archiveLock).sha256,'395f84991b09b0aab9423ccd60354ab65cfc453dcc6635377b70894eb411c9ca','Historical reviewer manifest');
-include('runtime/'+archived+'lock.json',path.join(source,archived,'lock.json'));
-for (const [file,expected] of Object.entries(JSON.parse(archiveLock).files))
-  include('runtime/'+archived+file,path.join(source,archived,file),expected);
 const addon = 'addons/wxslim_readonly';
 for(const f of fs.readdirSync(path.join(source,'editor/workbench',addon))) {
   if (/\.(gd|gd\.uid|cfg)$/.test(f)) include(addon+'/'+f,path.join(source,'editor/workbench',addon,f));
 }
-for(const [file,hash] of Object.entries(lock.files)) include(file,vendor[file],hash);
+for(const [file,hash] of Object.entries(lock.files)) {
+  // Older releases and explicit vendor maps contain the engine binaries only.
+  const input = file.endsWith('/fingerprint.json') ? path.join(source,'offline/vendor',file) : vendor[file];
+  include(file,input,hash);
+}
 for(const [to,from] of Object.entries({'install.mjs':'packaging/install.mjs','profiles.json':'packaging/vendor-lock.json','使用说明.md':'docs/安装版使用.md'})) include(to,path.join(source,from));
 const bytes = [...files.values()].reduce((total,entry)=>total+entry.record.bytes,0);
 assert(bytes+1048576<=256*1048576,'Release budget exceeded');

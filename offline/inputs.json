@@ -1255,6 +1255,16 @@
       "bytes": 848,
       "sha256": "14e54cb3935cee46de0b37fcaa26ab11d2488c5e926c11b2cb24fbc253ed79b5",
       "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "vendor/engines/conservative/fingerprint.json": {
+      "bytes": 3014,
+      "sha256": "a795dec7a409f5b441afaf154d5e36289d59626489b6366ea809c07927b8e8b4",
+      "origin": "packaging/vendor-lock.json"
+    },
+    "vendor/engines/pure-2d/fingerprint.json": {
+      "bytes": 2804,
+      "sha256": "53f99c65f133629fcf1582addd22bd92aa092cb20a97dac56b2dd51561774df0",
+      "origin": "packaging/vendor-lock.json"
     }
   }
 }

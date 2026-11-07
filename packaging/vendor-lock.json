@@ -28,6 +28,14 @@
     "engines/pure-2d/godot.wasm": {
       "bytes": 52243631,
       "sha256": "4585d1710ac4b942fb0305073c7b9a925f90a429ff4a74294ddc7775cd0fd2e4"
+    },
+    "engines/conservative/fingerprint.json": {
+      "bytes": 3014,
+      "sha256": "a795dec7a409f5b441afaf154d5e36289d59626489b6366ea809c07927b8e8b4"
+    },
+    "engines/pure-2d/fingerprint.json": {
+      "bytes": 2804,
+      "sha256": "53f99c65f133629fcf1582addd22bd92aa092cb20a97dac56b2dd51561774df0"
     }
   },
   "pairs": {

@@ -1,0 +1,108 @@
+{
+  "schema": "wxslim-bundled-engine-fingerprint-v1",
+  "pair": "pure-2d",
+  "js": {
+    "bytes": 424243,
+    "sha256": "9fb6e1857f2866ba7ce6e68429b295aaee398e7026f11fb078415e1a4702a84e"
+  },
+  "wasm": {
+    "bytes": 52243631,
+    "sha256": "4585d1710ac4b942fb0305073c7b9a925f90a429ff4a74294ddc7775cd0fd2e4"
+  },
+  "features": {
+    "schema": "wxslim-custom-wasm-plan-v1",
+    "dimensions": "2d",
+    "disabledModules": [],
+    "disabledClasses": []
+  },
+  "sourceCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "sourceRecipe": "official-c050-capability-custom",
+  "sourcePlanSha256": "314c32db705ed1467ea2d6e3b0f3702144855e76a2f5da11ba251185b7b6747b",
+  "taskId": "afff8268-4e8f-4335-a96b-42593411cd1a",
+  "originalBuildStatus": "FAILED",
+  "receipt": {
+    "bytes": 400309,
+    "sha256": "af14e15cb964635ab608580d43b26493110a1132cf3d477db92d54dc08895027"
+  },
+  "build": {
+    "bytes": 213640,
+    "sha256": "666c30413f18129cdc3116e9b7ba32a151a4841b4f3f7683402ae3051abf563f"
+  },
+  "selectedProfile": {
+    "kind": "GENERATED_FROM_NORMALIZED_FEATURES",
+    "bytes": 114,
+    "sha256": "13cddf58777057eee6ce9595cd1450a6a5be8921db16491806ae89232420e5cc"
+  },
+  "rawJs": {
+    "bytes": 423868,
+    "sha256": "8f2a34f7a7be2ff6decf1a7d8c2aca1f62ecc8d3f395b48590d2a28f00246abe"
+  },
+  "bridge": {
+    "bytes": 36772,
+    "sha256": "f57a2002c3704e87c6174c263ebf06bc50b0bd888a5e5ea705508c14ae46e20e"
+  },
+  "nativeMapping": {
+    "_glxUpdateContextId": "zm",
+    "_glxInit": "Am",
+    "_glxInitBufferDataAndGlState": "Bm",
+    "_glxCommandBufferFlush": "Cm",
+    "_glxShowOpenData": "Dm",
+    "_glxHideOpenData": "Em",
+    "_glxPushBindTexture": "Fm",
+    "_glxIsTexture": "Gm",
+    "_glxGetBoundTexture2D": "Hm",
+    "_glxGetTextureIdMapValue": "Im",
+    "_glxPushTexImage2DPlaceholder": "Jm",
+    "_glBindTexture": "Km",
+    "_glCompressedTexImage2D": "Lm",
+    "_glCompressedTexSubImage2D": "Mm",
+    "_glIsTexture": "Nm",
+    "_glTexImage2D": "Om",
+    "_glTexSubImage2D": "Pm",
+    "_glTexStorage2D": "Qm",
+    "_glxGetVideoTempBuffer": "Rm",
+    "_glxVideoUpdateToTexture": "Sm",
+    "_glxVideoDestroy": "Tm",
+    "_free": "Um",
+    "__Z14godot_web_mainiPPc": "Vm",
+    "_main": "Wm",
+    "_malloc": "Xm",
+    "_godot_wechat_random_buffer": "_m"
+  },
+  "importBindings": [
+    {
+      "module": "a",
+      "name": "Le",
+      "signature": {
+        "params": [
+          127
+        ],
+        "results": []
+      }
+    },
+    {
+      "module": "a",
+      "name": "Fd",
+      "signature": {
+        "params": [
+          127,
+          127
+        ],
+        "results": []
+      }
+    }
+  ],
+  "removedModules": [
+    "csg",
+    "fbx",
+    "gltf",
+    "godot_physics_3d",
+    "gridmap",
+    "jolt_physics",
+    "meshoptimizer",
+    "mobile_vr",
+    "navigation_3d",
+    "vhacd",
+    "webxr"
+  ]
+}

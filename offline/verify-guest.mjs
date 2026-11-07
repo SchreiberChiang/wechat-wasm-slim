@@ -75,7 +75,6 @@ try {
   run('build-release',node,['packaging/build-release.mjs',release,'--write']);
   const installer = read(path.join(evidence,'build-release.stdout'));
   assert(installer.written && installer.files>0);
-  run('restore-proof',python,['-IB','offline/restore-proof.py',path.join(scratch,'proof')]);
   const recipes = ['full','conservative','pure-2d'], bundled = new Map(), pairs = [];
   for (const recipe of recipes) bundled.set(recipe,installed(recipe));
   const controlsDir = path.join(scratch,'controls');
