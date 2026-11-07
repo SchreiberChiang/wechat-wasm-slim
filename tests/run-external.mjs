@@ -75,7 +75,7 @@ const imeFiles = found.engineSources.map(dir => path.join(dir, 'platform', 'web'
 // 测试里写死了指纹的单个文件：先按指纹筛候选，筛不出就直接报缺材料，不白跑。
 const PINS = {
   WXSLIM_C050_EXISTING_FRAMEWORK: '19b61328740c90e9e45e7b8ee5483763768881425afd721584baedc59b98bbbe', // 第一次真实 c050 转换的 framework.js
-  WXSLIM_GRAPHICS_RAW_JS: '84204452f43c04ef40ad4efcdd37e132f11ea429a42d029b63f6222d3e781ee6', // 图形修正用的官方原始 godot.raw.js
+  WXSLIM_GRAPHICS_RAW_JS: '982e4241ffbf1d69039e7c460fc1c403f551d414be811f0569111eed3361f2af', // 图形修正用的官方原始 godot.raw.js（478,655 字节，见 engine/official-graphics-postprocess.mjs referenceInput）
 };
 const pinned = (list, pin) => list.filter(file => sha(file) === pin);
 
