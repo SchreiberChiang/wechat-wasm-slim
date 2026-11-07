@@ -285,6 +285,8 @@
   "lib/resource-mount-command.mjs",
   "lib/resource-pack-cli.mjs",
   "lib/resource-pack-plan.mjs",
+  "lib/quick-cli.mjs",
+  "lib/quick-flow.mjs",
   "lib/resource-partition-task.mjs",
   "lib/resource-project-install-task.mjs",
   "lib/resource-project-source-plan.mjs",
