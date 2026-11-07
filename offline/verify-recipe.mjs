@@ -63,7 +63,10 @@ for(const entry of audit.files){
 }
 let pairAudit;
 if(recipe!=='full'){
-  const location=path.join(path.dirname(release),'proof',recipe+'.json');
+  const proof=env.WXSLIM_PAIR_PROOF || path.join(path.dirname(release),'proof');
+  const location=fs.realpathSync(path.join(proof,recipe+'.json'));
+  const config=JSON.parse(fs.readFileSync(path.join(result.run,'requests/convert-config.json'),'utf8'));
+  assert.equal(path.relative(location,fs.realpathSync(config.customPreparation)),'','Unexpected proof selected');
   pairAudit=JSON.parse(call('pair-review',node,[path.join(release,'runtime/convert/official.mjs'),
     'custom-output-audit',location,output]));
   assert.equal(pairAudit.status,'PASS_SOURCE_STATIC_ONLY');
