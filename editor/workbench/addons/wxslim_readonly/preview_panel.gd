@@ -74,6 +74,12 @@ var _job := {}
 var _cancel_job := {}
 var _cancel_button: Button
 var _cancel_confirm: ConfirmationDialog
+var _runs_job := {}
+var _runs := []
+var _runs_note: Label
+var _runs_list: VBoxContainer
+var _trash_confirm: ConfirmationDialog
+const RUN_STATUS := {"SUCCESS": ["完成", "verified"], "CANCELLED": ["已取消", "unsupported"], "FAILED": ["失败", "missing"], "UNFINISHED": ["未结束", "implemented"]}
 var _poll_elapsed := 0.0
 var _last_run := {}
 
@@ -146,6 +152,7 @@ func _ready() -> void:
 	for key in _groups.keys():
 		_groups[key].folded = _group_missing(key).is_empty()
 	_refresh()
+	_refresh_runs()
 
 # ---------- 数据 ----------
 
@@ -498,7 +505,37 @@ func _build_advanced(parent: Control) -> void:
 		project_choose.pressed.connect(func(): project_picker.popup_centered_ratio(0.7))
 		project_row.add_child(project_choose)
 		_note("插件安装到游戏后，导出的就是当前打开的工程，不会显示这一项。改动后点顶部「保存设置」。", project)
-	_note("以下功能还在「微信导出·旧版（待并入）」停靠栏，接入本面板后移除旧版：2D 与自定义模板、按场景分包、自建引擎构建（维护者用）、打开已有任务（查看或取消命令行及上次会话的任务）。", body)
+	_build_runs(body)
+	_note("以下功能还在「微信导出·旧版（待并入）」停靠栏，接入本面板后移除旧版：2D 与自定义模板、按场景分包、自建引擎构建（维护者用）、按请求文件打开任意已有任务。", body)
+
+# 最近运行：输出目录里快速流程的运行，含命令行和以前会话发起的。可打开、取消未结束的、在文件夹中显示、移到回收站。
+func _build_runs(parent: Control) -> void:
+	var box := _field("最近运行（输出目录）", parent)
+	var row := HBoxContainer.new()
+	box.add_child(row)
+	_runs_note = _note("", row)
+	_runs_note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var reload := Button.new()
+	reload.text = "刷新"
+	reload.pressed.connect(_refresh_runs)
+	row.add_child(reload)
+	_runs_list = VBoxContainer.new()
+	_runs_list.add_theme_constant_override("separation", 2)
+	box.add_child(_runs_list)
+	_note("取消和失败不会回滚，留下的目录可以在这里移到回收站。", box)
+	_trash_confirm = ConfirmationDialog.new()
+	_trash_confirm.title = "移到回收站"
+	_trash_confirm.ok_button_text = "移到回收站"
+	_trash_confirm.cancel_button_text = "保留"
+	_trash_confirm.confirmed.connect(func():
+		var target: String = _trash_confirm.get_meta("run", "")
+		if target.is_empty():
+			return
+		var error := OS.move_to_trash(target)
+		_log_line(("已移到回收站：" if error == OK else "移到回收站失败（错误 %d）：" % error) + target)
+		_refresh_runs()
+	)
+	add_child(_trash_confirm)
 
 func _build_log(parent: Control) -> void:
 	var body: VBoxContainer = _foldable("日志", parent, true)[1]
@@ -593,6 +630,7 @@ func _save_settings() -> void:
 		_groups.publish.folded = false
 		_appid.grab_focus()
 		return
+	var output_changed: bool = _draft.output != _saved.output
 	var changed_build := false
 	for key in ["template", "orientation", "glx", "skipPrewarm", "appid", "subpackages", "scenes"]:
 		if _draft[key] != _saved[key]:
@@ -603,6 +641,8 @@ func _save_settings() -> void:
 	for key in _groups.keys():
 		if _group_missing(key).is_empty():
 			_groups[key].folded = true
+	if output_changed:
+		_refresh_runs()
 	_refresh()
 
 func _set_locked(node: Node, locked: bool) -> void:
@@ -675,22 +715,122 @@ func _spawn_adapter(node: String, mode: String, request: Dictionary) -> Dictiona
 		return {}
 	return {"pid": pid, "token": token, "result": logs.path_join(token + ".quick-result.private.json"), "events": logs.path_join(token + ".quick-events.private.jsonl")}
 
-# 取消只针对本面板发起、还在进行的「导出并转换」。由适配器找到运行目录，走共用任务核心的取消。
-func _quick_cancel() -> void:
-	if _job.is_empty() or _job.mode != "run" or not _cancel_job.is_empty() or _job.get("cancelling", false):
-		return
+func _node_executable() -> String:
 	var config = JSON.parse_string(FileAccess.get_file_as_string(_config_file())) if FileAccess.file_exists(_config_file()) else null
-	if not config is Dictionary:
+	return str(config.get("nodeExecutable", "")) if config is Dictionary else ""
+
+# 取消本面板正在进行的「导出并转换」（按运行令牌），或「最近运行」里未结束的运行（按运行目录）。
+# 由适配器确认运行目录，走共用任务核心的取消。
+func _quick_cancel(run := "") -> void:
+	if not _cancel_job.is_empty():
 		return
-	var spawned := _spawn_adapter(str(config.get("nodeExecutable", "")), "cancel", {"runToken": _job.token})
+	if run.is_empty() and (_job.is_empty() or _job.mode != "run" or _job.get("cancelling", false)):
+		return
+	var node := _node_executable()
+	if node.is_empty():
+		return
+	var spawned := _spawn_adapter(node, "cancel", {"run": run} if not run.is_empty() else {"runToken": _job.token})
 	if spawned.is_empty():
 		return
 	_cancel_job = spawned
-	_job.cancelling = true
-	_task_line.text = "任务：正在取消…（等当前步骤到安全点）"
-	_log_line("已请求取消导出并转换。")
+	if run.is_empty():
+		_job.cancelling = true
+		_task_line.text = "任务：正在取消…（等当前步骤到安全点）"
+		_log_line("已请求取消导出并转换。")
+	else:
+		_log_line("已请求取消：" + run)
 	set_process(true)
 	_refresh()
+
+func _refresh_runs() -> void:
+	if not _runs_job.is_empty() or _saved.output.is_empty():
+		if _saved.output.is_empty():
+			_runs = []
+			_runs_note.text = "还没有输出目录。"
+			_render_runs()
+		return
+	var node := _node_executable()
+	if node.is_empty():
+		_runs_note.text = "没有找到插件本机配置。"
+		return
+	_runs_job = _spawn_adapter(node, "runs", {"output": _saved.output})
+	_runs_note.text = "正在读取…"
+	set_process(true)
+
+func _on_runs_result(result: Dictionary) -> void:
+	if result.get("schema") == "wxslim-quick-runs-v1":
+		_runs = result.get("runs", [])
+		_runs_note.text = "共 %d 次运行%s" % [int(result.get("total", 0)), "，显示最近 %d 次" % _runs.size() if int(result.get("total", 0)) > _runs.size() else ""]
+	else:
+		_runs = []
+		_runs_note.text = "读取失败：" + str(result.get("message", result.get("code", "")))
+	_render_runs()
+
+func _render_runs() -> void:
+	if _runs_list == null:
+		return
+	for child in _runs_list.get_children():
+		_runs_list.remove_child(child)
+		child.queue_free()
+	var busy := not _job.is_empty() or not _cancel_job.is_empty()
+	for item in _runs.slice(0, 8):
+		var status := str(item.get("status", ""))
+		var shown: Array = RUN_STATUS.get(status, [status, "pending"])
+		var row := HBoxContainer.new()
+		_runs_list.add_child(row)
+		var dot := Label.new()
+		dot.text = "●"
+		dot.add_theme_color_override("font_color", STATUS_COLOR[shown[1]])
+		row.add_child(dot)
+		var info := Label.new()
+		info.text = "%s · %s · %d MiB" % [str(item.get("name", "")), shown[0], int(float(item.get("bytes", 0)) / 1048576.0 + 0.5)]
+		var tip := PackedStringArray([str(item.get("run", ""))])
+		if not str(item.get("packageId", "")).is_empty():
+			tip.append("包号 " + str(item.packageId))
+		if item.get("error") is Dictionary:
+			tip.append(str(item.error.get("message", item.error.get("code", ""))))
+		if status == "UNFINISHED":
+			tip.append("没有结束收据：可能仍在运行，也可能进程已中断。")
+		info.tooltip_text = "\n".join(tip)
+		info.mouse_filter = Control.MOUSE_FILTER_PASS
+		info.clip_text = true
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(info)
+		var target := str(item.get("openTarget", ""))
+		if not target.is_empty():
+			var open := Button.new()
+			open.text = "打开"
+			open.disabled = busy
+			open.tooltip_text = "在微信开发者工具中打开这次的输出"
+			open.pressed.connect(_quick_start.bind("open", target))
+			row.add_child(open)
+		if status == "UNFINISHED":
+			var stop := Button.new()
+			stop.text = "取消"
+			stop.disabled = busy or item.get("cancelRequested") == true
+			stop.tooltip_text = "已请求过取消，等任务停止" if item.get("cancelRequested") == true else "请求取消；不回滚"
+			stop.pressed.connect(_quick_cancel.bind(str(item.run)))
+			row.add_child(stop)
+		var show := Button.new()
+		show.text = "…"
+		show.tooltip_text = "在文件夹中显示"
+		show.flat = true
+		show.pressed.connect(func(): OS.shell_show_in_file_manager(str(item.run)))
+		row.add_child(show)
+		if status != "UNFINISHED":
+			var trash := Button.new()
+			trash.text = "×"
+			trash.flat = true
+			trash.disabled = busy
+			trash.tooltip_text = "移到回收站"
+			trash.pressed.connect(func():
+				_trash_confirm.set_meta("run", str(item.run))
+				_trash_confirm.dialog_text = "把这次运行移到回收站？\n%s\n%s · 约 %d MiB\n可以从回收站恢复。" % [str(item.run), shown[0], int(float(item.get("bytes", 0)) / 1048576.0 + 0.5)]
+				_trash_confirm.popup_centered()
+			)
+			row.add_child(trash)
+	if _runs.is_empty() and not _saved.output.is_empty() and _runs_job.is_empty():
+		_note("这个输出目录里还没有运行。", _runs_list)
 
 func _on_cancel_result(result: Dictionary) -> void:
 	var task = result.get("task")
@@ -705,9 +845,10 @@ func _on_cancel_result(result: Dictionary) -> void:
 		if not _job.is_empty():
 			_job.cancelling = false
 		_log_line("取消没有生效：%s" % str(result.get("message", result.get("code", ""))))
+	_refresh_runs()
 	_refresh()
 
-func _quick_start(mode: String) -> void:
+func _quick_start(mode: String, open_target := "") -> void:
 	if not _job.is_empty():
 		return
 	var config = JSON.parse_string(FileAccess.get_file_as_string(_config_file())) if FileAccess.file_exists(_config_file()) else null
@@ -715,7 +856,9 @@ func _quick_start(mode: String) -> void:
 		_show_notice("无法开始", "没有找到插件本机配置或 Node：%s\n请先用安装版的 install.mjs 安装插件。" % _config_file())
 		return
 	var request := {}
-	if mode == "open":
+	if mode == "open" and not open_target.is_empty():
+		request = {"projectConfig": open_target}
+	elif mode == "open":
 		if not _last_run_usable():
 			return
 		var target: String = _last_run.get("devtoolsConfig", "")
@@ -735,13 +878,21 @@ func _quick_start(mode: String) -> void:
 	_refresh()
 
 func _process(delta: float) -> void:
-	if _job.is_empty() and _cancel_job.is_empty():
+	if _job.is_empty() and _cancel_job.is_empty() and _runs_job.is_empty():
 		set_process(false)
 		return
 	_poll_elapsed += delta
 	if _poll_elapsed < 0.5:
 		return
 	_poll_elapsed = 0.0
+	if not _runs_job.is_empty():
+		if FileAccess.file_exists(_runs_job.result):
+			var runs_result = JSON.parse_string(FileAccess.get_file_as_string(_runs_job.result))
+			_runs_job = {}
+			_on_runs_result(runs_result if runs_result is Dictionary else {})
+		elif not OS.is_process_running(int(_runs_job.pid)):
+			_runs_job = {}
+			_runs_note.text = "读取进程已退出但没有结果。"
 	if not _cancel_job.is_empty():
 		if FileAccess.file_exists(_cancel_job.result):
 			var cancel_result = JSON.parse_string(FileAccess.get_file_as_string(_cancel_job.result))
@@ -808,6 +959,8 @@ func _on_quick_result(job: Dictionary, result: Dictionary) -> void:
 			else:
 				_task_line.text = "任务：打开失败"
 				_show_notice("打开失败", str(result.get("message", "")))
+	if job.mode == "run":
+		_refresh_runs()
 	_refresh()
 
 func _missing_for_export() -> Array:
@@ -941,6 +1094,7 @@ func _refresh() -> void:
 	_open_hint.text = "打开还差：" + "、".join(PackedStringArray(open_missing))
 	_open_hint.visible = export_missing.is_empty() and not open_missing.is_empty()
 
+	_render_runs()
 	for child in _missing_box.get_children():
 		_missing_box.remove_child(child)
 		child.queue_free()

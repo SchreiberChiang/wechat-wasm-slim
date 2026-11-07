@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   normalizeQuickSettings, settingsBlockers, findWebPresets, projectName, runName, resolveQuickInputs,
-  quickPlan, quickRun, cancelQuickRun, planTaskRoot, CANCEL_MARKER, exportPayload, convertPayload, resolveMainScene, QUICK_SETTINGS_SCHEMA, SIMPLE_INTERFACES,
+  quickPlan, quickRun, cancelQuickRun, planTaskRoot, CANCEL_MARKER, listQuickRuns, quickRunStatus, RUN_SUMMARY, exportPayload, convertPayload, resolveMainScene, QUICK_SETTINGS_SCHEMA, SIMPLE_INTERFACES,
 } from '../lib/quick-flow.mjs';
 import {runQuickCli} from '../lib/quick-cli.mjs';
 import {runQuickAdapter} from '../editor/workbench/quick-adapter.mjs';
@@ -359,4 +359,89 @@ test('adapter: cancel finds the run from its start event and refuses ended or un
   assert.equal(ended.code, 'QUICK_ADAPTER_CANCEL_ENDED');
   const bad = await call('1-5', {runToken: '../x'});
   assert.equal(bad.code, 'QUICK_ADAPTER_CANCEL');
+});
+
+function fakeRun(output, name, {exportStatus, convertStatus, marker = false, preview = false, active = null} = {}) {
+  const run = path.join(output, name);
+  fs.mkdirSync(path.join(run, 'requests'), {recursive: true});
+  fs.writeFileSync(path.join(run, 'requests', 'export-request.json'), '{}');
+  for (const [dir, status] of [['pck', exportStatus], ['wechat', convertStatus]]) {
+    if (!status) continue;
+    fs.mkdirSync(path.join(run, dir), {recursive: true});
+    fs.writeFileSync(path.join(run, dir, 'TASK.json'), JSON.stringify({taskId: dir}));
+    if (status !== 'RUNNING') fs.writeFileSync(path.join(run, dir, 'terminal.json'), JSON.stringify({status}));
+  }
+  if (convertStatus === 'SUCCESS') {
+    fs.mkdirSync(path.join(run, 'wechat', 'converted', 'minigame'), {recursive: true});
+    fs.writeFileSync(path.join(run, 'wechat', 'converted', 'minigame', 'project.config.json'), '{}');
+  }
+  if (preview) {
+    fs.mkdirSync(path.join(run, 'devtools', 'minigame'), {recursive: true});
+    fs.writeFileSync(path.join(run, 'devtools', 'PACKAGE.json'), JSON.stringify({packageId: 'wxslim-p', parent: 'wxslim-c'}));
+    fs.writeFileSync(path.join(run, 'devtools', 'minigame', 'project.config.json'), '{}');
+  }
+  if (marker) fs.writeFileSync(path.join(run, CANCEL_MARKER), '{}');
+  if (active) fs.writeFileSync(path.join(run, 'requests', 'active-task.json'), JSON.stringify({step: active, requestFile: '', taskRoot: path.join(run, active === 'export' ? 'pck' : 'wechat')}));
+  return run;
+}
+
+test('runs: a finished run writes a summary that the run list reads back', async () => {
+  const f = fixture();
+  const result = await quickRun(f.options, {service: fakeService()});
+  const summary = JSON.parse(fs.readFileSync(path.join(result.run, RUN_SUMMARY), 'utf8'));
+  assert.equal(summary.status, 'SUCCESS');
+  assert.equal(summary.projectConfig, result.projectConfig);
+  const listed = listQuickRuns(f.output);
+  assert.equal(listed.total, 1);
+  assert.equal(listed.runs[0].status, 'SUCCESS');
+  assert.equal(listed.runs[0].source, 'summary');
+  assert.equal(listed.runs[0].openTarget, result.projectConfig);
+  const cancelled = await quickRun({...f.options, now: new Date(2026, 10, 7, 9, 6, 0)}, {service: fakeService({status: 'CANCELLED'})});
+  assert.equal(JSON.parse(fs.readFileSync(path.join(cancelled.run, RUN_SUMMARY), 'utf8')).error.code, 'QUICK_CANCELLED');
+});
+
+test('runs: runs without a summary are inferred from task receipts and the cancel marker', () => {
+  const f = fixture();
+  const status = name => quickRunStatus(path.join(f.output, name)).status;
+  fakeRun(f.output, 'ok', {exportStatus: 'SUCCESS', convertStatus: 'SUCCESS', preview: true});
+  fakeRun(f.output, 'ok-no-preview', {exportStatus: 'SUCCESS', convertStatus: 'SUCCESS'});
+  fakeRun(f.output, 'cancel-task', {exportStatus: 'SUCCESS', convertStatus: 'CANCELLED', marker: true});
+  fakeRun(f.output, 'cancel-between', {exportStatus: 'SUCCESS', marker: true, active: 'export'});
+  fakeRun(f.output, 'cancel-pending', {exportStatus: 'SUCCESS', convertStatus: 'RUNNING', marker: true, active: 'convert'});
+  fakeRun(f.output, 'failed', {exportStatus: 'FAILED'});
+  fakeRun(f.output, 'running', {exportStatus: 'RUNNING', active: 'export'});
+  fs.mkdirSync(path.join(f.output, 'not-a-run'));
+  assert.equal(status('ok'), 'SUCCESS');
+  assert.equal(quickRunStatus(path.join(f.output, 'ok')).packageId, 'wxslim-p');
+  assert.equal(status('ok-no-preview'), 'SUCCESS');
+  assert.equal(status('cancel-task'), 'CANCELLED');
+  assert.equal(status('cancel-between'), 'CANCELLED');
+  assert.equal(status('cancel-pending'), 'UNFINISHED', 'a requested cancel is not done until the task ends');
+  assert.equal(status('failed'), 'FAILED');
+  assert.equal(status('running'), 'UNFINISHED');
+  assert.equal(quickRunStatus(path.join(f.output, 'failed')).openTarget, '');
+  assert.equal(quickRunStatus(path.join(f.output, 'not-a-run')), null);
+  assert.equal(listQuickRuns(f.output).total, 7);
+  assert.throws(() => listQuickRuns(path.join(f.output, 'missing')), {code: 'QUICK_RUNS_OUTPUT_INVALID'});
+});
+
+test('adapter: runs lists the output; cancel by run directory only for unfinished runs', async () => {
+  const f = fixture();
+  const state = path.join(f.root, 'state'), logs = path.join(state, 'logs');
+  fs.mkdirSync(logs, {recursive: true});
+  const configFile = path.join(state, 'local-config.json');
+  const cancelled = [];
+  const call = async (token, mode, request) => {
+    fs.writeFileSync(path.join(logs, token + '.quick-request.private.json'), JSON.stringify(request));
+    return runQuickAdapter(configFile, mode, token, {load: () => ({}), cancel: async run => { cancelled.push(run); return {status: 'CANCEL_REQUESTED'}; }});
+  };
+  const done = fakeRun(f.output, 'done', {exportStatus: 'SUCCESS', convertStatus: 'SUCCESS'});
+  const running = fakeRun(f.output, 'running', {exportStatus: 'RUNNING', active: 'export'});
+  const listed = await call('2-1', 'runs', {output: f.output});
+  assert.equal(listed.total, 2);
+  assert.equal((await call('2-2', 'cancel', {run: done})).code, 'QUICK_ADAPTER_CANCEL_ENDED');
+  assert.equal((await call('2-3', 'cancel', {run: f.output})).code, 'QUICK_ADAPTER_CANCEL');
+  assert.equal((await call('2-4', 'cancel', {run: running})).status, 'CANCEL_REQUESTED');
+  assert.deepEqual(cancelled, [running]);
+  assert.equal((await call('2-5', 'runs', {output: 'relative'})).code, 'QUICK_ADAPTER_RUNS');
 });

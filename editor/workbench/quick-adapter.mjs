@@ -5,13 +5,15 @@
 // 放行、计划、执行、预算与路径检查全部在快速流程和共用任务核心里，这里不做任何放宽。
 //
 // 用法：node quick-adapter.mjs LOCAL_CONFIG MODE TOKEN
-//   MODE = plan | run | open | cancel；cancel 的请求是 {runToken}，按该次运行的进度事件找到运行目录。
+//   MODE = plan | run | open | cancel | runs
+//   cancel 的请求是 {runToken}（按该次运行的进度事件找运行目录）或 {run}（「最近运行」里未结束的运行目录）；
+//   runs 的请求是 {output}，只读列出该目录下的运行。
 //   请求内容读自 logs/TOKEN.quick-request.private.json
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {loadConfig} from './adapter.mjs';
-import {quickPlan, quickRun, cancelQuickRun, QUICK_SETTINGS_SCHEMA} from '../../lib/quick-flow.mjs';
+import {quickPlan, quickRun, cancelQuickRun, listQuickRuns, quickRunStatus, QUICK_SETTINGS_SCHEMA} from '../../lib/quick-flow.mjs';
 import {openWeChatProject} from './open-project.mjs';
 
 const PANEL_KEYS = ['template', 'orientation', 'glx', 'skipPrewarm', 'subpackages', 'scenes', 'appid', 'appidFrom', 'gameName', 'output'];
@@ -42,8 +44,8 @@ function writeResult(file, value) {
   fs.renameSync(temporary, file);
 }
 
-export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan, run = quickRun, open = openWeChatProject, cancel = cancelQuickRun, load = loadConfig} = {}) {
-  if (!['plan', 'run', 'open', 'cancel'].includes(mode) || !TOKEN.test(token)) reject('QUICK_ADAPTER_ARGUMENT', '参数无效');
+export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan, run = quickRun, open = openWeChatProject, cancel = cancelQuickRun, load = loadConfig, runs = listQuickRuns} = {}) {
+  if (!['plan', 'run', 'open', 'cancel', 'runs'].includes(mode) || !TOKEN.test(token)) reject('QUICK_ADAPTER_ARGUMENT', '参数无效');
   const config = load(configFile);
   const logs = path.join(path.dirname(path.resolve(configFile)), 'logs');
   fs.mkdirSync(logs, {recursive: true});
@@ -54,7 +56,16 @@ export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan
   try {
     const request = JSON.parse(fs.readFileSync(stem + '.quick-request.private.json', 'utf8'));
     let result;
-    if (mode === 'cancel') {
+    if (mode === 'runs') {
+      if (typeof request.output !== 'string' || !path.isAbsolute(request.output)) reject('QUICK_ADAPTER_RUNS', '没有输出目录');
+      result = runs(request.output);
+    } else if (mode === 'cancel' && typeof request.run === 'string') {
+      // 「最近运行」里的未结束运行：必须是快速流程运行目录，且按收据仍未结束。
+      const status = path.isAbsolute(request.run) ? quickRunStatus(request.run) : null;
+      if (!status) reject('QUICK_ADAPTER_CANCEL', '不是快速流程的运行目录');
+      if (status.status !== 'UNFINISHED') reject('QUICK_ADAPTER_CANCEL_ENDED', '这次运行已经结束，无需取消');
+      result = await cancel(request.run);
+    } else if (mode === 'cancel') {
       // 只取消本面板发起、且仍在本插件 logs 里有进度记录的那次运行。
       if (typeof request.runToken !== 'string' || !TOKEN.test(request.runToken) || request.runToken === token) reject('QUICK_ADAPTER_CANCEL', '没有要取消的运行');
       const runEvents = path.join(logs, request.runToken + '.quick-events.private.jsonl');
