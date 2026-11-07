@@ -56,7 +56,7 @@ function generate() {
   console.log('Configuration written. Open it on a Windows host with Windows Sandbox available.');
 }
 function guestCheck() {
-  assert.deepEqual(args,[]);
+  assert(args.length===0 || (args.length===1 && args[0]==='--after'));
   assert.equal(path.relative(guestSource,source),'','Run inside the configured guest');
   assert.equal(path.relative(ordinary(path.join(guestScratch,'tools/node.exe')),process.execPath),'');
   const host = JSON.parse(fs.readFileSync(path.join(guestEvidence,'host-canaries.json'),'utf8'));
@@ -82,7 +82,7 @@ function guestCheck() {
   const evidence = {schema:'wxslim-isolation-observation-v1',at:new Date().toISOString(),status:pass?'PASS':'FAILED',
     sourceWrite,paths,externalInterfaces,
     guestResources:{logicalProcessors:os.availableParallelism(),totalMemoryBytes:os.totalmem(),freeMemoryBytes:os.freemem()}};
-  writeJson(path.join(guestEvidence,'guest-isolation.json'),evidence);
+  writeJson(path.join(guestEvidence,args.length ? 'guest-isolation-after.json' : 'guest-isolation.json'),evidence);
   assert(pass,'Isolation conditions failed. See guest-isolation.json');
   console.log('Read-only source, hidden host canaries and no non-loopback network interface verified.');
 }
