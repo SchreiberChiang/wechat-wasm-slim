@@ -78,10 +78,24 @@ function checkRecordPins() {
   }
 }
 checkRecordPins();
+// These two historic receipts include the then-current builder sources in the
+// recipe digest. Execute the corresponding, independently pinned reviewer.
+// The live auditor continues to own every newly produced build receipt.
+const archive=fileURLToPath(new URL('../../offline/pair-review/',import.meta.url));
+const manifest=read(path.join(archive,'lock.json'));
+const digest=bytes=>createHash('sha256').update(bytes).digest('hex');
+assert.equal(digest(manifest),'395f84991b09b0aab9423ccd60354ab65cfc453dcc6635377b70894eb411c9ca','HISTORICAL_REVIEW_MANIFEST');
+for(const [relative,pin] of Object.entries(JSON.parse(manifest).files)){
+  const file=path.resolve(archive,relative);
+  assert(within(archive,file) && path.relative(file,real(file))==='', 'HISTORICAL_REVIEW_FILE');
+  const bytes=read(file);
+  assert.equal(bytes.length,pin.bytes,relative);
+  assert.equal(digest(bytes),pin.sha256,relative);
+}
 const config = path.resolve(historical,record.config);
 const pair = profile === 'conservative'
-  ? await (await import('../../engine/rebuilt-capability-pair.mjs')).readRebuiltCapabilityPair(config)
-  : await (await import('../../lib/custom-pair-task.mjs')).readCompletedCustomPairTask(config);
+  ? await (await import('../../offline/pair-review/engine/rebuilt-capability-pair.mjs')).readRebuiltCapabilityPair(config)
+  : await (await import('../../offline/pair-review/lib/custom-pair-task.mjs')).readCompletedCustomPairTask(config);
 await pair.recheck();
 checkRecordPins();
 const {summary,preparation,js,bridge} = pair;

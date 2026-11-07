@@ -1,0 +1,123 @@
+diff --git a/platform/web/js/libs/library_wxslim_fetch.js b/platform/web/js/libs/library_wxslim_fetch.js
+--- a/platform/web/js/libs/library_wxslim_fetch.js
++++ b/platform/web/js/libs/library_wxslim_fetch.js
+@@ -42,6 +42,16 @@
+             throw new TypeError('HTTP body must be an ArrayBuffer or view');
+         },
+ 
++        // wx.request alone normalizes defaults, including explicitly written ones.
++        // HTTPRequest has already discarded the explicit/implicit distinction.
++        request_url: function (url) {
++            return url.replace(/^(https?):\/\/((?:[^/?#@]*@)?(?:\[[0-9A-Fa-f:.]+\]|[^:/?#@]+)):(443|80)(?=[/?#]|$)/i,
++                function (match, scheme, authority, port) {
++                    return (scheme.toLowerCase() === 'https' && port === '443') ||
++                            (scheme.toLowerCase() === 'http' && port === '80') ? scheme + '://' + authority : match;
++                });
++        },
++
+         active: function (id, obj) {
+             return IDHandler.get(id) === obj && !obj.closed && !obj.settled;
+         },
+@@ -100,7 +110,7 @@
+                 const requestBody = body === null ? null : GodotFetch.convertToUint8Array(body).buffer;
+                 setupKind = 'REQUEST_SETUP';
+                 obj.requestTask = wx.request({
+-                    url: url,
++                    url: GodotFetch.request_url(url),
+                     method: method,
+                     data: requestBody,
+                     header: headers,
+diff --git a/platform/web/http_client_web.cpp b/platform/web/http_client_web.cpp
+--- a/platform/web/http_client_web.cpp
++++ b/platform/web/http_client_web.cpp
+@@ -109,6 +109,9 @@
+ 		godot_js_fetch_free(js_id);
+ 	}
+ 	js_id = godot_js_fetch_create(_methods[p_method], url.utf8().get_data(), c_strings.ptrw(), c_strings.size(), p_body, p_body_len);
++	response_headers.clear();
++	response_headers_available = false;
++	polled_response_code = 0;
+ 	status = STATUS_REQUESTING;
+ 	return OK;
+ }
+@@ -119,6 +122,7 @@
+ 	use_tls = false;
+ 	status = STATUS_DISCONNECTED;
+ 	polled_response_code = 0;
++	response_headers_available = false;
+ 	response_headers.resize(0);
+ 	response_buffer.resize(0);
+ 	if (js_id) {
+@@ -132,7 +136,7 @@
+ }
+ 
+ bool HTTPClientWeb::has_response() const {
+-	return response_headers.size() > 0;
++	return response_headers_available;
+ }
+ 
+ bool HTTPClientWeb::is_response_chunked() const {
+@@ -144,13 +148,14 @@
+ }
+ 
+ Error HTTPClientWeb::get_response_headers(List<String> *r_response) {
+-	if (!response_headers.size()) {
++	if (!response_headers_available) {
+ 		return ERR_INVALID_PARAMETER;
+ 	}
+ 	for (int i = 0; i < response_headers.size(); i++) {
+ 		r_response->push_back(response_headers[i]);
+ 	}
+ 	response_headers.clear();
++	response_headers_available = false;
+ 	return OK;
+ }
+ 
+@@ -179,6 +184,7 @@
+ 	if (state == GODOT_JS_FETCH_STATE_DONE) {
+ 		status = STATUS_DISCONNECTED;
+ 	} else if (state != GODOT_JS_FETCH_STATE_BODY) {
++		response_headers_available = false;
+ 		status = STATUS_CONNECTION_ERROR;
+ 	}
+ 
+@@ -228,6 +234,7 @@
+ 			if (state == GODOT_JS_FETCH_STATE_DONE) {
+ 				status = STATUS_DISCONNECTED;
+ 			} else if (state != GODOT_JS_FETCH_STATE_BODY) {
++				response_headers_available = false;
+ 				status = STATUS_CONNECTION_ERROR;
+ 				return ERR_CONNECTION_ERROR;
+ 			}
+@@ -254,14 +261,19 @@
+ 				return OK;
+ 			} else if (js_state == GODOT_JS_FETCH_STATE_ERROR) {
+ 				// Fetch is in error state.
++				response_headers_available = false;
+ 				status = STATUS_CONNECTION_ERROR;
+ 				return ERR_CONNECTION_ERROR;
+ 			}
+-			if (godot_js_fetch_read_headers(js_id, &_parse_headers, this)) {
++			if ((js_state != GODOT_JS_FETCH_STATE_BODY && js_state != GODOT_JS_FETCH_STATE_DONE) ||
++					polled_response_code < 100 || polled_response_code > 599 ||
++					godot_js_fetch_read_headers(js_id, &_parse_headers, this)) {
+ 				// Failed to parse headers.
++				response_headers_available = false;
+ 				status = STATUS_CONNECTION_ERROR;
+ 				return ERR_CONNECTION_ERROR;
+ 			}
++			response_headers_available = true;
+ 			status = STATUS_BODY;
+ 			break;
+ 		}
+diff --git a/platform/web/http_client_web.h b/platform/web/http_client_web.h
+--- a/platform/web/http_client_web.h
++++ b/platform/web/http_client_web.h
+@@ -71,6 +71,7 @@
+ 
+ 	int polled_response_code = 0;
+ 	Vector<String> response_headers;
++	bool response_headers_available = false;
+ 	Vector<uint8_t> response_buffer;
+ 
+ #ifdef DEBUG_ENABLED

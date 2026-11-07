@@ -1,0 +1,194 @@
+diff --git a/platform/web/js/libs/library_godot_os.js b/platform/web/js/libs/library_godot_os.js
+--- a/platform/web/js/libs/library_godot_os.js
++++ b/platform/web/js/libs/library_godot_os.js
+@@ -110,10 +110,13 @@
+ mergeInto(LibraryManager.library, GodotConfig);
+ 
+ const GodotFS = {
+-	$GodotFS__deps: ['$FS', '$IDBFS', '$GodotRuntime'],
++	$GodotFS__deps: ['$FS', '$IDBFS', '$GodotRuntime', '$WXSLIMPersistentCreate'],
+ 	$GodotFS__postset: [
+ 		'Module["initFS"] = GodotFS.init;',
+ 		'Module["copyToFS"] = GodotFS.copy_to_fs;',
++		'Module["initPersistentFileSession"] = GodotFS.init_persistent;',
++		'Module["verifyPersistentFiles"] = GodotFS.verify_persistent;',
++		'Module["persistentFileStatus"] = GodotFS.persistent_status;',
+ 	].join(''),
+ 	$GodotFS: {
+ 		// ERRNO_CODES works every odd version of emscripten, but this will break too eventually.
+@@ -122,7 +125,68 @@
+ 		_syncing: false,
+ 		_mount_points: [],
+ 
++		_wxslim_selected: false,
++		_wxslim_shutdown_requested: false,
++		_wxslim_legacy_init_started: false,
++		_wxslim_session: null,
++		_wxslim_sync_promise: null,
++		_wxslim_first_exit_error: null,
++		_wxslim_first_exit_error_set: false,
++		_wxslim_error_log_failed: false,
++		_wxslim_exit_started: false,
++		_wxslim_last_storage: null,
++
++		init_persistent: function (options) {
++			if (GodotFS._wxslim_selected || GodotFS._wxslim_legacy_init_started || GodotFS._mount_points.length || GodotFS._idbfs || GodotFS._syncing) {
++				return Promise.reject(new Error('SAVE_INIT_ALREADY_SELECTED'));
++			}
++			// Selection is terminal even if construction/restoration subsequently fails.
++			GodotFS._wxslim_selected = true;
++			return Promise.resolve().then(function () {
++				if (GodotFS._wxslim_shutdown_requested) { throw new Error('SAVE_INIT_AFTER_SHUTDOWN'); }
++				const session = WXSLIMPersistentCreate(options);
++				GodotFS._wxslim_session = session;
++				if (GodotFS._wxslim_shutdown_requested) { session.beginShutdown(); throw new Error('SAVE_INIT_AFTER_SHUTDOWN'); }
++				const result = session.start();
++				if (GodotFS._wxslim_shutdown_requested) {
++					session.beginShutdown();
++					const stopped = session.stop();
++					if (stopped.status !== 'STOPPED') { GodotFS.persistent_exit_error(new Error(stopped.code || 'SAVE_STOP_FAILED')); }
++					throw new Error('SAVE_INIT_AFTER_SHUTDOWN');
++				}
++				const status = session.status();
++				if (result.status !== 'READY' || !status.active || status.phase !== 'READY' || status.backend.phase !== 'READY') {
++					throw new Error(result.code || 'SAVE_INIT_FAILED');
++				}
++				return result;
++			});
++		},
++
++		verify_persistent: function (request) {
++			if (!GodotFS._wxslim_session) { throw new Error('SAVE_SESSION_NOT_CREATED'); }
++			return GodotFS._wxslim_session.verify(request);
++		},
++
++		persistent_status: function () {
++			return GodotFS._wxslim_session ? GodotFS._wxslim_session.status() : null;
++		},
++
++		persistent_exit_error: function (error, rejected) {
++			if (!rejected && (error === null || error === undefined)) { return; }
++			if (!GodotFS._wxslim_first_exit_error_set) {
++				GodotFS._wxslim_first_exit_error_set = true;
++				GodotFS._wxslim_first_exit_error = error;
++			}
++			// Keep falsy rejection reasons. A throwing logger cannot prevent shutdown.
++			try { GodotRuntime.error('SAVE_EXIT_OR_SYNC_FAILED'); }
++			catch (loggingError) { GodotFS._wxslim_error_log_failed = true; }
++		},
++
+ 		is_persistent: function () {
++			if (GodotFS._wxslim_selected) {
++				const status = GodotFS.persistent_status();
++				return status && status.active && !status.invalidated && status.phase === 'READY' && status.backend.phase === 'READY' ? 1 : 0;
++			}
+ 			return GodotFS._idbfs ? 1 : 0;
+ 		},
+ 
+@@ -131,6 +195,8 @@
+ 		// We keep track of mount_points, so that we can properly close the IDBFS
+ 		// since emscripten is not doing it by itself. (emscripten GH#12516).
+ 		init: function (persistentPaths) {
++			if (GodotFS._wxslim_selected) { return Promise.reject(new Error('SAVE_INIT_ALREADY_SELECTED')); }
++			GodotFS._wxslim_legacy_init_started = true;
+ 			GodotFS._idbfs = false;
+ 			if (!Array.isArray(persistentPaths)) {
+ 				return Promise.reject(new Error('Persistent paths must be an array'));
+@@ -172,6 +238,16 @@
+ 
+ 		// Deinit godot file system, making sure to unmount file systems, and close IDBFS(s).
+ 		deinit: function () {
++			if (GodotFS._wxslim_selected) {
++				GodotFS._wxslim_shutdown_requested = true;
++				const session = GodotFS._wxslim_session;
++				if (!session) { return; }
++				session.beginShutdown();
++				const result = session.stop();
++				if (result.status !== 'STOPPED') { GodotFS.persistent_exit_error(new Error(result.code || 'SAVE_STOP_FAILED')); }
++				// Keep service and failed stop evidence; never touch unrelated mounts.
++				return;
++			}
+ 			GodotFS._mount_points.forEach(function (path) {
+ 				try {
+ 					FS.unmount(path);
+@@ -189,6 +265,23 @@
+ 		},
+ 
+ 		sync: function () {
++			if (GodotFS._wxslim_selected) {
++				if (GodotFS._wxslim_sync_promise) { return GodotFS._wxslim_sync_promise; }
++				GodotFS._wxslim_sync_promise = Promise.resolve().then(function () {
++					if (!GodotFS._wxslim_session) { throw new Error('SAVE_SESSION_NOT_CREATED'); }
++					const result = GodotFS._wxslim_session.checkStorage();
++					GodotFS._wxslim_last_storage = result;
++					if (result.status !== 'OBSERVED') { throw new Error(result.code || 'SAVE_STORAGE_CHECK_FAILED'); }
++					return null;
++				}).then(function (error) { return error; }, function (error) {
++					GodotFS.persistent_exit_error(error);
++					return error; // Keep the existing C++/finish_async error-or-null Promise convention.
++				}).then(function (error) {
++					GodotFS._wxslim_sync_promise = null;
++					return error;
++				});
++				return GodotFS._wxslim_sync_promise;
++			}
+ 			if (GodotFS._syncing) {
+ 				GodotRuntime.error('Already syncing!');
+ 				return Promise.resolve();
+@@ -253,6 +346,22 @@
+ 		},
+ 
+ 		finish_async: function (callback) {
++			if (GodotFS._wxslim_selected) {
++				if (GodotFS._wxslim_exit_started) { GodotFS.persistent_exit_error(new Error('SAVE_EXIT_ALREADY_STARTED'), true); return; }
++				GodotFS._wxslim_exit_started = true;
++				GodotFS._wxslim_shutdown_requested = true;
++				if (GodotFS._wxslim_session) { GodotFS._wxslim_session.beginShutdown(); }
++				Promise.resolve(GodotOS._fs_sync_promise).then(GodotFS.persistent_exit_error, function (error) { GodotFS.persistent_exit_error(error, true); }).then(function () {
++					// Each rejection is retained; the other cleanup tasks still settle.
++					return Promise.all(GodotOS._async_cbs.map(function (cb) {
++						return new Promise(cb).then(function () {}, function (error) { GodotFS.persistent_exit_error(error, true); });
++					}));
++				}).then(function () { return GodotFS.sync(); }).then(GodotFS.persistent_exit_error, function (error) { GodotFS.persistent_exit_error(error, true); }).then(function () {
++					// Native Main::cleanup still follows this callback. Deinit/stop is later.
++					setTimeout(function () { callback(); }, 0);
++				});
++				return;
++			}
+ 			GodotOS._fs_sync_promise.then(function (err) {
+ 				const promises = [];
+ 				GodotOS._async_cbs.forEach(function (cb) {
+diff --git a/platform/web/SCsub b/platform/web/SCsub
+--- a/platform/web/SCsub
++++ b/platform/web/SCsub
+@@ -39,7 +39,6 @@
+ sys_env.AddJSPre([
+     "js/libs/library_godot_crypto.js",
+     "js/libs/library_blob.js",
+-    "js/libs/library_godot_fs.js",
+ ])
+ 
+ sys_env.AddJSLibraries([
+@@ -49,6 +48,7 @@
+     "js/libs/library_godot_fetch.js",
+     "js/libs/library_godot_webmidi.js",
+     "js/libs/library_godot_os.js",
++    "js/libs/library_wxslim_persistent.js",
+     "js/libs/library_godot_runtime.js",
+     "js/libs/library_godot_input.js",
+     "js/libs/library_godot_webgl2.js",
+diff --git a/godot_process.js b/godot_process.js
+--- a/godot_process.js
++++ b/godot_process.js
+@@ -31,11 +31,6 @@
+         name: "setvalue-i64",
+         match: `case"i64":abort("to do setValue(i64) use WASM_BIGINT");`,
+         replace: `case"i64":tempI64=[value>>>0,(tempDouble=value,+Math.abs(tempDouble)>=1?tempDouble>0?+Math.floor(tempDouble/4294967296)>>>0:~~+Math.ceil((tempDouble- +(~~tempDouble>>>0))/4294967296)>>>0:0)],HEAP32[ptr>>2]=tempI64[0],HEAP32[ptr+4>>2]=tempI64[1];break;`,
+-    },
+-    {
+-        name: "wx-fs-mount",
+-        match: `FS.mount(IDBFS,{},path)`,
+-        replace: `FS.mount(WXMEMFS,{},path)`,
+     },
+     {
+         name: "wasm-runtimeerror-instanceof",

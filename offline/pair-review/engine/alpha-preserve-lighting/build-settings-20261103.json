@@ -1,0 +1,169 @@
+{
+  "schema": "glx-lighting-build-record-v1",
+  "recordedAt": "2026-11-03",
+  "purpose": "Verified historical build inputs; not an executable one-click toolchain configuration",
+  "source": {
+    "repository": "https://github.com/citizenll/godot.git",
+    "commit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+    "runtimeVersion": "4.7.2.rc.custom_build.df3cdd9bc"
+  },
+  "exportEditor": {
+    "version": "4.7.2.stable.steam.ed1daf0bf",
+    "scope": "Historical regression PCK exporter; not the WASM engine"
+  },
+  "patches": [
+    {
+      "order": 1,
+      "path": "engine/alpha-preserve-lighting/baseline-shader-diagnostic.patch",
+      "sha256": "84204452f43c04ef40ad4efcdd37e132f11ea429a42d029b63f6222d3e781ee6"
+    },
+    {
+      "order": 2,
+      "path": "engine/alpha-preserve-lighting/scene-alpha-restore.patch",
+      "sha256": "24e7d2f318f87b09ad585354e4d6006e010e7c5f2de21f629e05829cfdf0a514"
+    },
+    {
+      "order": 3,
+      "path": "engine/alpha-preserve-lighting/scene-light-output.patch",
+      "sha256": "c9f371b648d8dddda224fc1e334225e376c6608bae3eefa75dd416907fadbac6"
+    },
+    {
+      "order": 4,
+      "path": "engine/alpha-preserve-lighting/scene-alpha-output.patch",
+      "sha256": "57256151a301271b360be588da88fdb503471c0b7097c0d2ea4aa637012b0fce"
+    }
+  ],
+  "profile": {
+    "path": "examples/glx-smoke/full-engine.gdbuild",
+    "sha256": "920ca801a58fe5bfb0f56aa39a1d523adae9658233189d6518b17e3c5b98e81b"
+  },
+  "library": {
+    "sha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+    "bytes": 3866614,
+    "acquisition": "Obtain the exact 4.0.10 archive from WeChat official support with permission; do not substitute public latest by label",
+    "redistribution": "NOT_INCLUDED_PERMISSION_UNCONFIRMED"
+  },
+  "toolchain": {
+    "emscripten": "4.0.10",
+    "buildDriverNode": "24.18.0",
+    "buildDriverNodeSha256": "9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de",
+    "sdkFiles": [
+      {
+        "path": "upstream/emscripten/emscripten-version.txt",
+        "bytes": 10,
+        "sha256": "ca0f65b7dc4f97d03522346306ff0323f61de41cdb0c00304dd54db3111a4446"
+      },
+      {
+        "path": "upstream/emscripten/emcc.py",
+        "bytes": 37426,
+        "sha256": "4b47445c680acc3ce625312f1d279d4d50347c27661fcde9b5b904a775eae9ec"
+      },
+      {
+        "path": "upstream/emscripten/em++.py",
+        "bytes": 506,
+        "sha256": "017f735c953318fdaaa4af68c8d4bf13936a787ddbd5dad804d532b0223b6c2f"
+      },
+      {
+        "path": "upstream/bin/clang.exe",
+        "bytes": 86481920,
+        "sha256": "2139bce5bdd3ba2648e353d56d9e75654cf89c2dfed10ebfbc56a60979a86c55"
+      },
+      {
+        "path": "upstream/bin/wasm-ld.exe",
+        "bytes": 52444672,
+        "sha256": "3b6db708d4e85e592017832b1ffd245469776bbbc4d9be50d4de9a1f3171e2fc"
+      },
+      {
+        "path": "upstream/bin/wasm-opt.exe",
+        "bytes": 11606528,
+        "sha256": "7d69f7f4a46b208493ab8405309c58226b67e7905c1015069acf9001055b8a33"
+      },
+      {
+        "path": "node/24.19.0_64bit/node.exe",
+        "bytes": 92825416,
+        "sha256": "3602f2bb1a10f2cbab4c36886218a33c1ab3db87290e73b033c46c77147d0237"
+      },
+      {
+        "path": "python/3.13.3_64bit/python.exe",
+        "bytes": 105832,
+        "sha256": "d87063e5597f257004c731b66c59c56c91038861c6877b1a3dca6b8c4e919125"
+      }
+    ],
+    "sconsPythonSha256": "7bcdf892816a8d651e89f008cfc2f1544a41f13089af70a227b9fc54ced8551f",
+    "pythonBaseSha256": "467014615a5255aca450ae88100dd2caf887da87657f00e3c2171ec44a685aec"
+  },
+  "build": {
+    "entry": "trim/lib/build.mjs#buildEngine",
+    "entrySha256": "ea0a5a08d642627fe6a81221d9bbe98a8e51020f2d086672a1aaf6bd576e32da",
+    "profile": "full, no disabled classes/options",
+    "lto": "thin",
+    "ltoJobs": 8,
+    "symbols": true,
+    "cppdefines": "",
+    "sconsArgs": [
+      "platform=web",
+      "target=template_release",
+      "arch=wasm32",
+      "threads=no",
+      "wasm_simd=no",
+      "dlink_enabled=no",
+      "use_wx_glx=yes",
+      "javascript_eval=yes",
+      "opengl3=yes",
+      "optimize=size",
+      "debug_symbols=no",
+      "use_closure_compiler=no",
+      "initial_memory=32",
+      "stack_size=5120",
+      "lto=thin",
+      "--jobs=16",
+      "modules_enabled_by_default=yes",
+      "build_profile=<FULL_PROFILE>",
+      "wx_glx_lib=<EXACT_026E_LIBRARY>",
+      "linkflags=--emit-symbol-map -Wl,--thinlto-jobs=8"
+    ],
+    "windowsLinkAdapterSha256": "11cb75dbfb9e2ddaf13b0754640bad593a3ff18603f2e6637a565bf8b6c7f1fe",
+    "inheritedLinkSettings": [
+      "-fexceptions",
+      "-sERROR_ON_UNDEFINED_SYMBOLS=0"
+    ],
+    "strictUndefinedLinkClaim": false,
+    "buildMinutes": 22.08,
+    "totalRecordWallSeconds": 1454.486,
+    "attempts": 1,
+    "cleanEnvironmentReproduction": "NOT_RUN"
+  },
+  "postprocess": {
+    "entry": "pinned godot_process.js including the baseline diagnostic patch",
+    "packageJsOnlyChange": {
+      "function": "evalCheckWxContextGlobalIdAvailable",
+      "body": "return 0",
+      "rule": "Apply once to raw build JS; require exactly one original body; compare whole file"
+    },
+    "wasmAndBrotli": "unchanged by package JS transformation"
+  },
+  "recordSha256": "4cc936483ea302243d39e98d681660eb01e2cec4e07ff82a4eae8a482d2fb5b9",
+  "rawBuildOutputs": {
+    "godot.js": {
+      "bytes": 469508,
+      "sha256": "e9f09402ddc60b0407a803e74b2f8824cc14b05d38e3cce99fb05d06ff573ddb"
+    },
+    "godot.wasm": {
+      "bytes": 65186879,
+      "sha256": "e7b88edf517c66b20a176443e8baec63aaefcfa011d9777b89ea0a2e7ba577c3"
+    },
+    "godot.wasm.br": {
+      "bytes": 8648194,
+      "sha256": "fed5ba84faa05499d1a01ca0a0d1b11e027a0e1d07a68d796761d9690505dacb"
+    }
+  },
+  "rawBuildPair": {
+    "sha256": "dea58c0685fbe338a7560c68ec50e182575217b13d931005478e98afd4485d31",
+    "files": [
+      "godot.js",
+      "godot.wasm",
+      "godot.wasm.br"
+    ],
+    "brotliDecodesToWasm": true
+  }
+}

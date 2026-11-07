@@ -5,7 +5,7 @@ import json
 import os
 from pathlib import Path, PureWindowsPath
 import shutil
-import tempfile
+import uuid
 import zipfile
 
 def destination(root, name):
@@ -31,7 +31,8 @@ def restore(out):
             raise ValueError('Evidence manifest totals differ')
         if shutil.disk_usage(out.parent).free < pin['logicalBytes'] + 512 * 2**20:
             raise OSError('Insufficient space to restore the evidence')
-        stage = Path(tempfile.mkdtemp(prefix=out.name+'-partial-',dir=out.parent))
+        stage = out.with_name(out.name+'-partial-'+uuid.uuid4().hex)
+        stage.mkdir()
         for name in index['directories']:
             destination(stage,name).mkdir(parents=True,exist_ok=True)
         for name,size,digest in index['files']:

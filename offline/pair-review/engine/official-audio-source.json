@@ -1,0 +1,618 @@
+{
+  "schema": "wxslim-official-audio-source-v1",
+  "status": "SOURCE_ONLY_LIFECYCLE_NOT_CLOSED",
+  "baseRepository": "godotengine/godot",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "derivationRepository": "citizenll/godot",
+  "derivationCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "patch": {
+    "file": "engine/official-audio-source.patch",
+    "bytes": 68489,
+    "sha256": "80bd9f95e94c8cab1c03e2776be11756c3dcd1f3a17420ed600a6f6e50c0ed63"
+  },
+  "inputs": [
+    {
+      "path": "platform/web/audio_driver_web.cpp",
+      "bytes": 17272,
+      "sha256": "489d76a21ee39e1b3eed732adfb5aed6b34e12f06a2ce61e41d0ce62e7462536",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/platform/web/audio_driver_web.cpp"
+    },
+    {
+      "path": "platform/web/godot_audio.h",
+      "bytes": 5357,
+      "sha256": "a763802efe772b2931a4cd3cb2004f00d162ab64089c82fcc46e60fb65792427",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/platform/web/godot_audio.h"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_audio.js",
+      "bytes": 60513,
+      "sha256": "46e8983be587672d11d073dc65eee0bf89cb6b43acf612de1eb16f17abb1849e",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/platform/web/js/libs/library_godot_audio.js"
+    }
+  ],
+  "forkInputs": [
+    {
+      "path": "platform/web/audio_driver_web.cpp",
+      "bytes": 21098,
+      "sha256": "20fe626c0cde059e82a382396a5e7d46b3385a6b4b382b83712e83eaf768fcea",
+      "url": "https://github.com/citizenll/godot/blob/df3cdd9bc9941a20cb5575d781cde6f937637bcb/platform/web/audio_driver_web.cpp"
+    },
+    {
+      "path": "platform/web/godot_audio.h",
+      "bytes": 5824,
+      "sha256": "e93284d7ade8e7bcc74598379e1bdbb9b74181c1bae5317590452a373bdcc167",
+      "url": "https://github.com/citizenll/godot/blob/df3cdd9bc9941a20cb5575d781cde6f937637bcb/platform/web/godot_audio.h"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_audio.js",
+      "bytes": 91257,
+      "sha256": "e714f1d61822bf25af64197ee60278627921f17640bcd4ac08d58f42944e4862",
+      "url": "https://github.com/citizenll/godot/blob/df3cdd9bc9941a20cb5575d781cde6f937637bcb/platform/web/js/libs/library_godot_audio.js"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "platform/web/audio_driver_web.cpp",
+      "bytes": 21523,
+      "sha256": "fa0c5d0c1e39f8759a3c14e8afc48ffb7545d6224121d66f3fa5cf6684cc5b43"
+    },
+    {
+      "path": "platform/web/godot_audio.h",
+      "bytes": 5889,
+      "sha256": "94e09c15ff221b837bb1f4d353e00f03ba9918552779c63dcf2dc04b91ebeaa9"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_audio.js",
+      "bytes": 110956,
+      "sha256": "4da4fc9b099b200ca00ea92c5a35c6e30f19f71e77fe18e46f5327cebf32576d"
+    }
+  ],
+  "jsUnits": [
+    {
+      "path": "SampleNodeBus.constructor",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 1969,
+        "sha256": "1ea71bdf2cbb0646a6b18e66c099870bc1b4eece0fee5bd8d22ee985e44fb103"
+      },
+      "derivedWeChatBody": {
+        "bytes": 2002,
+        "sha256": "f9905d363009f35f1a19d13a91be71ae5f1ac65d13de6d689aea89fa13663c90"
+      }
+    },
+    {
+      "path": "SampleNode.constructor",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 1555,
+        "sha256": "76a6f43ed289d0e2dde1fbd83abcbb23261f29adf3dd5c9685f8306064a369d7"
+      },
+      "derivedWeChatBody": {
+        "bytes": 1461,
+        "sha256": "6231289e9ac0716b17ecd4c8b023bcbe5aede9e8ab53a8f6e3e982d0a2c58e52"
+      }
+    },
+    {
+      "path": "SampleNode.connectPositionWorklet",
+      "kind": "retained-official-member-omitted-by-fork",
+      "official": {
+        "bytes": 215,
+        "sha256": "3fb371a405e29ffad48363e3b9bdcf61b1523c5b7dd031325a60dc0654b3fcb0"
+      }
+    },
+    {
+      "path": "SampleNode.getPositionWorklet",
+      "kind": "retained-official-member-omitted-by-fork",
+      "official": {
+        "bytes": 903,
+        "sha256": "8315fbc5d37d3733fad4d617ebb3242dda27012926f18a6bbda969342bc4f3fb"
+      }
+    },
+    {
+      "path": "SampleNode.clear",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 700,
+        "sha256": "e355f530f9f09d039a24ea0341a91c261c0444627f29350db71f2f228ef89715"
+      },
+      "derivedWeChatBody": {
+        "bytes": 696,
+        "sha256": "2011f22b9815314ae04123f361c5f2c67486640252b88a230dd9c94401b79665"
+      }
+    },
+    {
+      "path": "SampleNode._restart",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 697,
+        "sha256": "d8c84a413893b702fd76b6e89bb2ecedee6ab9833273ee956b4151909e677d66"
+      },
+      "derivedWeChatBody": {
+        "bytes": 721,
+        "sha256": "e9c76c179a872a6dc700aff914df400a395728b81d8025b98ea845141c4dd334"
+      }
+    },
+    {
+      "path": "SampleNode._addEndedListener",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 518,
+        "sha256": "11ae5dcf13619de6aff4b5462e12acbedb37c9945ff5f25f233fd526d9482007"
+      },
+      "derivedWeChatBody": {
+        "bytes": 537,
+        "sha256": "bb3a82165b965085da309bf71e8db80b270550a3c01e746f500170b038c97dcc"
+      }
+    },
+    {
+      "path": "SampleNode.connectAudioContext",
+      "kind": "added",
+      "fork": {
+        "bytes": 81,
+        "sha256": "76d720daeb1549760005dffa6e11ec5a1fe065f9ce3222ef04385b3048032686"
+      }
+    },
+    {
+      "path": "Bus.move",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 263,
+        "sha256": "166a9cf906ecff48a9c4f7675a983985e1cd5e5e198fe77c34c8e51cf7a9b127"
+      },
+      "derivedWeChatBody": {
+        "bytes": 461,
+        "sha256": "7f3ea458647c1347b3a9918f9a5973433127c6ebddaefe34d27d27d0015a2595"
+      }
+    },
+    {
+      "path": "Bus.addAt",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 129,
+        "sha256": "66b6d24c0d7c15dbbdc4ea6cd8bbde77a05792784cf1cafcef2e9c59b9dad13c"
+      },
+      "derivedWeChatBody": {
+        "bytes": 145,
+        "sha256": "038ea85d52126ecd3934122a22fc1338bf5d759f603b9305751e03a86601c5d0"
+      }
+    },
+    {
+      "path": "Bus.constructor",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 457,
+        "sha256": "6c763f4973fc781b6629951ea59715d0b6ef171afe38103442447f5f03d4b1e9"
+      },
+      "derivedWeChatBody": {
+        "bytes": 467,
+        "sha256": "29e3f5030ef499a84c26f3c3706c9f07f8f91383983ab98e762dee51967c06ef"
+      }
+    },
+    {
+      "path": "_GodotAudio.$GodotAudio.init",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 1523,
+        "sha256": "3e438393d069232cea076a63e45e4f9cb139e281572d49def4cd63b55adb8b19"
+      },
+      "derivedWeChatBody": {
+        "bytes": 1572,
+        "sha256": "5ece345fe139c3e0da5fe9eced2b15d19407f5571c284c050651cb3fcfe05f8a"
+      }
+    },
+    {
+      "path": "_GodotAudio.$GodotAudio.create_input",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 938,
+        "sha256": "2518391dc911a21f9c8c579a8e8f37aadbb8e2f368a7d4de1f31a223624ea4c2"
+      },
+      "derivedWeChatBody": {
+        "bytes": 975,
+        "sha256": "c323fdc324ecc96cca54264008758f12056cbe146834b799ee0f1b2f7bf2c121"
+      }
+    },
+    {
+      "path": "_GodotAudio.$GodotAudio.WX",
+      "kind": "added",
+      "fork": {
+        "bytes": 28390,
+        "sha256": "0621eb49312c2acf1e87dd6d2e098f8b9ea2fc1a981a08480f4060d2b72ff551"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_is_available",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 92,
+        "sha256": "e96d7dcf8e251f13354dd8113d1404be0f7aae42c4a3617c313be01cd76845e9"
+      },
+      "derivedWeChatBody": {
+        "bytes": 134,
+        "sha256": "a90fb9ac8e951b629015d4564a88fe5175b37c18093ae4885b7c87d93e7e3039"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_has_worklet",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 66,
+        "sha256": "5e955ed4d50b9b989fd89d5bc63fcf1cb5e7b4a5ba2475d02bef765005c49dce"
+      },
+      "derivedWeChatBody": {
+        "bytes": 67,
+        "sha256": "785f8790f11d41326fdaad9196279cba8581d7b3ba9ab9b6d7b6f89bd7064efe"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_has_script_processor",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 75,
+        "sha256": "268e74edcd05827ab81e010492886fb16bd703d423f77f96718c9b9bca7e824c"
+      },
+      "derivedWeChatBody": {
+        "bytes": 90,
+        "sha256": "3d164b617eeea854abd7d4db3e399e2658218d22a2cffcb62e655c3abda4107f"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_stream_is_registered",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 151,
+        "sha256": "f046082314c849bf13f78af280c8dad1e19c1537e07d26b2f17c92c70322f7ba"
+      },
+      "derivedWeChatBody": {
+        "bytes": 251,
+        "sha256": "3945cc1704351a819a5b5f33ec5b682bf88803df3bb06a9c3a98ce5c406f0b0d"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_register_stream",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 909,
+        "sha256": "9105b15c5d8b37f64b6c782ad5fab4aa102eb226d39dc4578d69e368f740da8d"
+      },
+      "derivedWeChatBody": {
+        "bytes": 957,
+        "sha256": "c34cf5607a1e658743c487c5644dd5fc4210344d7c317d120e9da66dc3a789b0"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_unregister_stream",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 190,
+        "sha256": "f6d40cdbf5ca60715952d3fd63698b1c75d5631410a6260dfb60e2dc4ad5e74d"
+      },
+      "derivedWeChatBody": {
+        "bytes": 319,
+        "sha256": "c8b1fc7f63c2c33ca34b7f8422cef4f00a0c5adaaa1e2ec3de8601b49c72d8c3"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_start",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 531,
+        "sha256": "ea0739779c1e530d6066cdb7e4cc081784f84d7a031051649753d82d37367b71"
+      },
+      "derivedWeChatBody": {
+        "bytes": 751,
+        "sha256": "22a8eda26b1336de555f2a78db2102f0cccfa8508b570e8a2acc5531dd0a3911"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_stop",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 123,
+        "sha256": "88e2557abe29779919c838385429b1b13094b6e7c807f58fc0a0a164a8980f24"
+      },
+      "derivedWeChatBody": {
+        "bytes": 248,
+        "sha256": "bc2bd75194f72b3693de386065b88d2c1d351e90126a46107de5ec73329cf079"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_set_pause",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 144,
+        "sha256": "7b7fa711ec9ca50f8e6ba540d637482703196c6250f04d830cc3b5a15f25cae0"
+      },
+      "derivedWeChatBody": {
+        "bytes": 283,
+        "sha256": "b43102bd6756c25f58c1b1acca89b0e23b583b4fd22970b87b08a7c80779e75f"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_is_active",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 142,
+        "sha256": "20e045c28e82623162d6413554c78fbb5574f392c9e4f0caeb2965fac3a8a2f3"
+      },
+      "derivedWeChatBody": {
+        "bytes": 314,
+        "sha256": "75b1649dd9303c8d3c8bf67029dafc9e7261406b1cfe2c84fa43ece89f986029"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_get_sample_playback_position",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 249,
+        "sha256": "7cb2ad1422931af1bf5514706febc2c19e3f2957b58ed4e23003277877560f3b"
+      },
+      "derivedWeChatBody": {
+        "bytes": 416,
+        "sha256": "16465bb2cbc6a7071c0403ea6250ecf664a18ae5f9dae909ab05213d20619251"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_update_pitch_scale",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 149,
+        "sha256": "13cd915ac4ca82658689203ef2df0add612a7b334715de92ab57e4c107c60e11"
+      },
+      "derivedWeChatBody": {
+        "bytes": 302,
+        "sha256": "2a4024c61ccbbb9fd9a16feefdf964205f9eae3b081b588c6c48cc41787c9f46"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_set_volumes_linear",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 404,
+        "sha256": "061622ceba34b90ed5e274c1e79533cab06c5a80d699945f59370ea6b9b1bbbe"
+      },
+      "derivedWeChatBody": {
+        "bytes": 529,
+        "sha256": "f9d1473bf3bfe58a6cd707af529b03b653b69f15701d1645dfe033c23663aa3c"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_bus_set_volume_db",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 56,
+        "sha256": "10233bd5d681922da6e37748104c24d35a8f77943a566de649a050436e709490"
+      },
+      "derivedWeChatBody": {
+        "bytes": 137,
+        "sha256": "54e6363300202530fe417b12a8f2f01995516b918c9b2a580f780efc870360e7"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_bus_set_mute",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 58,
+        "sha256": "0d1fa8fcad795b489ca3d5a2a2588de24c8ae5311facfe598bcbd6f7ac3cc2d1"
+      },
+      "derivedWeChatBody": {
+        "bytes": 144,
+        "sha256": "3bff1fa9164caa58c425f6a42fe51fdc0ad38f21ab88d5ce05144d09376b082f"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_wechat_is_available__proxy",
+      "kind": "added",
+      "fork": {
+        "bytes": 46,
+        "sha256": "e2ad01e04a4498a05823233b2a42ec774ead5baa8ccc84d88dfb06c90ed0467c"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_wechat_is_available__sig",
+      "kind": "added",
+      "fork": {
+        "bytes": 41,
+        "sha256": "6aaa8599e3865b55f553fd778bf0371ed14eab8adc52e9eb62e9561996fda740"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_wechat_is_available",
+      "kind": "added",
+      "fork": {
+        "bytes": 89,
+        "sha256": "250e4856892a4ba2e14cabe827ac27f50c37cf8c50538d191c531bbc7c462a55"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_wechat_get_native_audio_min_duration__proxy",
+      "kind": "added",
+      "fork": {
+        "bytes": 63,
+        "sha256": "5b58e228440ee1a33f4cfa7dc8d0415c1dfe66164d7fefc779c10ace9e78533d"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_wechat_get_native_audio_min_duration__sig",
+      "kind": "added",
+      "fork": {
+        "bytes": 58,
+        "sha256": "c07a46e3b568e91784914a80aa523ddf232137929373ef8adf208d807665484c"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_wechat_get_native_audio_min_duration",
+      "kind": "added",
+      "fork": {
+        "bytes": 170,
+        "sha256": "e7267e1820effe829408ee478d7781e5ed217c71947ac34c22a937a7e1bb3a0c"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_wechat_can_cache_pcm__proxy",
+      "kind": "added",
+      "fork": {
+        "bytes": 47,
+        "sha256": "705093e4267082b1410f926037da3f212b57cf0615732d0f948307c37407f76e"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_wechat_can_cache_pcm__sig",
+      "kind": "added",
+      "fork": {
+        "bytes": 43,
+        "sha256": "9924e17bdd8f66e4a49dd98fe2add286a2108a97092dbc56830fe0ffe74b5d6b"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_wechat_can_cache_pcm",
+      "kind": "added",
+      "fork": {
+        "bytes": 169,
+        "sha256": "3385d7d25a15f40da5097641534998fc56fed196d19073b587069c9950713574"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_register_native_stream__proxy",
+      "kind": "added",
+      "fork": {
+        "bytes": 56,
+        "sha256": "4dc94c617307471c0479bd2a91ab9ede3929a48c626f1458c4901060501e6713"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_register_native_stream__sig",
+      "kind": "added",
+      "fork": {
+        "bytes": 61,
+        "sha256": "bcfdf6bf2b425d82ea964f9ec93133d0f2eeb4a07a997bdee4c8ee3f03ee462d"
+      }
+    },
+    {
+      "path": "_GodotAudio.godot_audio_sample_register_native_stream",
+      "kind": "added",
+      "fork": {
+        "bytes": 653,
+        "sha256": "7957ec8c6cc5b69bcd3f1794ca1b33764c02e81beb62fb43804328722bd05de9"
+      }
+    },
+    {
+      "path": "GodotAudioWorklet.$GodotAudioWorklet.create",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 420,
+        "sha256": "e298c51ac3d2a13132da1da9cd743676aeea21520b44849c6d2812d6b0b1a498"
+      },
+      "derivedWeChatBody": {
+        "bytes": 462,
+        "sha256": "7fecde6eb26ceddb75e5d3d9386a1cd92e362262eaf405e43b5edd17d9a6d571"
+      }
+    },
+    {
+      "path": "GodotAudioWorklet.$GodotAudioWorklet.start",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 333,
+        "sha256": "9bf9e01b898a708eb6826712062d60185eb2c107b9648ee521c24c190b08cbb6"
+      },
+      "derivedWeChatBody": {
+        "bytes": 329,
+        "sha256": "77b7c1804812585f0e2029558d1ba57985f87e4598962a92df48f507c5862aa0"
+      }
+    },
+    {
+      "path": "GodotAudioWorklet.$GodotAudioWorklet.start_no_threads",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 2484,
+        "sha256": "180f2eb979fb28e44c321a3996ad979713204e1482380f87650c75b3d106a4b1"
+      },
+      "derivedWeChatBody": {
+        "bytes": 2450,
+        "sha256": "a377ec0374875c6d8b60c87ece299fdfd452176853469cafbd09009bd7facca3"
+      }
+    },
+    {
+      "path": "GodotAudioWorklet.$GodotAudioWorklet.close",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 570,
+        "sha256": "d7c580c643a63a27f5e8df57b914bb340bd909c7d7c3f2b80647c6e87208072a"
+      },
+      "derivedWeChatBody": {
+        "bytes": 566,
+        "sha256": "14e28eff150c77eaf4ed14b655fa718a6318a96b1399db2d32a959a512413e89"
+      }
+    },
+    {
+      "path": "GodotAudioWorklet.godot_audio_worklet_create",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 157,
+        "sha256": "f5c46ee498eeed7f4a7487da54af0bfe793ef1b06a0db65dff385be10e668ffe"
+      },
+      "derivedWeChatBody": {
+        "bytes": 175,
+        "sha256": "c0ad8ec9650585e485957f43fc55d760e96b08005481f9efd4b28699a001c435"
+      }
+    },
+    {
+      "path": "GodotAudioScript.$GodotAudioScript.close",
+      "kind": "function",
+      "officialBody": {
+        "bytes": 205,
+        "sha256": "2eb25e478ca73b1052d5ec918463138f7a13b4315a41858f5d646da2c5893c00"
+      },
+      "derivedWeChatBody": {
+        "bytes": 249,
+        "sha256": "8edf909e6cc47cb46fbef2b491d8c408501425c8ea530219c20f0448174541c6"
+      }
+    }
+  ],
+  "selection": {
+    "cppMacro": "WECHAT_GLX_EXPERIMENTAL",
+    "jsPreprocessorMacro": false,
+    "jsRuntimeGate": "GameGlobal nonnull and wx.getSystemInfoSync function; property checks only",
+    "SCsubChanged": false,
+    "libraryPath": "platform/web/js/libs/library_godot_audio.js",
+    "newSettings": false,
+    "threads": "no (future recipe requirement, not enabled here)"
+  },
+  "derivationAdjustments": [
+    "Changed existing function begins with original body for non-WeChat; this/arguments/returns retained",
+    "All transplanted typeof wx gates use shared GodotAudio.isWeChat",
+    "WeChat init/availability require concrete existing GameGlobal.GODOTSDK audio context; missing capability throws fixed error, no browser fallback"
+  ],
+  "unchangedContract": {
+    "nativeRegistrationSignature": "viiiiiiiiii",
+    "defaultCacheBytes": 8388608,
+    "defaultNativeSampleMinSeconds": 3,
+    "officialBrowserFunctionBodiesRetained": true,
+    "forkFunctionBodiesRetainedExceptExplicitGateAndContextChecks": true,
+    "heapCopiesSynchronous": true
+  },
+  "blockingFollowups": [
+    "Native active/pool/subpackage/finished invalidation on whole-engine exit",
+    "notifyFinished free in finally and real callback exception propagation",
+    "Explicit host audio ownership/capability/failed-registration admission",
+    "Packaged native manifest/assets binding when requested",
+    "Source license review and actual official compile/link/audio runtime acceptance"
+  ],
+  "runtime": "NOT_RUN",
+  "build": "NOT_RUN",
+  "integrated": false,
+  "validation": {
+    "status": "PASS_SOURCE_REPLAY_AND_ISOLATED_MODELS_ONLY",
+    "testFile": "tests/official-audio-source-tests.mjs",
+    "testFileSha256": "e5344b7e78048529a95d1ed151202e61e2a0faeaf8820a2f7c01bada356c6e50",
+    "command": "WXSLIM_AUDIO_DF3_ROOT=<existing fixed df3 checkout> node tests/official-audio-source-tests.mjs --fetch-fixed-three",
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "nodeReportedDurationMs": 813.1973,
+    "execReportedWallSeconds": 1.130587,
+    "stdoutLogSaved": false,
+    "fullTargetExecuted": false,
+    "existingLifecycleFailureNegativeControlRetained": true
+  }
+}

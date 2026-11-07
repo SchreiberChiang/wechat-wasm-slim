@@ -1,0 +1,464 @@
+{
+  "schema": "wxslim-official-basic-capability-source-evidence-v1",
+  "date": "2026-11-05",
+  "status": "PASS_SOURCE_ONLY_NOT_BUILD_READY",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "attempt": "03",
+  "elapsedMs": 3269.7448999999997,
+  "inputFiles": 25,
+  "inputBytes": 585258.0,
+  "officialInputs": [
+    {
+      "path": "platform/web/display_server_web.cpp",
+      "bytes": 49511,
+      "sha256": "2e4b1ebf3b08b39494e47f8b699797140d79d5c821263094c3997bb85af63b4e"
+    },
+    {
+      "path": "platform/web/display_server_web.h",
+      "bytes": 16550,
+      "sha256": "327c4a774f1f5c136f819311c6f1bce2faa86df3300ac6fa62e79fd43cb5b8ac"
+    },
+    {
+      "path": "platform/web/godot_js.h",
+      "bytes": 7600,
+      "sha256": "7942335057dc849fae1f6c04665bdf4aeb27ecdab732bd1d3413c303328c8b16"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_display.js",
+      "bytes": 26637,
+      "sha256": "aa16efa5058eb20828a5a3c45f5952a11320c5050f83d1ed0548cd527e61163d"
+    },
+    {
+      "path": "servers/rendering/renderer_canvas_cull.cpp",
+      "bytes": 101406,
+      "sha256": "8d4f85652d69a3aec8378a391f5d5cff5f8aeb795243bedd56dff5c79f5d88a7"
+    },
+    {
+      "path": "drivers/gles3/storage/utilities.cpp",
+      "bytes": 18908,
+      "sha256": "8bf1c99190175b2f1aced92a27fae5bd5f360bcfa7c72a59992b13ca87b31fc4"
+    },
+    {
+      "path": "platform/web/detect.py",
+      "bytes": 14068,
+      "sha256": "9b3ead90fddaab15f2ce647db54421e647553887d023b1842365dbb7863d08e6"
+    },
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 4631,
+      "sha256": "d8292a8945f941c061f6484ea2bcce783d7838cde8ecad8ff3ca86ff29b36180"
+    },
+    {
+      "path": "platform/web/js/patches/patch_em_gl.js",
+      "bytes": 2778,
+      "sha256": "2b740dcfb23623ca015d57a0260c9821aacb038b313ef5a2b1d415f6555e2d3a"
+    },
+    {
+      "path": "platform/web/javascript_bridge_singleton.cpp",
+      "bytes": 15502,
+      "sha256": "0ca5d3366e740ba5ef6470fb68e6eb75708b813284912ce1506bdc2c5da66146"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_javascript_singleton.js",
+      "bytes": 13522,
+      "sha256": "d65c74d148ca2f9bc33644cc6f6330c85f28c8803416951ac31865195f22296d"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_os.js",
+      "bytes": 14940,
+      "sha256": "211dfb5520e9dd1381e3c379b4d9486420a02d9f3f72c40b912e3b2a5e7daaa9"
+    },
+    {
+      "path": "drivers/unix/file_access_unix.cpp",
+      "bytes": 18396,
+      "sha256": "06a957f49525afd96a7563dd653583867d738763d38c39f5b17c874a9a298dcd"
+    },
+    {
+      "path": "drivers/gles3/shaders/scene.glsl",
+      "bytes": 99241,
+      "sha256": "2c77be0c85b7ab1a85ed8009c77cdb6216f1494d43083592213ad68f9e812977"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_input.js",
+      "bytes": 23574,
+      "sha256": "bdf6ec2ff64820072c44de34fdf46683a1173ea037386059ce2946b02da29db3"
+    },
+    {
+      "path": "platform/web/audio_driver_web.cpp",
+      "bytes": 17272,
+      "sha256": "489d76a21ee39e1b3eed732adfb5aed6b34e12f06a2ce61e41d0ce62e7462536"
+    },
+    {
+      "path": "platform/web/godot_audio.h",
+      "bytes": 5357,
+      "sha256": "a763802efe772b2931a4cd3cb2004f00d162ab64089c82fcc46e60fb65792427"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_audio.js",
+      "bytes": 60513,
+      "sha256": "46e8983be587672d11d073dc65eee0bf89cb6b43acf612de1eb16f17abb1849e"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_fetch.js",
+      "bytes": 8303,
+      "sha256": "47a515b15a93650ce3d45dbbd906818ecec191e8f0a1a5cb19de59043166e74f"
+    },
+    {
+      "path": "platform/web/http_client_web.cpp",
+      "bytes": 9722,
+      "sha256": "ebd199b1b79a4dfdf8ea9b8b19b518b0ede083104a0cf8b7218ece97df8b1ff6"
+    },
+    {
+      "path": "drivers/gles3/shader_gles3.cpp",
+      "bytes": 28071,
+      "sha256": "17c01277dc3468a1d53081f01a6f7665f5d0f82e7882a8198e1f486ee344d5d8"
+    },
+    {
+      "path": "modules/websocket/library_godot_websocket.js",
+      "bytes": 7655,
+      "sha256": "8a013eb7b968a296573eee6b432aac9d069913c5536a6119d63614845d38a590"
+    },
+    {
+      "path": "modules/websocket/emws_peer.cpp",
+      "bytes": 8248,
+      "sha256": "4d1b4f88cc4f348915e26afda90a0456aac76ad4b80c6796df0c0f48f02ad167"
+    },
+    {
+      "path": "core/crypto/crypto_core.cpp",
+      "bytes": 10142,
+      "sha256": "e5401beaa0f9dacf7c82e00300adf33a8935e97a4b019c6a8cde979b0ebd0769"
+    },
+    {
+      "path": "core/crypto/SCsub",
+      "bytes": 2711,
+      "sha256": "4b16ce9bc271a4c5f080b81439a24eb3baa6e8a89461a941332bd32c626549c2"
+    }
+  ],
+  "patchCount": 20,
+  "postPatchTransform": {
+    "kind": "EXPLICIT_POST_PATCH_SCSUB_BLOCK_RELOCATION",
+    "before": {
+      "bytes": 5459,
+      "sha256": "3762ca7fb58aa2935014987ec35a2fa97956697688e8b22c90c6b46c2f2beae1"
+    },
+    "after": {
+      "bytes": 5459,
+      "sha256": "94677374bcddeb1805833f892e4ff5a4698da22b66e90e6d1529fafb04c5e99d"
+    },
+    "block": {
+      "bytes": 236,
+      "sha256": "5dbb82d573fba14fe549eaa27727d204045a7a49ef6f954d9ea6a45064b1c236"
+    },
+    "beforeLine": 145,
+    "afterLine": 71,
+    "consumerLine": 76,
+    "identicalBlock": true,
+    "otherBytesUnchanged": true,
+    "reverseExact": true
+  },
+  "dependencies": [
+    {
+      "path": "engine/official-websocket-combination-audit.mjs",
+      "bytes": 7329,
+      "sha256": "5ab7e0273fbd5cd680444783356eb609d333aee4e67559b8a5e71c9af0c74af7"
+    },
+    {
+      "path": "engine/official-websocket-combination.json",
+      "bytes": 3371,
+      "sha256": "daeace257dfe87394aced2271af1412e023c45de1d0977f785e1071242124f42"
+    },
+    {
+      "path": "engine/official-secure-random-source.json",
+      "bytes": 6042,
+      "sha256": "8ba607338580006fd8173d3a679e059ae1d804791b5f6313bd61cc1543219ad8"
+    },
+    {
+      "path": "engine/official-secure-random-source.patch",
+      "bytes": 12892,
+      "sha256": "65f9b666ac923f2fa70734e9ebca3b4fd77001e2a405f8350de17055696c07d2"
+    },
+    {
+      "path": "engine/official-audio-start-contract.mjs",
+      "bytes": 9981,
+      "sha256": "ab87a6b82a30c7969cf84022b61373fc375048b8f87c50a7e92f821943d9bed7"
+    },
+    {
+      "path": "engine/official-audio-start-contract.json",
+      "bytes": 2873,
+      "sha256": "395121985d46714f0744f2aeaf30d401d95fe6330619446604a1d662b2a10365"
+    },
+    {
+      "path": "engine/official-audio-start-contract.patch",
+      "bytes": 7927,
+      "sha256": "1889f8441e7ae293a0c09c406f834077b81c5708200892f2b352a472a4bfcaa8"
+    }
+  ],
+  "outputFiles": 31,
+  "outputBytes": 738682.0,
+  "finalOutputs": [
+    {
+      "path": "platform/web/detect.py",
+      "bytes": 17570,
+      "sha256": "3558e308750cafc529d6e8367790ab55648df585b88bb1fabde0d93ecf8529ab",
+      "added": false
+    },
+    {
+      "path": "platform/web/display_server_web.cpp",
+      "bytes": 49864,
+      "sha256": "e462b18a1f8f5be4e6b40c82fb549b93de78239387db1c30f7aac89f3a665eaa",
+      "added": false
+    },
+    {
+      "path": "platform/web/display_server_web.h",
+      "bytes": 16580,
+      "sha256": "52f77625f2370be75cc0f199b63c0be87c9db1bd27b4d93b9a7d4d6adb4ee08e",
+      "added": false
+    },
+    {
+      "path": "platform/web/godot_js.h",
+      "bytes": 7649,
+      "sha256": "ad248d3c6d61181dad38a2161b6decdbeab89c9b2fadec9582b9665900ea0918",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_display.js",
+      "bytes": 26928,
+      "sha256": "f1ddd92cff6b7fae79eac3c41007fdab9b4aa9c29513024fa1799427e5518aa5",
+      "added": false
+    },
+    {
+      "path": "servers/rendering/renderer_canvas_cull.cpp",
+      "bytes": 106472,
+      "sha256": "3e4a3060df39b46cd61e939970a0a853da1b2a71fe22237c80b99fd8a3e3110e",
+      "added": false
+    },
+    {
+      "path": "drivers/gles3/storage/utilities.cpp",
+      "bytes": 19064,
+      "sha256": "5ebd9f0339d54b702c1e6faa591bb1ccd326dd96b893cc11de7b3c4406f4932c",
+      "added": false
+    },
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 5459,
+      "sha256": "94677374bcddeb1805833f892e4ff5a4698da22b66e90e6d1529fafb04c5e99d",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/patches/wxslim_glx_context.js",
+      "bytes": 7316,
+      "sha256": "4d426a5599e22dfd8a441068eda54595416d291ac10039a10aba77592ef0574e",
+      "added": true
+    },
+    {
+      "path": "platform/web/javascript_bridge_singleton.cpp",
+      "bytes": 15642,
+      "sha256": "520049c2782dfa55ade6f32b39730d3ee9b24978cfd1714911b78423749f72b0",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_javascript_singleton.js",
+      "bytes": 14781,
+      "sha256": "f4bc56da9262257ced4682ff7a17a622cf36ac890e958b91f2193dd011c8bf21",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_os.js",
+      "bytes": 15186,
+      "sha256": "f686ba1a5c4e01bfb78ad45f17f0ff1b58ec80a72334cf84b37dd4cd0ae2dc4a",
+      "added": true
+    },
+    {
+      "path": "drivers/unix/file_access_unix.cpp",
+      "bytes": 20048,
+      "sha256": "3ea539e3cbb06e411256d88bea6734f4686a5dcb7e329fdade22e8416720066c",
+      "added": false
+    },
+    {
+      "path": "drivers/gles3/shaders/scene.glsl",
+      "bytes": 101794,
+      "sha256": "6a957961db53b6225daaaf5f69253f80ca22a75a98c30b3ab5a21a65ab4da967",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_input.js",
+      "bytes": 29238,
+      "sha256": "105a1fb250fbdde6d1ee98d91325de5464f88cb6462684a7c7f7d050acc99a65",
+      "added": false
+    },
+    {
+      "path": "platform/web/audio_driver_web.cpp",
+      "bytes": 21523,
+      "sha256": "fa0c5d0c1e39f8759a3c14e8afc48ffb7545d6224121d66f3fa5cf6684cc5b43",
+      "added": false
+    },
+    {
+      "path": "platform/web/godot_audio.h",
+      "bytes": 5889,
+      "sha256": "94e09c15ff221b837bb1f4d353e00f03ba9918552779c63dcf2dc04b91ebeaa9",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_audio.js",
+      "bytes": 123483,
+      "sha256": "d990e5d6dbbb860883812009b303c1e950ee7c59c8902ad34db7e301f623ba5e",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_fetch.js",
+      "bytes": 12888,
+      "sha256": "4bdaefe74d6cfd7c77b919fe71a9bc0b462701fb5eff358bc4259f5bc33cba10",
+      "added": true
+    },
+    {
+      "path": "drivers/gles3/shader_gles3.cpp",
+      "bytes": 29539,
+      "sha256": "6544b24c320d62994bde0984a21b83bbbd70ae7336860da6076f8af3b57300a0",
+      "added": false
+    },
+    {
+      "path": "drivers/gles3/wxslim_shader_failure.h",
+      "bytes": 4984,
+      "sha256": "cd6d99284f270998168d0091031a50b47fcd548815138310035195ac169b8224",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_shader_failure.js",
+      "bytes": 6815,
+      "sha256": "c1e9386f676e77d8883b634f3781a7737a3f8fe6e0694be7db0a82fbe4ac5ce6",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_shader_type_return.js",
+      "bytes": 1607,
+      "sha256": "7becb45ffff5cc6049321e8f16da91440f78bd75ce2a16d935233a8d63b0b606",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/patches/wxslim_shader_instrument.cjs",
+      "bytes": 2181,
+      "sha256": "5778bd25ed34a050bd2285b53886953528299e9ceb677573aee5a2b8efff76d0",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/patches/wxslim_shader_type_instrument.cjs",
+      "bytes": 1961,
+      "sha256": "f60329e242d84b3dcc24fb579812de6538a148ebf6c4904f2af2cac34c607c7c",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_upstream_fs.js",
+      "bytes": 35127,
+      "sha256": "495a4b31b3952195025d65507ce33bf8b6704e3066aa8ad7311a288a73f8f551",
+      "added": true
+    },
+    {
+      "path": "modules/websocket/library_godot_websocket.js",
+      "bytes": 9860,
+      "sha256": "d6a7d738f45b313f43d20cba130a279e8f7d26b33eef884d1892d7a72b773b65",
+      "added": false
+    },
+    {
+      "path": "modules/websocket/emws_peer.cpp",
+      "bytes": 8220,
+      "sha256": "64dd4dda388ffd23394238972e25be7e7c125db39f3dfc3bb7b5c114316ffec5",
+      "added": false
+    },
+    {
+      "path": "core/crypto/crypto_core.cpp",
+      "bytes": 13168,
+      "sha256": "c215fae7602085875a5d22fc99bf54e425e86d3e3bd48ee447fcdafdc8e21b9c",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_crypto.js",
+      "bytes": 4605,
+      "sha256": "a1f30e4fb8b13a295922ef6e85700e38c5354e171d23828a7103ba3622759666",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_wechat_entropy.js",
+      "bytes": 3241,
+      "sha256": "411a142bdc51e941b2088265066d3de8566bfd5152a5b2527efedadaa1c9ab01",
+      "added": true
+    }
+  ],
+  "readOnlyReference": {
+    "path": "core/crypto/SCsub",
+    "bytes": 2711,
+    "sha256": "4b16ce9bc271a4c5f080b81439a24eb3baa6e8a89461a941332bd32c626549c2"
+  },
+  "syntaxChecked": [
+    "platform/web/js/libs/library_godot_display.js",
+    "platform/web/js/patches/wxslim_glx_context.js",
+    "platform/web/js/libs/library_godot_javascript_singleton.js",
+    "platform/web/js/libs/library_wxslim_os.js",
+    "platform/web/js/libs/library_godot_input.js",
+    "platform/web/js/libs/library_godot_audio.js",
+    "platform/web/js/libs/library_wxslim_fetch.js",
+    "platform/web/js/libs/library_wxslim_shader_failure.js",
+    "platform/web/js/libs/library_wxslim_shader_type_return.js",
+    "platform/web/js/patches/wxslim_shader_instrument.cjs",
+    "platform/web/js/patches/wxslim_shader_type_instrument.cjs",
+    "platform/web/js/libs/library_wxslim_upstream_fs.js",
+    "modules/websocket/library_godot_websocket.js",
+    "platform/web/js/libs/library_godot_crypto.js",
+    "platform/web/js/libs/library_godot_wechat_entropy.js"
+  ],
+  "checks": [
+    "ONE_ACTUAL_25_INPUT_COMBINATION_PASS",
+    "RELOCATION_REPEAT_DUPLICATE_CONSUMER_DRIFT_BLOCK_DRIFT_REJECT",
+    "INPUT_SCOPE_HASH_EXTERNAL_PLAN_REJECT",
+    "ACTUAL_PYTHON_AST_SELECTION_AND_LINKFLAGS_CONSUMPTION_BOTH_MODES"
+  ],
+  "python": {
+    "bytes": 255320,
+    "sha256": "7bcdf892816a8d651e89f008cfc2f1544a41f13089af70a227b9fc54ced8551f",
+    "model": [
+      {
+        "glx": false,
+        "oldCapturedEntropy": false,
+        "newCapturedEntropy": false,
+        "newCapturedPre": false,
+        "otherLinkFlagsUnchanged": true
+      },
+      {
+        "glx": true,
+        "oldCapturedEntropy": false,
+        "newCapturedEntropy": true,
+        "newCapturedPre": true,
+        "otherLinkFlagsUnchanged": true
+      }
+    ]
+  },
+  "exportsAdded": [
+    "_godot_wechat_random_buffer"
+  ],
+  "buildParametersAdded": [],
+  "hostIntegrated": false,
+  "compilerRun": false,
+  "sconsExecuted": false,
+  "engineRun": false,
+  "wasmInstantiated": false,
+  "phone": "NOT_RUN",
+  "runtimeAcceptance": "NOT_INHERITED",
+  "historicalAttempts": [
+    {
+      "status": "FAILED",
+      "reason": "New checker incorrectly assumed EOF append parser alone rejects repeated application",
+      "attempt": "01",
+      "retained": true
+    },
+    {
+      "status": "FAILED",
+      "reason": "New checker used path instead of fixed audio metadata file field",
+      "attempt": "02",
+      "retained": true
+    }
+  ],
+  "remaining": [
+    "Host prepare/mode/take/health and C shutdown integration are not installed.",
+    "Freeze a separate official build recipe; actual mbedTLS compilation/imports/exports and emitted pair remain unverified.",
+    "Source replay and prior audio JS models are not target runtime acceptance."
+  ]
+}

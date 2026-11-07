@@ -1,0 +1,18 @@
+diff --git a/modules/websocket/emws_peer.cpp b/modules/websocket/emws_peer.cpp
+--- a/modules/websocket/emws_peer.cpp
++++ b/modules/websocket/emws_peer.cpp
+@@ -78,12 +78,12 @@
+ 	String fragment;
+ 	int port = 0;
+ 	Error err = p_url.parse_url(scheme, host, port, path, fragment);
+-	ERR_FAIL_COND_V_MSG(err != OK, err, "Invalid URL: " + p_url);
++	ERR_FAIL_COND_V_MSG(err != OK, err, "Invalid WebSocket URL.");
+ 
+ 	if (scheme.is_empty()) {
+ 		scheme = "ws://";
+ 	}
+-	ERR_FAIL_COND_V_MSG(scheme != "ws://" && scheme != "wss://", ERR_INVALID_PARAMETER, vformat("Invalid protocol: \"%s\" (must be either \"ws://\" or \"wss://\").", scheme));
++	ERR_FAIL_COND_V_MSG(scheme != "ws://" && scheme != "wss://", ERR_INVALID_PARAMETER, "Invalid WebSocket protocol (expected ws:// or wss://).");
+ 
+ 	String proto_string;
+ 	for (int i = 0; i < supported_protocols.size(); i++) {

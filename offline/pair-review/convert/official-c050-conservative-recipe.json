@@ -1,0 +1,124 @@
+{
+  "schema": "wxslim-official-route-v1",
+  "id": "official-c050-conservative-development-026e-return0-v1",
+  "validation": "DEVELOPMENT_SOURCE_AND_PAIR_CHECKED_RUNTIME_PENDING",
+  "allowedPurposes": [
+    "inspect",
+    "development-test"
+  ],
+  "admission": "NOT_ADMITTED",
+  "engine": {
+    "js": {
+      "bytes": 425183,
+      "sha256": "9c4a54363032cc7cec191c8af0c253bea1cc0e72950ab8ae7f0d97df9dfb1a2d"
+    },
+    "wasm": {
+      "bytes": 62428481,
+      "sha256": "26e5ccfec104ff731461e65ea994f3e60b8249f26fff4a15d405019fd96258e1"
+    },
+    "sourceCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+    "librarySha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+    "emscripten": "4.0.10",
+    "profile": "conservative-official-c050-dev",
+    "moduleSet": "conservative",
+    "globalId": "return 0",
+    "preparation": "Seven reviewed source rules including Mini Game window-title and favicon no-ops; exact prepared JS required, raw JS is not accepted",
+    "nativeMapping": {
+      "_glxUpdateContextId": "Zm",
+      "_glxInit": "_m",
+      "_glxInitBufferDataAndGlState": "$m",
+      "_glxCommandBufferFlush": "an",
+      "_glxShowOpenData": "bn",
+      "_glxHideOpenData": "cn",
+      "_glxPushBindTexture": "dn",
+      "_glxIsTexture": "en",
+      "_glxGetBoundTexture2D": "fn",
+      "_glxGetTextureIdMapValue": "gn",
+      "_glxPushTexImage2DPlaceholder": "hn",
+      "_glBindTexture": "jn",
+      "_glCompressedTexImage2D": "kn",
+      "_glCompressedTexSubImage2D": "ln",
+      "_glIsTexture": "mn",
+      "_glTexImage2D": "nn",
+      "_glTexSubImage2D": "on",
+      "_glTexStorage2D": "pn",
+      "_glxGetVideoTempBuffer": "qn",
+      "_glxVideoUpdateToTexture": "rn",
+      "_glxVideoDestroy": "sn",
+      "_free": "tn",
+      "__Z14godot_web_mainiPPc": "un",
+      "_main": "vn",
+      "_malloc": "wn",
+      "_godot_wechat_random_buffer": "zn"
+    },
+    "disabledModules": [
+      "enet",
+      "fbx",
+      "gltf",
+      "mobile_vr",
+      "upnp",
+      "vhacd",
+      "webxr"
+    ],
+    "requiredUsage": "Explicit unused declarations bound to the actual PCK for all seven disabled modules"
+  },
+  "hostAdapter": {
+    "schema": "wxslim-official-c050-host-adapter-v1",
+    "id": "official-c050-secure-random-and-storage-v1",
+    "base": {
+      "bytes": 15735,
+      "sha256": "85cb71a58f74ece87d43a3ef587e77ca8f921dbb72502debabe00c92d39057c0"
+    },
+    "host": {
+      "bytes": 13177,
+      "sha256": "2e04abe0b0b4ad0efb50b91f803bd1e1a89f71890a2093fa84ff45a96fa773b0"
+    },
+    "lifecycle": {
+      "bytes": 6075,
+      "sha256": "efc859d92b900debc9075c7bbc0c4605059c839081f86c8774110b973e4cc411"
+    },
+    "derived": {
+      "bytes": 36772,
+      "sha256": "f57a2002c3704e87c6174c263ebf06bc50b0bd888a5e5ea705508c14ae46e20e"
+    },
+    "storage": {
+      "backend": "upstream-wxmemfs",
+      "derivedSourceSha256": "8a60f258503496d554a20b68d62a0abfbbc87064e59c5912a8ad41d5346c16cf"
+    },
+    "secureRandomMode": "WECHAT_CTR_DRBG_V1"
+  },
+  "pckVersion": "4.7.2",
+  "transformer": {
+    "version": "1.0.35",
+    "sha256": "f5b2d4ebbe2d077821309a455f60e397bb559ef342e51dd1b8f9a040a85e586e"
+  },
+  "plugin": {
+    "name": "WXGameKit",
+    "provider": "wxe5a48f1ed5f544b7",
+    "version": "1.3.15"
+  },
+  "contextAttributes": {
+    "alpha": false,
+    "stencil": true,
+    "antialias": false,
+    "powerPreference": "high-performance"
+  },
+  "options": {
+    "renderMode": "glx",
+    "orientation": "portrait",
+    "locale": "en",
+    "name": "glx-official-c050-conservative-dev",
+    "compat": true,
+    "splitBridge": false,
+    "loadingPage": "on",
+    "timing": false
+  },
+  "interface": "assets/simple-delivery-interface.js",
+  "limits": [
+    "Explicit development input only; supported-use is denied",
+    "No runtime, phone, visual, persistence or production acceptance inherited from other profiles",
+    "Exact prepared pair and explicit secure-random host contract; no storage adapter substitution",
+    "Static conversion success is not engine runtime admission",
+    "Conservative official c050 input; no full-profile or prior df3 device acceptance inherited"
+  ]
+}

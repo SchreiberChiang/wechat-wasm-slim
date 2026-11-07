@@ -53,6 +53,8 @@ function Initialize-SourcePack($Name, $Commit, $PackId) {
 }
 Initialize-SourcePack 'c050' 'c050c09b105c3715e1caa57a7109cd752047fd89' 'd4e5a39168f7a49bf54a67fafa6ad2ae58b44c1d'
 Initialize-SourcePack 'df3' 'df3cdd9bc9941a20cb5575d781cde6f937637bcb' 'a465e77ddd3bb290a6749b57e6d75e75a2c866ea'
+& (Join-Path $state 'node.exe') (Join-Path $PSScriptRoot 'prepare-editor.mjs') $state
+if ($LASTEXITCODE) { throw 'Could not prepare the self-contained Godot editor profile.' }
 $request = @{gitExecutable=$git;upstreamSource=(Join-Path $PSScriptRoot 'upstream/library_godot_memfs.js')}
 [IO.File]::WriteAllText((Join-Path $state 'source-request.json'),($request | ConvertTo-Json),[Text.UTF8Encoding]::new($false))
 Write-Output "Offline tools and verified Godot source are ready in $state."

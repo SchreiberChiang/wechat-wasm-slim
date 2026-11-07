@@ -1,0 +1,282 @@
+diff --git a/platform/web/display_server_web.cpp b/platform/web/display_server_web.cpp
+--- a/platform/web/display_server_web.cpp
++++ b/platform/web/display_server_web.cpp
+@@ -1139,7 +1139,14 @@
+ 		attributes.alpha = OS::get_singleton()->is_layered_allowed();
+ 		attributes.antialias = false;
+ 		attributes.majorVersion = 2;
++#ifdef WECHAT_GLX_EXPERIMENTAL
++		wx_glx_enabled = godot_js_display_is_wx_glx_enabled() == 1;
++		// GLX builds omit OFFSCREEN_FRAMEBUFFER, so neither runtime mode can
++		// request Emscripten explicit swaps. The WebGL path presents via the JS wrapper.
++		attributes.explicitSwapControl = false;
++#else
+ 		attributes.explicitSwapControl = true;
++#endif
+ 
+ 		webgl_ctx = emscripten_webgl_create_context(canvas_id, &attributes);
+ 		webgl2_inited = webgl_ctx && emscripten_webgl_make_context_current(webgl_ctx) == EMSCRIPTEN_RESULT_SUCCESS;
+@@ -1192,7 +1199,9 @@
+ 	}
+ #ifdef GLES3_ENABLED
+ 	if (webgl_ctx) {
++		if (!wx_glx_enabled) {
++			emscripten_webgl_commit_frame();
++		}
+-		emscripten_webgl_commit_frame();
+ 		emscripten_webgl_destroy_context(webgl_ctx);
+ 	}
+ #endif
+@@ -1509,7 +1518,7 @@
+ 
+ void DisplayServerWeb::swap_buffers() {
+ #ifdef GLES3_ENABLED
++	if (webgl_ctx && !wx_glx_enabled) {
+-	if (webgl_ctx) {
+ 		emscripten_webgl_commit_frame();
+ 	}
+ #endif
+diff --git a/platform/web/display_server_web.h b/platform/web/display_server_web.h
+--- a/platform/web/display_server_web.h
++++ b/platform/web/display_server_web.h
+@@ -62,6 +62,7 @@
+ 
+ #ifdef GLES3_ENABLED
+ 	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE webgl_ctx = 0;
++	bool wx_glx_enabled = false;
+ #endif
+ 
+ 	HashMap<int64_t, CharString> utterance_ids;
+diff --git a/platform/web/godot_js.h b/platform/web/godot_js.h
+--- a/platform/web/godot_js.h
++++ b/platform/web/godot_js.h
+@@ -94,6 +94,7 @@
+ extern void godot_js_display_alert(const char *p_text);
+ extern int godot_js_display_touchscreen_is_available();
+ extern int godot_js_display_is_swap_ok_cancel();
++extern int godot_js_display_is_wx_glx_enabled();
+ extern void godot_js_display_setup_canvas(int p_width, int p_height, int p_fullscreen, int p_hidpi);
+ 
+ // Display canvas
+diff --git a/platform/web/js/libs/library_godot_display.js b/platform/web/js/libs/library_godot_display.js
+--- a/platform/web/js/libs/library_godot_display.js
++++ b/platform/web/js/libs/library_godot_display.js
+@@ -533,6 +533,13 @@
+ 		return false;
+ 	},
+ 
++	godot_js_display_is_wx_glx_enabled__proxy: 'sync',
++	godot_js_display_is_wx_glx_enabled__sig: 'i',
++	godot_js_display_is_wx_glx_enabled: function () {
++		const root = typeof GameGlobal !== 'undefined' ? GameGlobal : globalThis;
++		return root.__godotMinigameWXGLXEnabled === true ? 1 : 0;
++	},
++
+ 	/*
+ 	 * Canvas
+ 	 */
+diff --git a/servers/rendering/renderer_canvas_cull.cpp b/servers/rendering/renderer_canvas_cull.cpp
+--- a/servers/rendering/renderer_canvas_cull.cpp
++++ b/servers/rendering/renderer_canvas_cull.cpp
+@@ -39,6 +39,10 @@
+ #include "servers/rendering/rendering_server_globals.h"
+ #include "servers/rendering/storage/texture_storage.h"
+ 
++#ifdef WECHAT_GLX_EXPERIMENTAL
++#include "platform/web/godot_js.h"
++#endif
++
+ // Use the same antialiasing feather size as StyleBoxFlat's default
+ // (but doubled, as it's specified for both sides here).
+ // This value is empirically determined to provide good antialiasing quality
+@@ -1705,10 +1709,135 @@
+ 	}
+ }
+ 
++#ifdef WECHAT_GLX_EXPERIMENTAL
++namespace {
++
++constexpr int MAX_NINE_PATCH_TILES_PER_AXIS = 64;
++constexpr int MAX_NINE_PATCH_SEGMENTS_PER_AXIS = MAX_NINE_PATCH_TILES_PER_AXIS + 2;
++
++struct NinePatchAxisSegment {
++	float dst_begin = 0.0f;
++	float dst_end = 0.0f;
++	float src_begin = 0.0f;
++	float src_end = 0.0f;
++	bool is_middle = false;
++};
++
++bool _is_wx_glx_runtime_enabled() {
++	static const bool enabled = godot_js_display_is_wx_glx_enabled() == 1;
++	return enabled;
++}
++
++void _build_nine_patch_axis_segments(float p_draw_size, float p_margin_begin, float p_margin_end, float p_source_size, RSE::NinePatchAxisMode p_mode, NinePatchAxisSegment *r_segments, int &r_count) {
++	r_count = 0;
++
++	const float start_end = MIN(p_margin_begin, p_draw_size);
++	if (start_end > CMP_EPSILON) {
++		r_segments[r_count++] = { 0.0f, start_end, 0.0f, start_end, false };
++	}
++
++	const float middle_begin = p_margin_begin;
++	const float middle_end = p_draw_size - p_margin_end;
++	if (middle_begin < middle_end) {
++		const float middle_dst_size = middle_end - middle_begin;
++		const float middle_src_size = p_source_size - p_margin_begin - p_margin_end;
++		bool tiled = false;
++
++		if (middle_src_size > CMP_EPSILON && (p_mode == RSE::NINE_PATCH_TILE || p_mode == RSE::NINE_PATCH_TILE_FIT)) {
++			const float tile_ratio = middle_dst_size / middle_src_size;
++			if (tile_ratio <= MAX_NINE_PATCH_TILES_PER_AXIS) {
++				if (p_mode == RSE::NINE_PATCH_TILE) {
++					const int tile_count = MAX(1, (int)Math::ceil(tile_ratio));
++					float piece_begin = middle_begin;
++					for (int i = 0; i < tile_count; i++) {
++						const float piece_end = MIN(piece_begin + middle_src_size, middle_end);
++						r_segments[r_count++] = { piece_begin, piece_end, p_margin_begin, p_margin_begin + piece_end - piece_begin, true };
++						piece_begin = piece_end;
++					}
++				} else {
++					const int tile_count = MAX(1, (int)Math::floor(tile_ratio + 0.5f));
++					const float piece_size = middle_dst_size / tile_count;
++					for (int i = 0; i < tile_count; i++) {
++						const float piece_begin = middle_begin + i * piece_size;
++						r_segments[r_count++] = { piece_begin, piece_begin + piece_size, p_margin_begin, p_margin_begin + middle_src_size, true };
++					}
++				}
++				tiled = true;
++			}
++		}
++
++		if (!tiled) {
++			r_segments[r_count++] = { middle_begin, middle_end, p_margin_begin, p_source_size - p_margin_end, true };
++		}
++	}
++
++	const float end_begin = MAX(middle_end, start_end);
++	if (end_begin < p_draw_size - CMP_EPSILON) {
++		r_segments[r_count++] = { end_begin, p_draw_size, p_source_size - (p_draw_size - end_begin), p_source_size, false };
++	}
++}
++
++} // namespace
++#endif
++
+ void RendererCanvasCull::canvas_item_add_nine_patch(RID p_item, const Rect2 &p_rect, const Rect2 &p_source, RID p_texture, const Vector2 &p_topleft, const Vector2 &p_bottomright, RSE::NinePatchAxisMode p_x_axis_mode, RSE::NinePatchAxisMode p_y_axis_mode, bool p_draw_center, const Color &p_modulate) {
+ 	Item *canvas_item = canvas_item_owner.get_or_null(p_item);
+ 	ERR_FAIL_NULL(canvas_item);
+ 
++#ifdef WECHAT_GLX_EXPERIMENTAL
++	if (_is_wx_glx_runtime_enabled()) {
++		const Size2 draw_size = p_rect.size.abs();
++		if (draw_size.x <= CMP_EPSILON || draw_size.y <= CMP_EPSILON) {
++			return;
++		}
++
++		Size2 source_size;
++		Point2 source_offset;
++		if (p_texture.is_null()) {
++			source_size = Size2(1, 1);
++		} else if (p_source == Rect2()) {
++			source_size = RSG::texture_storage->texture_size_with_proxy(p_texture);
++		} else {
++			source_size = p_source.size;
++			source_offset = p_source.position;
++		}
++
++		const bool valid_source = source_size.x > CMP_EPSILON && source_size.y > CMP_EPSILON;
++		const bool valid_margins = p_topleft.x >= 0.0f && p_topleft.y >= 0.0f && p_bottomright.x >= 0.0f && p_bottomright.y >= 0.0f;
++		const bool valid_modes = p_x_axis_mode >= RSE::NINE_PATCH_STRETCH && p_x_axis_mode <= RSE::NINE_PATCH_TILE_FIT &&
++				p_y_axis_mode >= RSE::NINE_PATCH_STRETCH && p_y_axis_mode <= RSE::NINE_PATCH_TILE_FIT;
++
++		if (valid_source && valid_margins && valid_modes) {
++			// Some WXGLX replay drivers silently drop the GLES3 USE_NINEPATCH shader variant.
++			// Emit equivalent regular texture rectangles to keep GLX builds on the stable canvas path.
++			NinePatchAxisSegment x_segments[MAX_NINE_PATCH_SEGMENTS_PER_AXIS];
++			NinePatchAxisSegment y_segments[MAX_NINE_PATCH_SEGMENTS_PER_AXIS];
++			int x_count = 0;
++			int y_count = 0;
++			_build_nine_patch_axis_segments(draw_size.x, p_topleft.x, p_bottomright.x, source_size.x, p_x_axis_mode, x_segments, x_count);
++			_build_nine_patch_axis_segments(draw_size.y, p_topleft.y, p_bottomright.y, source_size.y, p_y_axis_mode, y_segments, y_count);
++
++			for (int y = 0; y < y_count; y++) {
++				const NinePatchAxisSegment &ys = y_segments[y];
++				for (int x = 0; x < x_count; x++) {
++					const NinePatchAxisSegment &xs = x_segments[x];
++					if (!p_draw_center && xs.is_middle && ys.is_middle) {
++						continue;
++					}
++
++					const Rect2 dst_rect(p_rect.position + Point2(xs.dst_begin, ys.dst_begin), Size2(xs.dst_end - xs.dst_begin, ys.dst_end - ys.dst_begin));
++					const Point2 src_position(
++							source_offset.x + MIN(xs.src_begin, xs.src_end),
++							source_offset.y + MIN(ys.src_begin, ys.src_end));
++					const Rect2 src_rect(src_position, Size2(xs.src_end - xs.src_begin, ys.src_end - ys.src_begin));
++					canvas_item_add_texture_rect_region(p_item, dst_rect, p_texture, src_rect, p_modulate, false, false);
++				}
++			}
++			return;
++		}
++	}
++#endif
++
+ 	Item::CommandNinePatch *style = canvas_item->alloc_command<Item::CommandNinePatch>();
+ 	ERR_FAIL_NULL(style);
+ 
+diff --git a/drivers/gles3/storage/utilities.cpp b/drivers/gles3/storage/utilities.cpp
+--- a/drivers/gles3/storage/utilities.cpp
++++ b/drivers/gles3/storage/utilities.cpp
+@@ -54,7 +54,9 @@
+ 	frame = 0;
+ 	for (int i = 0; i < FRAME_COUNT; i++) {
+ 		frames[i].index = 0;
++#ifndef WECHAT_GLX_EXPERIMENTAL
+ 		glGenQueries(max_timestamp_query_elements, frames[i].queries);
++#endif
+ 
+ 		frames[i].timestamp_names.resize(max_timestamp_query_elements);
+ 		frames[i].timestamp_cpu_values.resize(max_timestamp_query_elements);
+@@ -69,9 +71,11 @@
+ 
+ Utilities::~Utilities() {
+ 	singleton = nullptr;
++#ifndef WECHAT_GLX_EXPERIMENTAL
+ 	for (int i = 0; i < FRAME_COUNT; i++) {
+ 		glDeleteQueries(max_timestamp_query_elements, frames[i].queries);
+ 	}
++#endif
+ 
+ 	if (texture_mem_cache) {
+ 		uint32_t leaked_data_size = 0;
+@@ -329,11 +333,13 @@
+ void Utilities::capture_timestamp(const String &p_name) {
+ 	ERR_FAIL_COND(frames[frame].timestamp_count >= max_timestamp_query_elements);
+ 
++#ifndef WECHAT_GLX_EXPERIMENTAL
+ #ifdef GL_API_ENABLED
+ 	if (RasterizerUtilGLES3::is_gles_over_gl()) {
+ 		glQueryCounter(frames[frame].queries[frames[frame].timestamp_count], GL_TIMESTAMP);
+ 	}
+ #endif // GL_API_ENABLED
++#endif
+ 
+ 	frames[frame].timestamp_names[frames[frame].timestamp_count] = p_name;
+ 	frames[frame].timestamp_cpu_values[frames[frame].timestamp_count] = OS::get_singleton()->get_ticks_usec();
+@@ -343,6 +349,7 @@
+ void Utilities::_capture_timestamps_begin() {
+ 	// frame is incremented at the end of the frame so this gives us the queries for frame - 2. By then they should be ready.
+ 	if (frames[frame].timestamp_count) {
++#ifndef WECHAT_GLX_EXPERIMENTAL
+ #ifdef GL_API_ENABLED
+ 		if (RasterizerUtilGLES3::is_gles_over_gl()) {
+ 			for (uint32_t i = 0; i < frames[frame].timestamp_count; i++) {
+@@ -352,6 +359,7 @@
+ 			}
+ 		}
+ #endif // GL_API_ENABLED
++#endif
+ 		SWAP(frames[frame].timestamp_names, frames[frame].timestamp_result_names);
+ 		SWAP(frames[frame].timestamp_cpu_values, frames[frame].timestamp_cpu_result_values);
+ 	}

@@ -1,0 +1,212 @@
+diff --git a/drivers/gles3/shaders/scene.glsl b/drivers/gles3/shaders/scene.glsl
+index 7ec7727..6fea231 100644
+--- a/drivers/gles3/shaders/scene.glsl
++++ b/drivers/gles3/shaders/scene.glsl
+@@ -1557,7 +1557,7 @@ float V_Kelemen(float LdotH) {
+ 	return 0.25 / (LdotH * LdotH + 1e-4);
+ }
+ 
+-void light_compute(vec3 N, vec3 L, vec3 V, float A, vec3 light_color, bool is_directional, float attenuation, vec3 f0, float roughness, float metallic, float specular_amount, vec3 albedo, inout float alpha, vec2 screen_uv,
++void light_compute(vec3 N, vec3 L, vec3 V, float A, vec3 light_color, bool is_directional, float attenuation, vec3 f0, float roughness, float metallic, float specular_amount, vec3 albedo, float alpha_in, vec2 screen_uv,
+ #ifdef LIGHT_BACKLIGHT_USED
+ 		vec3 backlight,
+ #endif
+@@ -1570,10 +1570,12 @@ void light_compute(vec3 N, vec3 L, vec3 V, float A, vec3 light_color, bool is_di
+ #ifdef LIGHT_ANISOTROPY_USED
+ 		vec3 B, vec3 T, float anisotropy,
+ #endif
+-		vec3 diffuse_in, vec3 specular_in, out vec3 diffuse_out, out vec3 specular_out) {
++		vec3 diffuse_in, vec3 specular_in, out vec3 diffuse_out, out vec3 specular_out, out float alpha_out) {
+ 	// Returned through out parameters: inout vec3 results were lost in additive passes on iOS GLX.
+ 	vec3 diffuse_light = diffuse_in;
+ 	vec3 specular_light = specular_in;
++	// Returned through an out parameter: inout float alpha came back as 0 on Android GLX with custom light code.
++	float alpha = alpha_in;
+ 
+ #if defined(LIGHT_CODE_USED)
+ 	// light is written by the light shader
+@@ -1719,6 +1721,7 @@ void light_compute(vec3 N, vec3 L, vec3 V, float A, vec3 light_color, bool is_di
+ #endif // LIGHT_CODE_USED
+ 	diffuse_out = diffuse_light;
+ 	specular_out = specular_light;
++	alpha_out = alpha;
+ }
+ 
+ float get_omni_spot_attenuation(float distance, float inv_range, float decay) {
+@@ -1731,7 +1734,7 @@ float get_omni_spot_attenuation(float distance, float inv_range, float decay) {
+ }
+ 
+ #if !defined(DISABLE_LIGHT_OMNI) || defined(ADDITIVE_OMNI)
+-void light_process_omni(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f0, float roughness, float metallic, float shadow, vec3 albedo, inout float alpha, vec2 screen_uv,
++void light_process_omni(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f0, float roughness, float metallic, float shadow, vec3 albedo, float alpha_in, vec2 screen_uv,
+ #ifdef LIGHT_BACKLIGHT_USED
+ 		vec3 backlight,
+ #endif
+@@ -1744,7 +1747,7 @@ void light_process_omni(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f
+ #ifdef LIGHT_ANISOTROPY_USED
+ 		vec3 binormal, vec3 tangent, float anisotropy,
+ #endif
+-		vec3 diffuse_in, vec3 specular_in, out vec3 diffuse_out, out vec3 specular_out) {
++		vec3 diffuse_in, vec3 specular_in, out vec3 diffuse_out, out vec3 specular_out, out float alpha_out) {
+ 	vec3 light_rel_vec = omni_lights[idx].position - vertex;
+ 	float light_length = length(light_rel_vec);
+ 	float omni_attenuation = get_omni_spot_attenuation(light_length, omni_lights[idx].inv_radius, omni_lights[idx].attenuation);
+@@ -1758,7 +1761,7 @@ void light_process_omni(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f
+ 
+ 	omni_attenuation *= shadow;
+ 
+-	light_compute(normal, normalize(light_rel_vec), eye_vec, size_A, color, false, omni_attenuation, f0, roughness, metallic, omni_lights[idx].specular_amount, albedo, alpha, screen_uv,
++	light_compute(normal, normalize(light_rel_vec), eye_vec, size_A, color, false, omni_attenuation, f0, roughness, metallic, omni_lights[idx].specular_amount, albedo, alpha_in, screen_uv,
+ #ifdef LIGHT_BACKLIGHT_USED
+ 			backlight,
+ #endif
+@@ -1771,7 +1774,7 @@ void light_process_omni(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f
+ #ifdef LIGHT_ANISOTROPY_USED
+ 			binormal, tangent, anisotropy,
+ #endif
+-			diffuse_in, specular_in, diffuse_out, specular_out);
++			diffuse_in, specular_in, diffuse_out, specular_out, alpha_out);
+ }
+ #endif // !DISABLE_LIGHT_OMNI
+ 
+@@ -1780,7 +1783,7 @@ void light_process_omni(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f
+ #include "area_lights_inc.glsl"
+ 
+ // implementation of area lights with Linearly Transformed Cosines (LTC): https://eheitzresearch.wordpress.com/415-2/
+-void light_process_area(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f0, float roughness, float metallic, float shadow, vec3 albedo, inout float alpha, vec2 screen_uv,
++void light_process_area(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f0, float roughness, float metallic, float shadow, vec3 albedo, float alpha_in, vec2 screen_uv,
+ #ifdef LIGHT_BACKLIGHT_USED
+ 		vec3 backlight,
+ #endif
+@@ -1793,9 +1796,11 @@ void light_process_area(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f
+ #ifdef LIGHT_ANISOTROPY_USED
+ 		vec3 binormal, vec3 tangent, float anisotropy,
+ #endif
+-		vec3 diffuse_in, vec3 specular_in, out vec3 diffuse_out, out vec3 specular_out) {
++		vec3 diffuse_in, vec3 specular_in, out vec3 diffuse_out, out vec3 specular_out, out float alpha_out) {
+ 	diffuse_out = diffuse_in;
+ 	specular_out = specular_in;
++	alpha_out = alpha_in;
++	float alpha = alpha_in;
+ 	vec3 diffuse_light = diffuse_in;
+ 	vec3 specular_light = specular_in;
+ 	float EPSILON = 1e-7f;
+@@ -1924,11 +1929,12 @@ void light_process_area(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f
+ #endif // LIGHT_CODE_USED
+ 	diffuse_out = diffuse_light;
+ 	specular_out = specular_light;
++	alpha_out = alpha;
+ }
+ #endif // !DISABLE_LIGHT_AREA
+ 
+ #if !defined(DISABLE_LIGHT_SPOT) || defined(ADDITIVE_SPOT)
+-void light_process_spot(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f0, float roughness, float metallic, float shadow, vec3 albedo, inout float alpha, vec2 screen_uv,
++void light_process_spot(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f0, float roughness, float metallic, float shadow, vec3 albedo, float alpha_in, vec2 screen_uv,
+ #ifdef LIGHT_BACKLIGHT_USED
+ 		vec3 backlight,
+ #endif
+@@ -1941,7 +1947,7 @@ void light_process_spot(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f
+ #ifdef LIGHT_ANISOTROPY_USED
+ 		vec3 binormal, vec3 tangent, float anisotropy,
+ #endif
+-		vec3 diffuse_in, vec3 specular_in, out vec3 diffuse_out, out vec3 specular_out) {
++		vec3 diffuse_in, vec3 specular_in, out vec3 diffuse_out, out vec3 specular_out, out float alpha_out) {
+ 
+ 	vec3 light_rel_vec = spot_lights[idx].position - vertex;
+ 	float light_length = length(light_rel_vec);
+@@ -1964,7 +1970,7 @@ void light_process_spot(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f
+ 
+ 	spot_attenuation *= shadow;
+ 
+-	light_compute(normal, normalize(light_rel_vec), eye_vec, size_A, color, false, spot_attenuation, f0, roughness, metallic, spot_lights[idx].specular_amount, albedo, alpha, screen_uv,
++	light_compute(normal, normalize(light_rel_vec), eye_vec, size_A, color, false, spot_attenuation, f0, roughness, metallic, spot_lights[idx].specular_amount, albedo, alpha_in, screen_uv,
+ #ifdef LIGHT_BACKLIGHT_USED
+ 			backlight,
+ #endif
+@@ -1977,7 +1983,7 @@ void light_process_spot(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, vec3 f
+ #ifdef LIGHT_ANISOTROPY_USED
+ 			binormal, tangent, anisotropy,
+ #endif
+-			diffuse_in, specular_in, diffuse_out, specular_out);
++			diffuse_in, specular_in, diffuse_out, specular_out, alpha_out);
+ }
+ #endif // !defined(DISABLE_LIGHT_SPOT) || defined(ADDITIVE_SPOT)
+ 
+@@ -2195,6 +2201,7 @@ vec4 textureArray_bicubic(sampler2DArray tex, vec3 uv, vec2 texture_size) {
+ void main() {
+ 	vec3 light_result_diffuse;
+ 	vec3 light_result_specular;
++	float light_result_alpha;
+ #ifndef RENDER_MOTION_VECTORS
+ 	//lay out everything, whatever is unused is optimized away anyway
+ 	vec3 vertex = vertex_interp;
+@@ -2650,7 +2657,8 @@ void main() {
+ 				binormal,
+ 				tangent, anisotropy,
+ #endif
+-				diffuse_light, specular_light, light_result_diffuse, light_result_specular);
++				diffuse_light, specular_light, light_result_diffuse, light_result_specular, light_result_alpha);
++				alpha = light_result_alpha;
+ 				diffuse_light = light_result_diffuse;
+ 				specular_light = light_result_specular;
+ 	}
+@@ -2676,7 +2684,8 @@ void main() {
+ #ifdef LIGHT_ANISOTROPY_USED
+ 				binormal, tangent, anisotropy,
+ #endif
+-				diffuse_light, specular_light, light_result_diffuse, light_result_specular);
++				diffuse_light, specular_light, light_result_diffuse, light_result_specular, light_result_alpha);
++				alpha = light_result_alpha;
+ 				diffuse_light = light_result_diffuse;
+ 				specular_light = light_result_specular;
+ 	}
+@@ -2703,7 +2712,8 @@ void main() {
+ 				tangent,
+ 				binormal, anisotropy,
+ #endif
+-				diffuse_light, specular_light, light_result_diffuse, light_result_specular);
++				diffuse_light, specular_light, light_result_diffuse, light_result_specular, light_result_alpha);
++				alpha = light_result_alpha;
+ 				diffuse_light = light_result_diffuse;
+ 				specular_light = light_result_specular;
+ 	}
+@@ -2730,7 +2740,8 @@ void main() {
+ 				tangent,
+ 				binormal, anisotropy,
+ #endif
+-				diffuse_light, specular_light, light_result_diffuse, light_result_specular);
++				diffuse_light, specular_light, light_result_diffuse, light_result_specular, light_result_alpha);
++				alpha = light_result_alpha;
+ 				diffuse_light = light_result_diffuse;
+ 				specular_light = light_result_specular;
+ 	}
+@@ -3002,7 +3013,8 @@ void main() {
+ 				binormal,
+ 				tangent, anisotropy,
+ #endif
+-				diffuse_light, specular_light, light_result_diffuse, light_result_specular);
++				diffuse_light, specular_light, light_result_diffuse, light_result_specular, light_result_alpha);
++				alpha = light_result_alpha;
+ 				diffuse_light = light_result_diffuse;
+ 				specular_light = light_result_specular;
+ 	} else {
+@@ -3038,7 +3050,8 @@ void main() {
+ #ifdef LIGHT_ANISOTROPY_USED
+ 			binormal, tangent, anisotropy,
+ #endif
+-			diffuse_light, specular_light, light_result_diffuse, light_result_specular);
++			diffuse_light, specular_light, light_result_diffuse, light_result_specular, light_result_alpha);
++			alpha = light_result_alpha;
+ 			diffuse_light = light_result_diffuse;
+ 			specular_light = light_result_specular;
+ #else
+@@ -3071,7 +3084,8 @@ void main() {
+ 			tangent,
+ 			binormal, anisotropy,
+ #endif
+-			diffuse_light, specular_light, light_result_diffuse, light_result_specular);
++			diffuse_light, specular_light, light_result_diffuse, light_result_specular, light_result_alpha);
++			alpha = light_result_alpha;
+ 			diffuse_light = light_result_diffuse;
+ 			specular_light = light_result_specular;
+ #else

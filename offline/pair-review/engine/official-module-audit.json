@@ -1,0 +1,722 @@
+{
+  "schema": "wxslim-official-module-source-v1",
+  "commit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "tree": "f5565411f71f10c3622b633ac3b4527fdc0feac9",
+  "modulesTree": "d2598f7a86fac0139b0d7e085f7566f8492781ec",
+  "evidenceUrls": [
+    "https://api.github.com/repos/godotengine/godot/git/trees/c050c09b105c3715e1caa57a7109cd752047fd89",
+    "https://api.github.com/repos/godotengine/godot/git/trees/d2598f7a86fac0139b0d7e085f7566f8492781ec"
+  ],
+  "authentication": "Git root/modules tree object IDs recomputed; 56 complete module subtree IDs equal local df3; raycast/config.py separately authenticated by official fixed-ref blob. Source bytes match their Git blob IDs.",
+  "moduleDirectories": [
+    {
+      "name": "astcenc",
+      "tree": "420b34ad28bdfcdd3389b19d0c49169177f81e2a"
+    },
+    {
+      "name": "basis_universal",
+      "tree": "c37ff8d01e1e4310baaae7433d5c03bfbcad2740"
+    },
+    {
+      "name": "bcdec",
+      "tree": "eb0505a9a57ce93a32961a47a758fcee6bcc9a5e"
+    },
+    {
+      "name": "betsy",
+      "tree": "07a73f9e69a7092fc2149ec7ab1a6c3e13639ecb"
+    },
+    {
+      "name": "bmp",
+      "tree": "303061a7553ff3f0d734c33ef63a091965b13126"
+    },
+    {
+      "name": "camera",
+      "tree": "53f5d58f2342517d71dbfce3a835a0866fee6f7e"
+    },
+    {
+      "name": "csg",
+      "tree": "2d26b95f97e6fbba7d7fbc9abdcc5b50ed35087a"
+    },
+    {
+      "name": "cvtt",
+      "tree": "abf4335aeadab50f2e50a75a842d3182df3dc30f"
+    },
+    {
+      "name": "dds",
+      "tree": "c64972b644231005b70ae6f0247438f61b10625d"
+    },
+    {
+      "name": "enet",
+      "tree": "83c911189509cff3b350432ba4b544c7af963e0e"
+    },
+    {
+      "name": "etcpak",
+      "tree": "65357479850aa40035e1d38d33605df388de6116"
+    },
+    {
+      "name": "fbx",
+      "tree": "e04cfd7559f4a89800e015c28cb3ea548e862621"
+    },
+    {
+      "name": "freetype",
+      "tree": "c92f9da4d9a42e75e7ea702f7ddbf5076d0e9fcd"
+    },
+    {
+      "name": "gdscript",
+      "tree": "6c01b7efdd6f9a942e7e7e50142c7a05372a81bb"
+    },
+    {
+      "name": "glslang",
+      "tree": "bcca2400fb53ffa49332012b8b9744aa1e043921"
+    },
+    {
+      "name": "gltf",
+      "tree": "6d6aa488d0fcbf34eebb5c0e0a74dd10503c4e92"
+    },
+    {
+      "name": "godot_physics_2d",
+      "tree": "5eec988ea229e3ece882389362637ec9af7beb0c"
+    },
+    {
+      "name": "godot_physics_3d",
+      "tree": "87bb9cad56810c1e76b7b6ea55d37702e940162d"
+    },
+    {
+      "name": "gridmap",
+      "tree": "0188a21d790fbf3c16d5833573660027ed536f3f"
+    },
+    {
+      "name": "hdr",
+      "tree": "b091ee6352ec7562e4a1b7bf1e7968f4a5734451"
+    },
+    {
+      "name": "interactive_music",
+      "tree": "4563fd1be07f06d6bda4e2fb9324aeba756cc498"
+    },
+    {
+      "name": "jolt_physics",
+      "tree": "c1b84fbdc825900a190b910902dc3f2897ab83bf"
+    },
+    {
+      "name": "jpg",
+      "tree": "b783ae9937ae99944f43f9be413b5e1fbd638d68"
+    },
+    {
+      "name": "jsonrpc",
+      "tree": "32ecd518b4fa551df3403cc917f6abaf080325b5"
+    },
+    {
+      "name": "ktx",
+      "tree": "76133822794535f9f2e77ed917f95dce9581e4a9"
+    },
+    {
+      "name": "lightmapper_rd",
+      "tree": "b6e7abe51736adbc40bb97fab46c6ce313934d5f"
+    },
+    {
+      "name": "mbedtls",
+      "tree": "3922eeb5c7ef4a7c782efff1cc1cccc618028771"
+    },
+    {
+      "name": "meshoptimizer",
+      "tree": "6f3219121763d85681c2292c831cb6e71d818198"
+    },
+    {
+      "name": "mobile_vr",
+      "tree": "454e3673a662ab86d3d3ffaf35e0beb372a5a29f"
+    },
+    {
+      "name": "mono",
+      "tree": "960ef09f2075e231ea71d43c70ed626852278b90"
+    },
+    {
+      "name": "mp3",
+      "tree": "cc0ffb82cd052485646b8c0ac0371a0dd5e3a2e6"
+    },
+    {
+      "name": "msdfgen",
+      "tree": "046ccf8c278a9ce9a11d988d4474a390a9de8670"
+    },
+    {
+      "name": "multiplayer",
+      "tree": "ff0391f25754a0484314d5ebcc16b7165595643f"
+    },
+    {
+      "name": "navigation_2d",
+      "tree": "27d20e8d608758aec772c48e8c05e1dc8f0ae001"
+    },
+    {
+      "name": "navigation_3d",
+      "tree": "ac89eedbc2246d736b412b725fa725694cede223"
+    },
+    {
+      "name": "noise",
+      "tree": "664070872b9a33c594aa6ba05ad869eeaf793ae2"
+    },
+    {
+      "name": "objectdb_profiler",
+      "tree": "3667855e08325df07cc4d2cb5dae5635f56722e4"
+    },
+    {
+      "name": "ogg",
+      "tree": "d850bc59af3042e70d8e61afa402457bc31b046c"
+    },
+    {
+      "name": "openxr",
+      "tree": "5816ab18a481b4a096f53f324b7bdd3f96256455"
+    },
+    {
+      "name": "raycast",
+      "tree": "cb275cababc27ec6d05a6a8c9319b9de209d4115"
+    },
+    {
+      "name": "regex",
+      "tree": "55b58eaad4198fd1cb62e7317eb011b74a434183"
+    },
+    {
+      "name": "svg",
+      "tree": "fb5d1132158ac42c651d53eeb06756e076db94ad"
+    },
+    {
+      "name": "text_server_adv",
+      "tree": "612a825a24c1880c6e71d526a907788e3e692b0a"
+    },
+    {
+      "name": "text_server_fb",
+      "tree": "5f23e0ef20ede65e381888efe9e0c74a583a39a9"
+    },
+    {
+      "name": "tga",
+      "tree": "417ecea76864404aabdc25e07c797412e2e37cef"
+    },
+    {
+      "name": "theora",
+      "tree": "771acf3343d5064217d3255be1e621c891ae0818"
+    },
+    {
+      "name": "tinyexr",
+      "tree": "8b6d41f52a468d7e6fbbb637058998d1031795ec"
+    },
+    {
+      "name": "upnp",
+      "tree": "22a5de1e5f848dddc4e1e965d37336bcbe3b49d0"
+    },
+    {
+      "name": "vhacd",
+      "tree": "495b7bfa66ec3625ace4163c4323efd2bc197cb0"
+    },
+    {
+      "name": "visual_shader",
+      "tree": "236f3bce5cd7a997ee14e77b8c316b6c99bafe76"
+    },
+    {
+      "name": "vorbis",
+      "tree": "241a1eb610ffacd2ea674a7f0d770a8c2a6c959a"
+    },
+    {
+      "name": "webp",
+      "tree": "9d1009041d33a80f3cc127a8a66352a3d4c43c7d"
+    },
+    {
+      "name": "webrtc",
+      "tree": "cec179cbc309017928fa55a44f8f28bd36b0ec67"
+    },
+    {
+      "name": "websocket",
+      "tree": "cbb0b61733441a987c256667cd79fcbd658f5e8f"
+    },
+    {
+      "name": "webxr",
+      "tree": "fc15a8a42012be8028c7719063d2de6bacb12d70"
+    },
+    {
+      "name": "xatlas_unwrap",
+      "tree": "a30ea50a70658ddf8a2f0598f4891f0d47325158"
+    },
+    {
+      "name": "zip",
+      "tree": "6ef596e73f2303df7a698fa55787e5428e3f6994"
+    }
+  ],
+  "registrationEqualsExistingFixedParserUniverse": true,
+  "sources": [
+    {
+      "path": "SConstruct",
+      "bytes": 53054,
+      "sha256": "b67bd31bf2d3bc1d91d4a1c5b2e4117c3d2dbd9c066ba3bb040cdd61226845f7",
+      "gitBlob": "d8d930106ba222a7095b447ccd1701d67064a917"
+    },
+    {
+      "path": "methods.py",
+      "bytes": 65515,
+      "sha256": "5d860ccce735661b778edaf37478317c1b8e763af272d5355de1bc43688da154",
+      "gitBlob": "e126be22341d64358ecbd458874fff0c124777f6"
+    },
+    {
+      "path": "modules/modules_builders.py",
+      "bytes": 1669,
+      "sha256": "950322da2b321856ba901a3659b20040b4922aaa9ee870367ed97fe53135dce5",
+      "gitBlob": "7823984e0a77b878e11a2e34358832baec13a777"
+    },
+    {
+      "path": "modules/SCsub",
+      "bytes": 1906,
+      "sha256": "43f12939fd16e1a9f6fba96f73235be51e60e72b4794a1fdf8f555f5b614d51d",
+      "gitBlob": "69dfadfa3118bf4c4f5e15e8f5f9fabd7439efb4"
+    },
+    {
+      "path": "core/crypto/SCsub",
+      "bytes": 2711,
+      "sha256": "4b16ce9bc271a4c5f080b81439a24eb3baa6e8a89461a941332bd32c626549c2",
+      "gitBlob": "3cea6bfb4711adf257ecb2c08d98c4ac1b32b9d8"
+    },
+    {
+      "path": "modules/mbedtls/SCsub",
+      "bytes": 3795,
+      "sha256": "f99fdcfaa845ad90e90cecff705fa56ae6faf91fd910a9bb39b9fcf090cfb031",
+      "gitBlob": "7c4d9389161d7cd70696f96698538dc6f89fe3b3"
+    },
+    {
+      "path": "thirdparty/mbedtls/include/godot_module_mbedtls_config.h",
+      "bytes": 3527,
+      "sha256": "0fef6e4710a1063f401ad6f10b95d4a4ffbbeea2740cf886e29c6c71e9025d8f",
+      "gitBlob": "c25804979fd870c602ef17456e1e213216c1af38"
+    },
+    {
+      "path": "thirdparty/mbedtls/include/mbedtls/mbedtls_config.h",
+      "bytes": 159124,
+      "sha256": "004edfaa0f9877a9f3baa7911ab708fd9d7c615f836f6b6674434e337145b7be",
+      "gitBlob": "f684347519187c4f352e392f591bcf7c3bd11fe1"
+    },
+    {
+      "path": "thirdparty/mbedtls/include/mbedtls/ctr_drbg.h",
+      "bytes": 25386,
+      "sha256": "601db8f2eb7a1269807547180f5d46249c07968a9191a187e0e88aba312bc74a",
+      "gitBlob": "c8d64830b5dc5b83862b2844cccbd5727304ec27"
+    },
+    {
+      "path": "modules/astcenc/config.py",
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "gitBlob": "d22f9454ed25fc763c4dec143f4a197eaca7acb8"
+    },
+    {
+      "path": "modules/basis_universal/config.py",
+      "bytes": 194,
+      "sha256": "522e2c314578c8466a0e10c299b25392fdfad78c4ad84799a8ea1c15ab5d33eb",
+      "gitBlob": "c469d165e9538315cd095a0a40e449f640ad7375"
+    },
+    {
+      "path": "modules/bcdec/config.py",
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "gitBlob": "d22f9454ed25fc763c4dec143f4a197eaca7acb8"
+    },
+    {
+      "path": "modules/betsy/config.py",
+      "bytes": 399,
+      "sha256": "12d3b2860cd8d6a1f2dfa08d01664b484f48ef1e2fb35cc381956d174d098cef",
+      "gitBlob": "f2775de0a6e35632dacbca0206902025b531725e"
+    },
+    {
+      "path": "modules/bmp/config.py",
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "gitBlob": "d22f9454ed25fc763c4dec143f4a197eaca7acb8"
+    },
+    {
+      "path": "modules/camera/config.py",
+      "bytes": 389,
+      "sha256": "d45bc93d0ff35c6b5ba5907df5e9b188f5c77f21c583c70a4dd5455d98c01a99",
+      "gitBlob": "7bcf7655927e6429f177f95822082e5f8e7170ed"
+    },
+    {
+      "path": "modules/csg/config.py",
+      "bytes": 393,
+      "sha256": "17ab56196a3a6f2b3cf513eb9cd879755a48c4010b3586c483ddf0be39e27ab0",
+      "gitBlob": "3991b846f96f5710370bc67629d6ef55e51231ab"
+    },
+    {
+      "path": "modules/cvtt/config.py",
+      "bytes": 396,
+      "sha256": "8936830d05a510c7debb6e6b4f589d8588a880769b082ef19be9ea6e31b0c125",
+      "gitBlob": "cbe86406893ecf232ae16d114c0eb081f460e499"
+    },
+    {
+      "path": "modules/dds/config.py",
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "gitBlob": "d22f9454ed25fc763c4dec143f4a197eaca7acb8"
+    },
+    {
+      "path": "modules/enet/config.py",
+      "bytes": 251,
+      "sha256": "634448cf7089d5b12ab600ed76ac5effc4365a6d8e6113d6136d5e0f77010174",
+      "gitBlob": "9102c74579e29c520d38bd2df881a733b4bda65a"
+    },
+    {
+      "path": "modules/etcpak/config.py",
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "gitBlob": "d22f9454ed25fc763c4dec143f4a197eaca7acb8"
+    },
+    {
+      "path": "modules/fbx/config.py",
+      "bytes": 363,
+      "sha256": "95860b5807e2168ca9a7bbcb1322f57af09ea4d554a284c62f15854cecceca8e",
+      "gitBlob": "95a4e75885eb5e530f2e3f6adc3e883d3e73b236"
+    },
+    {
+      "path": "modules/freetype/config.py",
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "gitBlob": "d22f9454ed25fc763c4dec143f4a197eaca7acb8"
+    },
+    {
+      "path": "modules/gdscript/config.py",
+      "bytes": 419,
+      "sha256": "d4b684b463b0f1faab79da71a8c4ce0aec0ecfdf4717ebe0d7347703e4ae1ec9",
+      "gitBlob": "25278db61b2c8866ddd1718c350be66123f102e3"
+    },
+    {
+      "path": "modules/glslang/config.py",
+      "bytes": 249,
+      "sha256": "7550de9530b4bec40ce5956e1c255ae247cf8a0e8521346b6816d3cef10eeeae",
+      "gitBlob": "a024dcf9846e2197ffedbb739c45b26ea7fc8133"
+    },
+    {
+      "path": "modules/gltf/config.py",
+      "bytes": 834,
+      "sha256": "c9cd77f57b14bb8b76afecbd53818564f2023518b7da6bd7ce9e219f73f38060",
+      "gitBlob": "c2f909dacf4edd489b39dac758f33e8f9dc4794e"
+    },
+    {
+      "path": "modules/godot_physics_2d/config.py",
+      "bytes": 102,
+      "sha256": "fda4fa64ff6b567fb7ebb95e8f72778689b43c4475b055e4cf3675f4da789e87",
+      "gitBlob": "1834509a4feff3b5faf5796496589e3136888b86"
+    },
+    {
+      "path": "modules/godot_physics_3d/config.py",
+      "bytes": 102,
+      "sha256": "f5307daa7374fe6cba2f1944308a53bc3c149c8c4cefb0c208b0becddc780a52",
+      "gitBlob": "79b382a74710635a67873b62b3f6423b9542d343"
+    },
+    {
+      "path": "modules/gridmap/config.py",
+      "bytes": 212,
+      "sha256": "ea4d056707640bb9428e3ab7e06100899d9db1e1691a6630aef25c2dd4229456",
+      "gitBlob": "213c96342d26242e855808ac7753e97d73102fe2"
+    },
+    {
+      "path": "modules/hdr/config.py",
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "gitBlob": "d22f9454ed25fc763c4dec143f4a197eaca7acb8"
+    },
+    {
+      "path": "modules/interactive_music/config.py",
+      "bytes": 392,
+      "sha256": "d922521d72c058d090907611306760ccd456f97363f6ec93ca08283aaf2c32bb",
+      "gitBlob": "fb327f13728062bff4df8f1199fff05fe0005679"
+    },
+    {
+      "path": "modules/jolt_physics/config.py",
+      "bytes": 102,
+      "sha256": "f5307daa7374fe6cba2f1944308a53bc3c149c8c4cefb0c208b0becddc780a52",
+      "gitBlob": "79b382a74710635a67873b62b3f6423b9542d343"
+    },
+    {
+      "path": "modules/jpg/config.py",
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "gitBlob": "d22f9454ed25fc763c4dec143f4a197eaca7acb8"
+    },
+    {
+      "path": "modules/jsonrpc/config.py",
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "gitBlob": "d22f9454ed25fc763c4dec143f4a197eaca7acb8"
+    },
+    {
+      "path": "modules/ktx/config.py",
+      "bytes": 137,
+      "sha256": "db099d8574cc9aa5a1fb9aa5fbd89f5b82e5f115ba22bba10c53cb4ffc5ce9e2",
+      "gitBlob": "4c8391ea2a8d1b08c99f617f9339cdfacc531c2f"
+    },
+    {
+      "path": "modules/lightmapper_rd/config.py",
+      "bytes": 89,
+      "sha256": "53202f2e83a926a34f429a37a2c49f94201a6fa66ce14575fb194c651a9fc67b",
+      "gitBlob": "eb565b85b903f1da378eeb28a704824c28c1acc7"
+    },
+    {
+      "path": "modules/mbedtls/config.py",
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "gitBlob": "d22f9454ed25fc763c4dec143f4a197eaca7acb8"
+    },
+    {
+      "path": "modules/meshoptimizer/config.py",
+      "bytes": 193,
+      "sha256": "e845ac7c3b1c89f7c4ab92b59d24e268a40d22ec3565041ee267701aabafdd1f",
+      "gitBlob": "b7e69569b9c43a27b89bda8c4821b762488fdf1c"
+    },
+    {
+      "path": "modules/mobile_vr/config.py",
+      "bytes": 214,
+      "sha256": "ae479a0d1b50249fb9df119638c11b6d3e64702b6f512db412d3c421ecc8a0a2",
+      "gitBlob": "bbacf562313714d028a5893f902b46fff8642661"
+    },
+    {
+      "path": "modules/mono/config.py",
+      "bytes": 722,
+      "sha256": "31368c2e3e9da4eed6e1d643ad6eebd0aea077d17ab4ab743ad1bf87edddc4e6",
+      "gitBlob": "24d028a9d0b0ca306811b36566ef25e35c427ff1"
+    },
+    {
+      "path": "modules/mp3/config.py",
+      "bytes": 416,
+      "sha256": "1fac0f2ad756dec322cd1583338a3500af9db30ca18417af50c99ad50f78ad2a",
+      "gitBlob": "0483576a7ad7280b0f93b02a1f074b103848e17b"
+    },
+    {
+      "path": "modules/msdfgen/config.py",
+      "bytes": 134,
+      "sha256": "1afa0bfa4cd1ed566748c92df02abae764f5585c74b5979836a76235971e8f04",
+      "gitBlob": "631894400d84aaa32f9b08c2c3ee134309787dcd"
+    },
+    {
+      "path": "modules/multiplayer/config.py",
+      "bytes": 329,
+      "sha256": "98da0433c19b5931bcbf498dfbeefed2c0b65de0f43d5bbc386bfb41f27d0af6",
+      "gitBlob": "6dad646d867a3ee425af5a1903a5b9d78a63981d"
+    },
+    {
+      "path": "modules/navigation_2d/config.py",
+      "bytes": 105,
+      "sha256": "8e3083f9aae197c01bd0287d80cc76a10239bf5d538b29fb629fbe4b5b498f21",
+      "gitBlob": "17a8482580b2e793e9d7bc3784d033b94b825e80"
+    },
+    {
+      "path": "modules/navigation_3d/config.py",
+      "bytes": 208,
+      "sha256": "4b5197eb4e81c2769c47ebd29ae40c879d75c20c3f92c10d95694191c9b49f87",
+      "gitBlob": "f47a63fc800a1a71754e6dd6195956fdd7afb180"
+    },
+    {
+      "path": "modules/noise/config.py",
+      "bytes": 262,
+      "sha256": "3609ff7971b1ca4d96a38b0aa0ef2d9fe341186c2d2813e13ce6ee90206105c2",
+      "gitBlob": "e6d5e1a646f0775989f675e9f59ca094446af270"
+    },
+    {
+      "path": "modules/objectdb_profiler/config.py",
+      "bytes": 91,
+      "sha256": "d8643279400149eca650782aa54bdc99c7a684d0c4b5ca558fff5ed33de814b9",
+      "gitBlob": "adcb9d37033fbcdb02d89d041ea30f05e3935b05"
+    },
+    {
+      "path": "modules/ogg/config.py",
+      "bytes": 234,
+      "sha256": "1e9d230eb2ef938e27f03e0128b62c2024b408cb97b44fb92bcbfc1a94087f2c",
+      "gitBlob": "f7ec4de6bea5e58843e349e3f236dd01993c9b6a"
+    },
+    {
+      "path": "modules/openxr/config.py",
+      "bytes": 2903,
+      "sha256": "6c9a9ac6b2d9396fe400167fb2642eaa97744a9c11f40388447d75d272c29f97",
+      "gitBlob": "eac756df36bf41ed26e69149741aad63df3c1763"
+    },
+    {
+      "path": "modules/raycast/config.py",
+      "bytes": 394,
+      "sha256": "0872af94d0f593ee71031749877c436f5e686c9aec57d56d850a13760b73a1b2",
+      "gitBlob": "2fa0058f8838b117b2239930f79f8a6dc269ccfa"
+    },
+    {
+      "path": "modules/regex/config.py",
+      "bytes": 207,
+      "sha256": "d23342572c26a5ef82249980c498c5b9e8850aeea26871a126e18d9df8a0244e",
+      "gitBlob": "df9f44cb952fa975d237a7619bb9c3cd84616f3e"
+    },
+    {
+      "path": "modules/svg/config.py",
+      "bytes": 139,
+      "sha256": "b5aef0161d51ee13679917aaf5f2d3f690fb627b3bdab2cfdcc6570ec91c58a4",
+      "gitBlob": "d37f02188fe248210b814de187d8fa51b0518230"
+    },
+    {
+      "path": "modules/text_server_adv/config.py",
+      "bytes": 461,
+      "sha256": "33b12f1c1a9f60c07cd549c8d880e9a11603b01b8e764feda7664ab49408e518",
+      "gitBlob": "08051398d18d76b3c1825456ad7b08c0c8ed32f3"
+    },
+    {
+      "path": "modules/text_server_fb/config.py",
+      "bytes": 416,
+      "sha256": "b43f9b00e3f13825ea183351d41502033ce3853b95bc36d1f7cf17b51cb1ca16",
+      "gitBlob": "249085538682c95671aaeab0f16e65a57fbfbf60"
+    },
+    {
+      "path": "modules/tga/config.py",
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "gitBlob": "d22f9454ed25fc763c4dec143f4a197eaca7acb8"
+    },
+    {
+      "path": "modules/theora/config.py",
+      "bytes": 316,
+      "sha256": "eb97f5cf46667ea3190522d632610cbb4ee06b1d8cb58273d4b328fb7b28b827",
+      "gitBlob": "9a27e8e132660513367bc4359a9a424a38e89144"
+    },
+    {
+      "path": "modules/tinyexr/config.py",
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "gitBlob": "d22f9454ed25fc763c4dec143f4a197eaca7acb8"
+    },
+    {
+      "path": "modules/upnp/config.py",
+      "bytes": 206,
+      "sha256": "3981d4dd748199ee6cd931bc3f6edb768682beb2428374887ff99052e94af683",
+      "gitBlob": "3e15b940a18e11bfb50e1459a87ffba49ad43ccd"
+    },
+    {
+      "path": "modules/vhacd/config.py",
+      "bytes": 102,
+      "sha256": "f5307daa7374fe6cba2f1944308a53bc3c149c8c4cefb0c208b0becddc780a52",
+      "gitBlob": "79b382a74710635a67873b62b3f6423b9542d343"
+    },
+    {
+      "path": "modules/visual_shader/config.py",
+      "bytes": 4666,
+      "sha256": "ece70b08aa05087ece102f9783b58b747cab3fed008a2e2d9e463c02084e5bb6",
+      "gitBlob": "5bcccdf60d13b3b9d309e76885250423b6fccb9f"
+    },
+    {
+      "path": "modules/vorbis/config.py",
+      "bytes": 328,
+      "sha256": "44096c6a0b493d77f52e70a0e228f95ade3afd0fae6759dd42ad40250b4d0d86",
+      "gitBlob": "9e10a58849e90a7c47d350e56e9de1f8b6ec10fa"
+    },
+    {
+      "path": "modules/webp/config.py",
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "gitBlob": "d22f9454ed25fc763c4dec143f4a197eaca7acb8"
+    },
+    {
+      "path": "modules/webrtc/config.py",
+      "bytes": 341,
+      "sha256": "c6bd9ca5f8b1e866c37ee16baeec4ad1b4720716137d4c4503f185fc5e2a1da7",
+      "gitBlob": "4ad918833a230ff4518e8543257071879993f977"
+    },
+    {
+      "path": "modules/websocket/config.py",
+      "bytes": 283,
+      "sha256": "c1f2419ac93a50ede07b3ff96c9e9c3aeaad6fb3b891e92c208ff3b88c37ee0b",
+      "gitBlob": "9e27a1a0fed683915d3bfa634b771c38869eb6c0"
+    },
+    {
+      "path": "modules/webxr/config.py",
+      "bytes": 346,
+      "sha256": "fec8bfc5d23243b654aa2394ff01a98b3af4e32392905afa8feb7b31eeba73db",
+      "gitBlob": "92f41711c03a916d699fedc522d9d5faa7c662fb"
+    },
+    {
+      "path": "modules/xatlas_unwrap/config.py",
+      "bytes": 89,
+      "sha256": "53202f2e83a926a34f429a37a2c49f94201a6fa66ce14575fb194c651a9fc67b",
+      "gitBlob": "eb565b85b903f1da378eeb28a704824c28c1acc7"
+    },
+    {
+      "path": "modules/zip/config.py",
+      "bytes": 220,
+      "sha256": "050814db8a4b08ae5a95f35744ade17cbb0895ced371b2b50c88d06eeca133bd",
+      "gitBlob": "96cd2fc5bd58bb7580c8895a7769f9055dba227d"
+    }
+  ],
+  "preparedPlanFiles": [
+    "platform/web/detect.py",
+    "platform/web/SCsub",
+    "core/crypto/crypto_core.cpp"
+  ],
+  "selection": {
+    "modulesEnabledByDefault": true,
+    "builtinMbedtlsDefault": true,
+    "conservativeDisabled": [
+      "enet",
+      "fbx",
+      "gltf",
+      "mobile_vr",
+      "upnp",
+      "vhacd",
+      "webxr"
+    ],
+    "configurationNotExecuted": true,
+    "actualObjects": "PENDING_REAL_COMPILE",
+    "effectiveMacros": "PENDING_REAL_COMPILE",
+    "expectedFullModules": [
+      "astcenc",
+      "basis_universal",
+      "bcdec",
+      "bmp",
+      "csg",
+      "dds",
+      "enet",
+      "etcpak",
+      "fbx",
+      "freetype",
+      "gdscript",
+      "gltf",
+      "godot_physics_2d",
+      "godot_physics_3d",
+      "gridmap",
+      "hdr",
+      "interactive_music",
+      "jolt_physics",
+      "jpg",
+      "jsonrpc",
+      "ktx",
+      "mbedtls",
+      "meshoptimizer",
+      "mobile_vr",
+      "mp3",
+      "msdfgen",
+      "multiplayer",
+      "navigation_2d",
+      "navigation_3d",
+      "noise",
+      "ogg",
+      "regex",
+      "svg",
+      "text_server_adv",
+      "tga",
+      "theora",
+      "tinyexr",
+      "upnp",
+      "vhacd",
+      "visual_shader",
+      "vorbis",
+      "webp",
+      "webrtc",
+      "websocket",
+      "webxr",
+      "zip"
+    ],
+    "requiredCompileEvidence": [
+      "builtin_mbedtls=yes and module_mbedtls_enabled=yes actually effective",
+      "core crypto and module objects use godot_module_mbedtls_config.h",
+      "GODOT_MBEDTLS_INCLUDE_H custom configuration absent or independently frozen and reviewed",
+      "Actual AES/CTR_DRBG object membership and final import/export pairing",
+      "Final macro checks in secure-random C++ guard passed during real compilation"
+    ]
+  },
+  "parser": {
+    "path": "engine/fixed-module-audit.mjs",
+    "bytes": 7794,
+    "sha256": "c993413127edeece8926fd710fe31015cdd95f1ac878828a62f2615bda048a93",
+    "meaning": "Local declaration parser only; not an official build result"
+  }
+}

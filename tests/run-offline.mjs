@@ -37,9 +37,17 @@ const files = ['editor/workbench', 'tests'].flatMap(dir =>
     .map(name => path.join(dir, name)));
 const result = spawnSync(path.join(state, 'node.exe'),
   ['--test', '--test-concurrency=4', '--test-reporter=tap', ...files], {
-    cwd: source, windowsHide: true, stdio: 'inherit', env: {...process.env, ...required,
+    cwd: source, windowsHide: true, stdio: ['ignore','pipe','inherit'], encoding:'utf8', maxBuffer:64*2**20,
+    env: {...process.env, ...required,
       PATH: path.dirname(required.WXSLIM_PINNED_GIT_EXE) + path.delimiter + process.env.PATH,
       GIT_CONFIG_NOSYSTEM:'1', GIT_CONFIG_GLOBAL:'NUL', GIT_NO_REPLACE_OBJECTS:'1'},
   });
 if (result.error) throw result.error;
-process.exitCode = result.status ?? 1;
+process.stdout.write(result.stdout);
+if (result.status !== 0) process.exitCode = result.status ?? 1;
+else {
+  const counts = Object.fromEntries([...result.stdout.matchAll(/^# (tests|pass|fail|skipped|cancelled|todo) (\d+)\r?$/gm)]
+    .map(([,name,value])=>[name,Number(value)]));
+  assert(counts.tests > 0 && counts.pass === counts.tests &&
+    ['fail','skipped','cancelled','todo'].every(name=>counts[name]===0),'Offline regression requires every test to run and pass');
+}

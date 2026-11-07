@@ -1,0 +1,92 @@
+{
+  "schema": "official-ime-session-source-preparation-v1",
+  "date": "2026-11-06",
+  "status": "SOURCE_ONLY_UNAPPLIED",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "parent": "engine/official-input-source.json",
+  "input": {
+    "path": "platform/web/js/libs/library_godot_input.js",
+    "actualReadOnlyPath": "F:/GLX-OpenSource/clean-20261104/official-engine-dev-01/engine/platform/web/js/libs/library_godot_input.js",
+    "bytes": 29238,
+    "sha256": "105a1fb250fbdde6d1ee98d91325de5464f88cb6462684a7c7f7d050acc99a65"
+  },
+  "patch": {
+    "file": "engine/official-ime-session-source.patch",
+    "bytes": 11437,
+    "sha256": "b8265150c9f620a149933659971726a55ee26774ff5e3962db03b83cc46b1ec0"
+  },
+  "entry": {
+    "file": "engine/official-ime-session-source.mjs",
+    "bytes": 2920,
+    "sha256": "252f47e60aba8e5399e57fd4444f23254854ecec89a8323510f56241451050e1"
+  },
+  "output": {
+    "path": "platform/web/js/libs/library_godot_input.js",
+    "bytes": 30921,
+    "sha256": "1b6270ef5f78c818917db5022224793625a9af1d7014ba36471f1d9e36f27b80"
+  },
+  "entryContract": "prepareOfficialImeSessionSource(sourceBuffer, patchBuffer): Buffer; fixed hashes required; no filesystem IO in derivation; no platform execution or recipe mutation",
+  "sourceDesign": {
+    "scope": "Only existing GodotIME.$GodotIMEWechat object replaced; complete source prefix/suffix byte-equal, preserving original DOM helper, dispatch, deps, ABI, touch/gamepad and unrelated methods",
+    "release": "Allocated IME callback strings freed in finally; native thrown values including undefined preserved; secondary free failure retained in ime.releaseError; sole free failure propagates",
+    "session": "Every show creates fresh session and input/confirm/complete/failure closures; current checks object identity, session identity, active and closed before callbacks and after every native callback",
+    "failure": "Show and partial listener-registration throws roll back attempted listeners then hide; close invalidates first and attempts each cleanup even after earlier failure; primary thrown value preserved and secondary cleanup first failure latched",
+    "asyncFailure": "wx.showKeyboard fail closure throws fixed privacy-safe GODOT_IME_KEYBOARD_SHOW_FAILED Error and retains ime.showError; cleanup also attempted; old-session fail is ignored; no raw SDK payload logged",
+    "cleanup": "cleanupFailed boolean preserves primitive or undefined first cleanup failure; show/hide/clear/init cannot claim success after failed cleanup; cleanup-in-progress rejects recursive init before replacement",
+    "normalBehavior": "Existing select-all/backspace/reinsert key strategy, confirm fallback, input validation, show option values, and 100ms cooldown retained; no composition/cursor/deletion strategy invented"
+  },
+  "validation": {
+    "status": "OFFLINE_MODEL_PASS_NOT_PLATFORM_ACCEPTANCE",
+    "tests": 51,
+    "passed": 51,
+    "failed": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "test": {
+      "file": "tests/official-ime-session-tests.mjs",
+      "bytes": 14018,
+      "sha256": "99fa808ddfacc3c9a0246220da690188a13c2bf4e754284fdebb392cf2894912"
+    },
+    "localTap": {
+      "file": ".local/official-ime-session-20261106.tap",
+      "bytes": 8791,
+      "sha256": "7a1b832c9994ee72bce2d96e9a80730ee70416f86f8fdef0d4afe30829c7cf79"
+    },
+    "node": "F:/GLX-OpenSource/clean-20261104/tools/driver-node/node.exe",
+    "command": "$env:WXSLIM_IME_SESSION_SOURCE=\"F:/GLX-OpenSource/clean-20261104/official-engine-dev-01/engine/platform/web/js/libs/library_godot_input.js\"; & \"F:/GLX-OpenSource/clean-20261104/tools/driver-node/node.exe\" --test --test-reporter=tap tests/official-ime-session-tests.mjs",
+    "candidateObject": "AST-extracted from real strictly-derived full input source, evaluated in vm",
+    "negativeControls": "Original pinned object reproduces callback allocation leak, partial-registration stranded active/listeners, same-object late callback delivery and native reentry after clear",
+    "strictForwardReplay": true,
+    "strictReverseReplay": true,
+    "duplicateRejected": true,
+    "fixedSourceUnchanged": true,
+    "officialDomByteExact": true,
+    "abiAndNonWechatPrefixSuffixByteExact": true,
+    "showFailureDelivery": "MODELED_SYNC_AND_ASYNC_CALLBACK_ONLY",
+    "heapAndKeyboard": "MINIMAL_FAKE_ALLOCATOR_AND_PLATFORM",
+    "parser": "Existing pinned Node built-in internal acorn; no new dependency"
+  },
+  "remaining": [
+    "No actual native keyboard, browser DOM, C++/WASM, Emscripten emission, final ABI/glue pairing or device execution.",
+    "Actual SDK fail-callback exception reporting and native keyboard closure after rollback or cleanup failure remain unverified; throw plus JS-visible latch is not a native failure ABI.",
+    "Real registration/unregistration timing and host reentrancy remain platform validation items; model host registration adds listener before invoking optional hook.",
+    "Chinese composition, cursor/selection, surrogate deletion, focus and background transitions are unverified; existing replacement strategy is unchanged.",
+    "Cleanup failure latches and invalidates stale callbacks but does not prove native keyboard closure or restore failed unregister resources.",
+    "Candidate is not registered, applied, built, converted, uploaded, or paired with any current successful recipe or package."
+  ],
+  "privacy": "Tests print test names and aggregate counters only; no actual input, SDK error payload, or native pointers emitted",
+  "license": "Original complete Godot source notices preserved in derived buffer; no new third-party source dependency",
+  "abiChanged": false,
+  "hostChanged": false,
+  "oldPatchChanged": false,
+  "currentRecipeChanged": false,
+  "engineTreeChanged": false,
+  "applied": false,
+  "build": false,
+  "convert": false,
+  "engineRun": false,
+  "WeChatRun": false,
+  "upload": false,
+  "phone": false,
+  "fullImeAccepted": false
+}

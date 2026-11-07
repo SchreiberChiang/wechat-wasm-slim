@@ -1,0 +1,8 @@
+{
+  "renderAnchorGlx": "autoCallMainAfterMount:true,renderMode:\"glx\",locale:\"zh_CN\",expectedPackBytes:",
+  "renderAnchorWeb": "autoCallMainAfterMount:true,renderMode:\"webgl\",locale:\"zh_CN\",expectedPackBytes:",
+  "originalGlxFramework": "3d2dee03be634b5cb2b810d2e180ad622aab453f29e634b30799961a8055f039",
+  "observedWebFramework": "e8eba0867e29f9b83dc7fa818f7e97202f279a8e725b4af475891689fbe163d3",
+  "routeSha256": "c70a86b8d49bbf3592395b82264ca58f9c0b52d7958d38f127e46bc33f9eecc7",
+  "desktopLoaderSha256": "f62ebcc5af629171599e2cc7a30f373ef3013784a9a67f6acc348ee0f7e6fe3f"
+}

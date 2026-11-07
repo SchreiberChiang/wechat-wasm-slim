@@ -1,0 +1,133 @@
+diff --git a/platform/web/js/libs/library_godot_memfs.js b/platform/web/js/libs/library_godot_memfs.js
+--- a/platform/web/js/libs/library_godot_memfs.js
++++ b/platform/web/js/libs/library_godot_memfs.js
+@@ -129,12 +129,13 @@
+                 wx.getFileSystemManager().writeFileSync(wxPath, '', 'utf-8');
+             } else {
+                 // 二进制数据
+-                wx.getFileSystemManager().writeFileSync(wxPath, data.buffer);
++                wx.getFileSystemManager().writeFileSync(wxPath, new Uint8Array(data.subarray(0, node.usedBytes)).buffer);
+             }
+ 
+             WXMEMFS.log('[WXMEMFS] Persisted:', wxPath, data.length, 'bytes');
+         } catch (e) {
+-            WXMEMFS.logError('[WXMEMFS] Persist failed:', wxPath, e.message);
++            // Logging must not replace the original native failure (including falsy throws).
++            try { WXMEMFS.logError('[WXMEMFS] Persist failed:', wxPath, e && e.message); } catch (_) {}
+             throw e;
+         }
+     },
+@@ -421,6 +422,12 @@
+             }
+             if (attr.size !== undefined) {
+                 WXMEMFS.resizeFileStorage(node, attr.size);
++                if (attr.size === 0 && FS.isFile(node.mode)) {
++                    // FS.open(O_TRUNC) calls setattr before registering a stream.
++                    // A node marker also reaches already-open streams without scanning them.
++                    node._wxslimTruncated = true;
++                    WXMEMFS.lazyLoadedNodes.add(node);
++                }
+             }
+         },
+ 
+@@ -581,7 +588,7 @@
+                 node: node,
+                 wxPath: wxPath,
+                 flags: stream.flags,
+-                dirty: false
++                dirty: !!node._wxslimTruncated
+             };
+ 
+             // 增加引用计数
+@@ -595,39 +602,60 @@
+                 return;
+             }
+ 
+-            var streamInfo = WXMEMFS.openStreams[stream.wxfd];
++            var wxfd = stream.wxfd;
++            var streamInfo = WXMEMFS.openStreams[wxfd];
+             var node = streamInfo.node;
+-
+-            WXMEMFS.log('[WXMEMFS] close: wxfd', stream.wxfd, 'dirty:', streamInfo.dirty);
+-
+-            // 如果有修改,持久化到微信文件系统
+-            if (streamInfo.dirty && WXMEMFS.wxBasePath) {
++            var writeFailed = false, writeCause;
++
++            try {
++                WXMEMFS.log('[WXMEMFS] close: wxfd', wxfd, 'dirty:', streamInfo.dirty);
++                if ((streamInfo.dirty || node._wxslimTruncated) && WXMEMFS.wxBasePath) {
++                    try {
++                        WXMEMFS.persistNode(node, streamInfo.wxPath);
++                        delete node._wxslimTruncated;
++                    } catch (e) {
++                        writeFailed = true;
++                        writeCause = e;
++                        try { WXMEMFS.logError('[WXMEMFS] close persist failed:', e && e.message); } catch (_) {}
++                    }
++                }
++
++                // Keep the original PCK cache behavior.
++                if (stream.path && stream.path.toLowerCase().endsWith('.pck')) {
++                    WXMEMFS.pckCache.set(node, true);
++                    WXMEMFS.pckPathCache[stream.path] = node;
++                    WXMEMFS.log('[WXMEMFS] PCK file cached in memory:', stream.path);
++                }
++            } finally {
+                 try {
+-                    WXMEMFS.persistNode(node, streamInfo.wxPath);
+-                } catch (e) {
+-                    WXMEMFS.logError('[WXMEMFS] close persist failed:', e.message);
+-                }
+-            }
+-
+-            // ✅ 检查是否是 .pck 文件,如果是则标记为常驻缓存
+-            if (stream.path && stream.path.toLowerCase().endsWith('.pck')) {
+-                WXMEMFS.pckCache.set(node, true);
+-                WXMEMFS.pckPathCache[stream.path] = node;
+-                WXMEMFS.log('[WXMEMFS] PCK file cached in memory:', stream.path);
+-            }
+-
+-            // 减少引用计数
+-            var refCount = WXMEMFS.decrementRefCount(node);
+-            WXMEMFS.log('[WXMEMFS] close: refCount after decrement:', refCount);
+-
+-            // 如果引用计数为 0,释放内存 (PCK文件会被 releaseNodeContents 跳过)
+-            if (refCount === 0) {
+-                WXMEMFS.releaseNodeContents(node);
+-            }
+-
+-            // 释放 fd
+-            delete WXMEMFS.openStreams[stream.wxfd];
+-            delete stream.wxfd;
++                    var refCount = WXMEMFS.decrementRefCount(node);
++                    WXMEMFS.log('[WXMEMFS] close: refCount after decrement:', refCount);
++                    if (refCount === 0) {
++                        WXMEMFS.releaseNodeContents(node);
++                    }
++                } finally {
++                    try {
++                        if (writeFailed && refCount === 0) {
++                            // No remaining owner: abandon this failed truncation.
++                            // A native write may have partially changed the file.
++                            delete node._wxslimTruncated;
++                            if (node.contents === null || node.contents === undefined) {
++                                WXMEMFS.lazyLoadedNodes.delete(node);
++                            }
++                        }
++                    } finally {
++                        delete WXMEMFS.openStreams[wxfd];
++                        delete stream.wxfd;
++                        if (writeFailed) {
++                            // Fixed Emscripten 4.0.10: EIO == __WASI_ERRNO_IO == 29.
++                            // Syscalls recognize FS.ErrnoError; raw platform throws do not.
++                            var failure = new FS.ErrnoError(29);
++                            Object.defineProperty(failure, 'cause', {value: writeCause});
++                            throw failure;
++                        }
++                    }
++                }
++            }
+         },
+ 
+         read: function (stream, buffer, offset, length, position) {

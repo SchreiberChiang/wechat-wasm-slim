@@ -1,0 +1,257 @@
+diff --git a/platform/web/js/libs/library_godot_input.js b/platform/web/js/libs/library_godot_input.js
+--- a/platform/web/js/libs/library_godot_input.js
++++ b/platform/web/js/libs/library_godot_input.js
+@@ -33,8 +33,182 @@
+  */
+ 
+ const GodotIME = {
++	$GodotInputPlatform: {
++		wechat: null,
++		isWechatRuntime: function () {
++			if (GodotInputPlatform.wechat === null) {
++				GodotInputPlatform.wechat = typeof GameGlobal !== 'undefined' && GameGlobal !== null &&
++					typeof wx !== 'undefined' && wx !== null && typeof wx.getSystemInfoSync === 'function';
++			}
++			return GodotInputPlatform.wechat;
++		},
++	},
++	$GodotIMEWechat__deps: ['$GodotRuntime'],
++	$GodotIMEWechat: {
++		ime: null,
++		active: false,
++
++		getModifiers: function (evt) {
++			return (evt.shiftKey + 0) + ((evt.altKey + 0) << 1) + ((evt.ctrlKey + 0) << 2) + ((evt.metaKey + 0) << 3);
++		},
++
++		ime_active: function (active) {
++			if (GodotIME.ime) {
++				if (active) {
++					GodotIME.ime.show()
++				} else {
++					GodotIME.ime.hide()
++				}
++			}
++		},
++
++		ime_position: function (x, y) {
++		},
++
++		init: function (ime_cb, key_cb, code, key) {
++			// Do not abandon callbacks or a failed cleanup from a previous instance.
++			if (GodotIME.ime) GodotIME.clear();
++			function ime_event_cb(type, event) {
++				if (GodotIME.ime) {
++					const ptr = GodotRuntime.allocString(event.value);
++					ime_cb(type, ptr);
++					GodotRuntime.free(ptr)
++				}
++			}
++			let lastValue = ""
++			let lastValueLength = 0
++			let sessionInitialValue = ""
++			let sessionInitialLength = 0
++			let currentLength = 0
++			let imeEnded = false
++			let sendKey = (codeStr, keyStr, modifiers = 0) => {
++				GodotRuntime.stringToHeap(codeStr, code, 32)
++				GodotRuntime.stringToHeap(keyStr, key, 32)
++				key_cb(1, 0, modifiers)
++				key_cb(0, 0, modifiers)
++			}
++			let clearExistingText = (length) => {
++				if (length <= 0) {
++					return
++				}
++				// Try select-all then backspace to replace, and also fallback to backspace N times.
++				sendKey("KeyA", "a", 4)
++				sendKey("Backspace", "Backspace", 0)
++				for (let i = 0; i < length; i++) {
++					sendKey("Backspace", "Backspace", 0)
++				}
++			}
++			let insertText = (text) => {
++				for (const ch of text) {
++					sendKey("Unidentified", ch, 0)
++				}
++			}
++			let inputCb = evt => {
++				if (GodotIME.ime !== ime || !GodotIME.active) return;
++				if (!evt || typeof evt.value !== "string") {
++					return
++				}
++				const value = evt.value
++				if (value === lastValue) {
++					return
++				}
++				if (!imeEnded) {
++					// End IME so key events are not ignored.
++					ime_event_cb(2, { value: "" })
++					imeEnded = true
++				}
++				clearExistingText(currentLength)
++				insertText(value)
++				lastValue = value
++				lastValueLength = value.length
++				currentLength = lastValueLength
++				GodotIME.initialText = lastValue
++			}
++			let inputConfirm = evt => {
++				if (GodotIME.ime !== ime || !GodotIME.active) return;
++				const value = (evt && typeof evt.value === "string") ? evt.value : lastValue
++				ime_event_cb(2, { value: "" })
++				clearExistingText(currentLength)
++				insertText(value)
++				GodotIME.initialText = value
++				lastValue = value
++				lastValueLength = value.length
++				currentLength = lastValueLength
++				ime.hide();
++			}
++			let inputComplete = evt => {
++				if (GodotIME.ime !== ime || !GodotIME.active) return;
++				const value = (evt && typeof evt.value === "string") ? evt.value : lastValue
++				ime_event_cb(2, { value: "" })
++				clearExistingText(currentLength)
++				insertText(value)
++				GodotIME.initialText = value
++				lastValue = value
++				lastValueLength = value.length
++				currentLength = lastValueLength
++				ime.hide();
++			}
++			let ime = {
++				activeTime: 0,
++				cleanupError: null,
++				show() {
++					if (ime.cleanupError !== null) throw ime.cleanupError;
++					let delta = Date.now() - ime.activeTime
++					if (delta < 100) {
++						return
++					}
++					if (GodotIME.active) return;
++					GodotIME.active = true;
++					if (typeof GodotIME.initialText === "string") {
++						lastValue = GodotIME.initialText
++					}
++					lastValueLength = lastValue.length
++					sessionInitialValue = lastValue
++					sessionInitialLength = lastValueLength
++					currentLength = sessionInitialLength
++					imeEnded = false
++					wx.showKeyboard({
++						defaultValue: lastValue,
++						maxLength: 99,
++						multiple: false,
++						confirmHold: true,
++						confirmType: "done"
++					});
++					ime_event_cb(0, { value: "" });
++					wx.onKeyboardInput(inputCb);
++					wx.onKeyboardConfirm(inputConfirm);
++					__globalAdapter.onKeyboardComplete(inputComplete);
++				},
++				hide() {
++					if (ime.cleanupError !== null) throw ime.cleanupError;
++					if (!GodotIME.active)
++						return;
++					GodotIME.active = false;
++					ime.activeTime = Date.now()
++					try {
++						__globalAdapter.offKeyboardInput(inputCb);
++						__globalAdapter.offKeyboardConfirm(inputConfirm);
++						__globalAdapter.offKeyboardComplete(inputComplete);
++						__globalAdapter.hideKeyboard();
++					} catch (error) {
++						// Preserve the first failure; do not claim a later clear succeeded.
++						ime.cleanupError = error instanceof Error ? error : new Error(String(error));
++						throw ime.cleanupError;
++					}
++				}
++			};
++			GodotIME.ime = ime
++		},
++
++		clear: function () {
++			if (GodotIME.ime) {
++				GodotIME.ime.hide();
++				GodotIME.ime = null;
++			}
++		},
++	},
++	$GodotIME__deps: ['$GodotRuntime', '$GodotEventListeners', '$GodotInputPlatform', '$GodotIMEWechat'],
++	$GodotIME__postset: 'if (GodotInputPlatform.isWechatRuntime()) { GodotIME = GodotIMEWechat; } GodotOS.atexit(function(resolve, reject) { GodotIME.clear(); resolve(); });',
+-	$GodotIME__deps: ['$GodotRuntime', '$GodotEventListeners'],
+-	$GodotIME__postset: 'GodotOS.atexit(function(resolve, reject) { GodotIME.clear(); resolve(); });',
+ 	$GodotIME: {
+ 		ime: null,
+ 		active: false,
+@@ -174,11 +348,12 @@
+  * Gamepad API helper.
+  */
+ const GodotInputGamepads = {
++	$GodotInputGamepads__deps: ['$GodotRuntime', '$GodotEventListeners', '$GodotInputPlatform'],
+-	$GodotInputGamepads__deps: ['$GodotRuntime', '$GodotEventListeners'],
+ 	$GodotInputGamepads: {
+ 		samples: [],
+ 
+ 		get_pads: function () {
++			if (GodotInputPlatform.isWechatRuntime()) return [];
+ 			try {
+ 				// Will throw in iframe when permission is denied.
+ 				// Will throw/warn in the future for insecure contexts.
+@@ -519,6 +694,7 @@
+ 	godot_js_input_mouse_move_cb__proxy: 'sync',
+ 	godot_js_input_mouse_move_cb__sig: 'vi',
+ 	godot_js_input_mouse_move_cb: function (callback) {
++		const wechat = GodotInputPlatform.isWechatRuntime();
+ 		const func = GodotRuntime.get_func(callback);
+ 		const canvas = GodotConfig.canvas;
+ 		function move_cb(evt) {
+@@ -530,17 +706,22 @@
+ 			const rel_pos_x = evt.movementX * rw;
+ 			const rel_pos_y = evt.movementY * rh;
+ 			const modifiers = GodotInput.getModifiers(evt);
++			const pressure = wechat ? (Number.isFinite(evt.pressure) ? evt.pressure : 0) : evt.pressure;
++			func(pos[0], pos[1], rel_pos_x, rel_pos_y, modifiers, pressure);
+-			func(pos[0], pos[1], rel_pos_x, rel_pos_y, modifiers, evt.pressure);
+ 		}
++		GodotEventListeners.add(window, wechat ? 'mousemove' : 'pointermove', move_cb, false);
+-		GodotEventListeners.add(window, 'pointermove', move_cb, false);
+ 	},
+ 
+ 	godot_js_input_mouse_wheel_cb__proxy: 'sync',
+ 	godot_js_input_mouse_wheel_cb__sig: 'vi',
+ 	godot_js_input_mouse_wheel_cb: function (callback) {
++		const wechat = GodotInputPlatform.isWechatRuntime();
+ 		const func = GodotRuntime.get_func(callback);
+ 		function wheel_cb(evt) {
++			const handled = wechat
++				? func(evt.deltaMode ?? 0, evt.deltaX || 0, evt.deltaY || 0)
++				: func(evt.deltaMode, evt.deltaX ?? 0, evt.deltaY ?? 0);
++			if (handled) {
+-			if (func(evt.deltaMode, evt.deltaX ?? 0, evt.deltaY ?? 0)) {
+ 				evt.preventDefault();
+ 			}
+ 		}
+@@ -575,6 +756,7 @@
+ 	godot_js_input_touch_cb__proxy: 'sync',
+ 	godot_js_input_touch_cb__sig: 'viii',
+ 	godot_js_input_touch_cb: function (callback, ids, coords) {
++		const wechat = GodotInputPlatform.isWechatRuntime();
+ 		const func = GodotRuntime.get_func(callback);
+ 		const canvas = GodotConfig.canvas;
+ 		function touch_cb(type, evt) {
+@@ -584,10 +766,11 @@
+ 				GodotConfig.canvas.focus();
+ 			}
+ 			const rect = canvas.getBoundingClientRect();
++			const touchRect = wechat ? { x: 0, y: 0, width: rect.width, height: rect.height } : rect;
+ 			const touches = evt.changedTouches;
+ 			for (let i = 0; i < touches.length; i++) {
+ 				const touch = touches[i];
++				const pos = GodotInput.computePosition(touch, touchRect);
+-				const pos = GodotInput.computePosition(touch, rect);
+ 				GodotRuntime.setHeapValue(coords + (i * 2) * 8, pos[0], 'double');
+ 				GodotRuntime.setHeapValue(coords + (i * 2 + 1) * 8, pos[1], 'double');
+ 				GodotRuntime.setHeapValue(ids + i * 4, touch.identifier, 'i32');

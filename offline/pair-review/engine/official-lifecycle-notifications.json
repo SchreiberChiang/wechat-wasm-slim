@@ -1,0 +1,120 @@
+{
+  "schema": "wxslim-official-lifecycle-notifications-source-v1",
+  "status": "SOURCE_ONLY_NOT_APPLIED",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "patch": {
+    "bytes": 32924,
+    "sha256": "ac1a01d742f6dbd523fd377d1c57413e9ecc78ac384a6cdff62216fea9dd5a0b"
+  },
+  "preparation": {
+    "schema": "wxslim-official-lifecycle-notifications-v1",
+    "status": "SOURCE_ONLY_NOT_APPLIED",
+    "inputs": {
+      "platform/web/js/libs/library_godot_display.js": {
+        "bytes": 26928,
+        "sha256": "f1ddd92cff6b7fae79eac3c41007fdab9b4aa9c29513024fa1799427e5518aa5"
+      },
+      "platform/web/display_server_web.cpp": {
+        "bytes": 49864,
+        "sha256": "e462b18a1f8f5be4e6b40c82fb549b93de78239387db1c30f7aac89f3a665eaa"
+      }
+    },
+    "outputs": {
+      "platform/web/js/libs/library_godot_display.js": {
+        "bytes": 31670,
+        "sha256": "8f2a6aa8ef1266d5d1810e2ca43397ff6df9045086c0f4823344bb43d32b6d0b"
+      },
+      "platform/web/display_server_web.cpp": {
+        "bytes": 50351,
+        "sha256": "31689a5a72545a0eed81aa6df3435dc713e46a7082f7d1a42e4bd4055a82db50"
+      }
+    },
+    "changedExistingMembers": [
+      "GodotDisplay.$GodotDisplay__deps",
+      "GodotDisplay.godot_js_display_notification_cb"
+    ],
+    "addedMembers": [
+      "wechatLifecycle",
+      "closeWechatLifecycle",
+      "initWechatLifecycle"
+    ],
+    "explicitNewDependency": "$GodotOS",
+    "productionABI": "existing godot_js_display_notification_cb viiiii and callback(int), unchanged",
+    "domPath": "ORIGINAL_FOUR_EVENT_REGISTRATION_PRESERVED",
+    "nativeCodes": {
+      "paused": 2015,
+      "resumed": 2014
+    },
+    "nativeScope": "WECHAT_GLX_EXPERIMENTAL only; main-loop guard before IME/window handling",
+    "atexitFailurePolicy": "Cleanup stays failed and blocks re-registration; log fixed code plus actual cause at most twice, retain logging failures, finally resolve so this hook cannot block existing final FS sync. Initialization still throws original errors.",
+    "limitations": [
+      "Registration-period callbacks are ignored for notification state; no replay or synthesis",
+      "Initial show only establishes foreground; first post-registration hide may attempt pause",
+      "Void callback has no native delivery acknowledgement; main-loop-not-ready drops event with fixed warning",
+      "No SceneTree pause policy, focus/blur synthesis, audio resume/replay/context recreation or OS finish_async changes"
+    ],
+    "engineExecuted": false,
+    "platformExecuted": false,
+    "build": "NOT_RUN",
+    "runtime": "NOT_RUN"
+  },
+  "checks": {
+    "status": "PASS_SOURCE_JS_MODELS_OS_COMPOSITION_CPP_STATIC_ONLY",
+    "revision": 2,
+    "tests": 25,
+    "passed": 25,
+    "failed": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "durationMs": 301.3908,
+    "log": ".local/official-lifecycle-notifications-r2-20261106.tap",
+    "logFormat": "TAP_13",
+    "logIdentity": {
+      "bytes": 6174,
+      "sha256": "4ecc438f6ede8ccb796164a0b25bbba7d8a98dd1c2d1abea4d7e1565e8e5caf0"
+    },
+    "inputHashesAndMtimesUnchanged": true,
+    "cpp": "EXACT_INSERTION_AND_GUARD_STRUCTURE_ONLY_NOT_COMPILED",
+    "js": "Actual AST-extracted candidate; modeled wx/native callbacks",
+    "osComposition": "Actual fixed GodotOS.finish_async AST function with modeled FS.sync and deferred callback; cleanup and logger throws both retain failures and allow final sync/callback"
+  },
+  "actualEngineChanged": false,
+  "recipeChanged": false,
+  "composition": "NOT_ADDED_TO_THREE_PATCH_COMBINATION",
+  "build": "NOT_RUN",
+  "phone": "NOT_RUN",
+  "limitations": [
+    "No confirmation that void native callback reaches a ready MainLoop; early event can be dropped",
+    "Registration-time events do not affect later dispatch state and are never replayed",
+    "Initial post-registration show establishes foreground only",
+    "DOM event forwarding by the current external host remains runtime unknown; no synthetic focus/blur added",
+    "Exact listener removal assumes platform offHide/offShow honors supplied callback identity; real APIs not run",
+    "No SceneTree pause policy or audio lifecycle changes; existing OS finish_async untouched",
+    "Existing finish_async may still skip final sync if some other atexit hook rejects; only this new hook is prevented from rejecting on cleanup failure"
+  ],
+  "revision": 2,
+  "supersedes": {
+    "preparer": ".local/official-lifecycle-notifications-r1.mjs",
+    "patch": ".local/official-lifecycle-notifications-r1.patch",
+    "metadata": ".local/official-lifecycle-notifications-r1.json",
+    "tests": ".local/official-lifecycle-notifications-r1-tests.mjs",
+    "log": ".local/official-lifecycle-notifications-20261106.tap",
+    "r1Result": "22/22 source/models only; rejected for existing OS finish_async interaction"
+  },
+  "osCompositionInput": {
+    "file": "platform/web/js/libs/library_wxslim_os.js",
+    "bytes": 15186,
+    "sha256": "f686ba1a5c4e01bfb78ad45f17f0ff1b58ec80a72334cf84b37dd4cd0ae2dc4a",
+    "scope": "Read-only test dependency; not a preparation input/output or modified file"
+  },
+  "revisionScope": "Only new lifecycle atexit interaction revised; C++ candidate unchanged from r1. Actual OS source and finish_async remain untouched.",
+  "cleanupFailureSemantics": {
+    "atexitResolve": "Shutdown continuation only; does not mean listeners were removed successfully",
+    "failureLatched": true,
+    "reRegistrationBlocked": true,
+    "allCleanupCausesRetained": true,
+    "actualCauseLogLimitPerSession": 2,
+    "loggingFailureRetained": true,
+    "automaticRetry": false
+  }
+}

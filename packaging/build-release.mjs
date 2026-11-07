@@ -33,6 +33,12 @@ function include(out, file, fixed) {
   files.set(out,{file:real,record});
 }
 for (const file of json(path.join(source,'packaging/runtime-files.json'))) include('runtime/'+file,path.join(source,file));
+const archived = 'offline/pair-review/';
+const archiveLock = read(path.join(source,archived,'lock.json'));
+assert.equal(pin(archiveLock).sha256,'395f84991b09b0aab9423ccd60354ab65cfc453dcc6635377b70894eb411c9ca','Historical reviewer manifest');
+include('runtime/'+archived+'lock.json',path.join(source,archived,'lock.json'));
+for (const [file,expected] of Object.entries(JSON.parse(archiveLock).files))
+  include('runtime/'+archived+file,path.join(source,archived,file),expected);
 const addon = 'addons/wxslim_readonly';
 for(const f of fs.readdirSync(path.join(source,'editor/workbench',addon))) {
   if (/\.(gd|gd\.uid|cfg)$/.test(f)) include(addon+'/'+f,path.join(source,'editor/workbench',addon,f));

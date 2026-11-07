@@ -1,0 +1,87 @@
+diff --git a/platform/web/javascript_bridge_singleton.cpp b/platform/web/javascript_bridge_singleton.cpp
+--- a/platform/web/javascript_bridge_singleton.cpp
++++ b/platform/web/javascript_bridge_singleton.cpp
+@@ -350,6 +350,10 @@
+ }
+ 
+ Variant JavaScriptBridge::eval(const String &p_code, bool p_use_global_exec_context) {
++#ifdef WECHAT_GLX_EXPERIMENTAL
++	// Keep the object bridge enabled, without invoking dynamic code in WeChat.
++	return Variant();
++#else
+ 	union js_eval_ret js_data;
+ 	PackedByteArray arr;
+ 	VectorWriteProxy<uint8_t> arr_write;
+@@ -372,6 +376,7 @@
+ 		default:
+ 			return Variant();
+ 	}
++#endif
+ }
+ 
+ bool JavaScriptBridge::is_js_buffer(Ref<JavaScriptObject> p_js_obj) {
+diff --git a/platform/web/js/libs/library_godot_javascript_singleton.js b/platform/web/js/libs/library_godot_javascript_singleton.js
+--- a/platform/web/js/libs/library_godot_javascript_singleton.js
++++ b/platform/web/js/libs/library_godot_javascript_singleton.js
+@@ -128,6 +128,30 @@
+ 			return 24; // OBJECT
+ 		},
+ 
++
++		// A browser with only a wx-like object keeps the official window path.
++		isWechatRuntime: function () {
++			return typeof GameGlobal !== 'undefined' && GameGlobal !== null &&
++				typeof wx !== 'undefined' && wx !== null && typeof wx.getSystemInfoSync === 'function';
++		},
++
++		resolveWechatNamedObject: function (name) {
++			const roots = [];
++			if (typeof globalThis !== 'undefined') roots.push(globalThis);
++			if (typeof GameGlobal !== 'undefined') roots.push(GameGlobal);
++			if (typeof window !== 'undefined') roots.push(window);
++			for (const root of roots) {
++				if (!root) continue;
++				try {
++					const value = root[name];
++					if (typeof value !== 'undefined') return value;
++				} catch (error) {
++					// A bridged root can reject access; try the next root without logging data.
++				}
++			}
++			return undefined;
++		},
++
+ 		isBuffer: function (obj) {
+ 			return obj instanceof ArrayBuffer || ArrayBuffer.isView(obj);
+ 		},
+@@ -137,6 +161,10 @@
+ 	godot_js_wrapper_interface_get__sig: 'ii',
+ 	godot_js_wrapper_interface_get: function (p_name) {
+ 		const name = GodotRuntime.parseString(p_name);
++		if (GodotJSWrapper.isWechatRuntime()) {
++			const target = GodotJSWrapper.resolveWechatNamedObject(name);
++			return typeof target === 'undefined' ? 0 : GodotJSWrapper.get_proxied(target);
++		}
+ 		if (typeof (window[name]) !== 'undefined') {
+ 			return GodotJSWrapper.get_proxied(window[name]);
+ 		}
+@@ -285,7 +313,9 @@
+ 	godot_js_wrapper_create_object__sig: 'iiiiiiii',
+ 	godot_js_wrapper_create_object: function (p_object, p_args, p_argc, p_convert_callback, p_exchange, p_lock, p_free_lock_callback) {
+ 		const name = GodotRuntime.parseString(p_object);
++		const wechat = GodotJSWrapper.isWechatRuntime();
++		const constructorTarget = wechat ? GodotJSWrapper.resolveWechatNamedObject(name) : undefined;
++		if (wechat ? typeof constructorTarget === 'undefined' : typeof (window[name]) === 'undefined') {
+-		if (typeof (window[name]) === 'undefined') {
+ 			return -1;
+ 		}
+ 		const convert = GodotRuntime.get_func(p_convert_callback);
+@@ -300,7 +330,7 @@
+ 			}
+ 		}
+ 		try {
++			const res = wechat ? new constructorTarget(...args) : new window[name](...args);
+-			const res = new window[name](...args);
+ 			return GodotJSWrapper.js2variant(res, p_exchange);
+ 		} catch (e) {
+ 			GodotRuntime.error(`Error calling constructor ${name} with args:`, args, 'error:', e);

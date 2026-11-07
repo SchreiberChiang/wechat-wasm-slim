@@ -1,0 +1,313 @@
+{
+  "schema": "wxslim-official-route-v1",
+  "id": "repaired-conservative-026e-return0-v1",
+  "engine": {
+    "js": {
+      "bytes": 452177,
+      "sha256": "d907a7a64f236d9e4ddc2dc9d15e20eca5fc0f5f8b7f9ebbab40af3417a33364"
+    },
+    "wasm": {
+      "bytes": 62428566,
+      "sha256": "17b079cf1b90a6a77d3737922c8dcaafb7786e9e570318b7301ce04740355cb5"
+    },
+    "sourceCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+    "librarySha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+    "emscripten": "4.0.10",
+    "profile": "conservative",
+    "globalId": "return 0",
+    "provenanceReport": "docs/FIXED_CONSERVATIVE_BUILD_20261104.md",
+    "nativeMapping": {
+      "_glxInit": "Zm",
+      "_glxInitBufferDataAndGlState": "_m",
+      "_glxUpdateContextId": "Ym",
+      "_glxCommandBufferFlush": "$m"
+    },
+    "profileIdentity": {
+      "bytes": 334,
+      "sha256": "14e9dc1a98af01974f93c77b74a151541d3831402ee028b066020229711f2699"
+    },
+    "outputs": {
+      "godot.js": {
+        "bytes": 452300,
+        "sha256": "18f6c918ca1bb532877193f34de83faca506bb1a9adc1706e5716cc187bf8ea4"
+      },
+      "godot-return0.js": {
+        "bytes": 452177,
+        "sha256": "d907a7a64f236d9e4ddc2dc9d15e20eca5fc0f5f8b7f9ebbab40af3417a33364"
+      },
+      "godot.wasm.br": {
+        "bytes": 8257310,
+        "sha256": "f39bf69a4f847d9b7eefa17213433783f6fee9f1d5ff2d48d0338d21cd2f6064"
+      },
+      "godot.wasm": {
+        "bytes": 62428566,
+        "sha256": "17b079cf1b90a6a77d3737922c8dcaafb7786e9e570318b7301ce04740355cb5"
+      },
+      "emscripten-before-godot-process.js": {
+        "bytes": 439060,
+        "sha256": "7edea5a4e8a76dbae5f485d0b353a211fd5bec91ff029c4a5906f7dd37327d2b"
+      },
+      "godot.js.symbols": {
+        "bytes": 1000818,
+        "sha256": "52026b4f923f2f67cf4d84007d5776f6d0938869993953b581502d79b154e26d"
+      }
+    },
+    "patches": [
+      {
+        "order": 1,
+        "path": "engine/alpha-preserve-lighting/baseline-shader-diagnostic.patch",
+        "sha256": "84204452f43c04ef40ad4efcdd37e132f11ea429a42d029b63f6222d3e781ee6"
+      },
+      {
+        "order": 2,
+        "path": "engine/alpha-preserve-lighting/scene-alpha-restore.patch",
+        "sha256": "24e7d2f318f87b09ad585354e4d6006e010e7c5f2de21f629e05829cfdf0a514"
+      },
+      {
+        "order": 3,
+        "path": "engine/alpha-preserve-lighting/scene-light-output.patch",
+        "sha256": "c9f371b648d8dddda224fc1e334225e376c6608bae3eefa75dd416907fadbac6"
+      },
+      {
+        "order": 4,
+        "path": "engine/alpha-preserve-lighting/scene-alpha-output.patch",
+        "sha256": "57256151a301271b360be588da88fdb503471c0b7097c0d2ea4aa637012b0fce"
+      },
+      {
+        "order": 5,
+        "path": "engine/alpha-preserve-lighting/delivery-windows-link.patch",
+        "sha256": "52065f189ef7c30e41b3ed1fd5cce106b4a259ac0b0b1f3d41bce25bdc6a5220"
+      }
+    ],
+    "semanticRecipeSha256": "ce94032d4edc8ee6dfff4a70a282baf7ec7f0404c3c70e5d932d8b0c8d89f3c6",
+    "semanticRecipe": {
+      "schema": "wxslim-fixed-build-semantics-v1",
+      "source": {
+        "repository": "https://github.com/citizenll/godot.git",
+        "commit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+        "runtimeVersion": "4.7.2.rc.custom_build.df3cdd9bc"
+      },
+      "patches": [
+        {
+          "order": 1,
+          "path": "engine/alpha-preserve-lighting/baseline-shader-diagnostic.patch",
+          "sha256": "84204452f43c04ef40ad4efcdd37e132f11ea429a42d029b63f6222d3e781ee6"
+        },
+        {
+          "order": 2,
+          "path": "engine/alpha-preserve-lighting/scene-alpha-restore.patch",
+          "sha256": "24e7d2f318f87b09ad585354e4d6006e010e7c5f2de21f629e05829cfdf0a514"
+        },
+        {
+          "order": 3,
+          "path": "engine/alpha-preserve-lighting/scene-light-output.patch",
+          "sha256": "c9f371b648d8dddda224fc1e334225e376c6608bae3eefa75dd416907fadbac6"
+        },
+        {
+          "order": 4,
+          "path": "engine/alpha-preserve-lighting/scene-alpha-output.patch",
+          "sha256": "57256151a301271b360be588da88fdb503471c0b7097c0d2ea4aa637012b0fce"
+        }
+      ],
+      "windowsLinkPatch": {
+        "path": "engine/alpha-preserve-lighting/delivery-windows-link.patch",
+        "sha256": "52065f189ef7c30e41b3ed1fd5cce106b4a259ac0b0b1f3d41bce25bdc6a5220"
+      },
+      "profile": {
+        "id": "conservative",
+        "sha256": "14e9dc1a98af01974f93c77b74a151541d3831402ee028b066020229711f2699"
+      },
+      "library": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+      "cppdefines": "",
+      "lto": "thin",
+      "ltoJobs": 8,
+      "symbols": true,
+      "toolchain": {
+        "driverNode": "9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de",
+        "pythonBase": "467014615a5255aca450ae88100dd2caf887da87657f00e3c2171ec44a685aec",
+        "sdkFiles": [
+          {
+            "path": ".emscripten",
+            "sha256": "19e1a7c839001b3f3dc528e771353460a9af3bb420360efe06517dee269bf86e"
+          },
+          {
+            "path": "upstream/emscripten/emscripten-version.txt",
+            "bytes": 10,
+            "sha256": "ca0f65b7dc4f97d03522346306ff0323f61de41cdb0c00304dd54db3111a4446"
+          },
+          {
+            "path": "upstream/emscripten/emcc.py",
+            "bytes": 37426,
+            "sha256": "4b47445c680acc3ce625312f1d279d4d50347c27661fcde9b5b904a775eae9ec"
+          },
+          {
+            "path": "upstream/emscripten/em++.py",
+            "bytes": 506,
+            "sha256": "017f735c953318fdaaa4af68c8d4bf13936a787ddbd5dad804d532b0223b6c2f"
+          },
+          {
+            "path": "upstream/bin/clang.exe",
+            "bytes": 86481920,
+            "sha256": "2139bce5bdd3ba2648e353d56d9e75654cf89c2dfed10ebfbc56a60979a86c55"
+          },
+          {
+            "path": "upstream/bin/wasm-ld.exe",
+            "bytes": 52444672,
+            "sha256": "3b6db708d4e85e592017832b1ffd245469776bbbc4d9be50d4de9a1f3171e2fc"
+          },
+          {
+            "path": "upstream/bin/wasm-opt.exe",
+            "bytes": 11606528,
+            "sha256": "7d69f7f4a46b208493ab8405309c58226b67e7905c1015069acf9001055b8a33"
+          },
+          {
+            "path": "node/24.19.0_64bit/node.exe",
+            "bytes": 92825416,
+            "sha256": "3602f2bb1a10f2cbab4c36886218a33c1ab3db87290e73b033c46c77147d0237"
+          },
+          {
+            "path": "python/3.13.3_64bit/python.exe",
+            "bytes": 105832,
+            "sha256": "d87063e5597f257004c731b66c59c56c91038861c6877b1a3dca6b8c4e919125"
+          }
+        ]
+      },
+      "args": [
+        "platform=web",
+        "target=template_release",
+        "arch=wasm32",
+        "threads=no",
+        "wasm_simd=no",
+        "dlink_enabled=no",
+        "use_wx_glx=yes",
+        "javascript_eval=yes",
+        "opengl3=yes",
+        "optimize=size",
+        "debug_symbols=no",
+        "use_closure_compiler=no",
+        "initial_memory=32",
+        "stack_size=5120",
+        "lto=thin",
+        "--jobs=<SCHEDULING>",
+        "modules_enabled_by_default=yes",
+        "build_profile=<FIXED_PROFILE>",
+        "wx_glx_lib=<EXACT_026E_LIBRARY>",
+        "linkflags=--emit-symbol-map -Wl,--thinlto-jobs=8"
+      ]
+    },
+    "modules": {
+      "enabled": [
+        "astcenc",
+        "basis_universal",
+        "bcdec",
+        "bmp",
+        "csg",
+        "dds",
+        "etcpak",
+        "freetype",
+        "gdscript",
+        "godot_physics_2d",
+        "godot_physics_3d",
+        "gridmap",
+        "hdr",
+        "interactive_music",
+        "jolt_physics",
+        "jpg",
+        "jsonrpc",
+        "ktx",
+        "mbedtls",
+        "meshoptimizer",
+        "mp3",
+        "msdfgen",
+        "multiplayer",
+        "navigation_2d",
+        "navigation_3d",
+        "noise",
+        "ogg",
+        "regex",
+        "svg",
+        "text_server_adv",
+        "tga",
+        "theora",
+        "tinyexr",
+        "visual_shader",
+        "vorbis",
+        "webp",
+        "webrtc",
+        "websocket",
+        "zip"
+      ],
+      "removedFromFull": [
+        "enet",
+        "fbx",
+        "gltf",
+        "mobile_vr",
+        "upnp",
+        "vhacd",
+        "webxr"
+      ]
+    },
+    "staticPair": {
+      "imports": 749,
+      "exports": 41,
+      "jsImportBindings": 1133
+    }
+  },
+  "pckVersion": "4.7.2",
+  "transformer": {
+    "version": "1.0.35",
+    "sha256": "f5b2d4ebbe2d077821309a455f60e397bb559ef342e51dd1b8f9a040a85e586e"
+  },
+  "plugin": {
+    "name": "WXGameKit",
+    "provider": "wxe5a48f1ed5f544b7",
+    "version": "1.3.15"
+  },
+  "contextAttributes": {
+    "alpha": false,
+    "stencil": true,
+    "antialias": false,
+    "powerPreference": "high-performance"
+  },
+  "options": {
+    "renderMode": "glx",
+    "orientation": "portrait",
+    "locale": "en",
+    "name": "glx-official-simple",
+    "compat": true,
+    "splitBridge": false,
+    "loadingPage": "on",
+    "timing": false
+  },
+  "interface": "assets/simple-delivery-interface.js",
+  "limits": [
+    "Fixed registered conservative pair only; old full pins unchanged",
+    "Project must explicitly declare all seven removed modules unused for exact PCK bytes; declaration is not an automatic dependency scan",
+    "No engine execution or device acceptance inferred from static checks",
+    "Portable exact pair does not claim a fresh build re-audit",
+    "New PCK content requires separate game/interface and device acceptance"
+  ],
+  "registration": {
+    "schema": "wxslim-official-engine-registration-v1",
+    "taskId": "7ab90ae9-8b5c-4ae3-a942-d774f4123fba",
+    "profile": "conservative",
+    "build": {
+      "bytes": 317688,
+      "sha256": "86ad1a1044f6386b2b631545993f397e1892db9dee7a55bb38e960332619a978"
+    },
+    "terminal": "SUCCESS",
+    "independentAdmissionStatus": "BUILD_AND_STATIC_AUDIT_PASS_RUNTIME_NOT_RUN",
+    "independentAdmission": {
+      "bytes": 1400,
+      "sha256": "4d6cc153378af539bb1795d65ac5d4509d28bda31a0afdbf49611f5ffa1d5dca"
+    },
+    "initialBuildRecordReaudited": true,
+    "portablePairBuildRecordReaudited": false,
+    "wholeCacheFingerprint": {
+      "bytes": 412259346,
+      "count": 1882,
+      "sha256": "b98ce49719c896a9a0d3efb840febdea0ee2679428b69a27fb4593f26a66f889"
+    },
+    "scope": "First registration used independently audited fixed build; portable exact prebuilt checks do not reopen historical build directories or infer runtime acceptance"
+  }
+}
