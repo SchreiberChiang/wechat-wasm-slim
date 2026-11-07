@@ -57,6 +57,9 @@ var _export_hint: Label
 var _open_hint: Label
 var _log: TextEdit
 var _notice: AcceptDialog
+var _lower: VBoxContainer
+var _lock_note: Label
+var _target: Control = self
 
 func _state_directory() -> String:
 	if FileAccess.file_exists(INSTALL_LOCATOR):
@@ -78,14 +81,25 @@ func _ready() -> void:
 	_notice = AcceptDialog.new()
 	_notice.title = "新版面板预览"
 	add_child(_notice)
-	_build_status_card()
+	var title := Label.new()
+	title.text = "微信小游戏导出（新版预览）"
+	title.add_theme_font_size_override("font_size", 16)
+	add_child(title)
 	_build_settings()
+	_build_status_card()
+	_lock_note = _label("先在上方选好模板、输出目录并填写 AppID，点「保存设置」后，下面的功能才能使用。", self)
+	_lock_note.add_theme_color_override("font_color", STATUS_COLOR.implemented)
+	_lower = VBoxContainer.new()
+	_lower.add_theme_constant_override("separation", 8)
+	add_child(_lower)
+	_target = _lower
 	_build_actions()
 	_build_resources()
 	_build_capabilities()
 	_build_advanced()
 	_build_log()
 	_apply_draft_to_controls()
+	_settings.folded = _settings_ready()
 	_refresh()
 
 # ---------- 数据 ----------
@@ -150,7 +164,7 @@ func _section(title: String, folded: bool) -> Array:
 	var box := FoldableContainer.new()
 	box.title = title
 	box.folded = folded
-	add_child(box)
+	_target.add_child(box)
 	var body := VBoxContainer.new()
 	body.add_theme_constant_override("separation", 6)
 	box.add_child(body)
@@ -177,10 +191,6 @@ func _build_status_card() -> void:
 	add_child(card)
 	var body := VBoxContainer.new()
 	card.add_child(body)
-	var title := Label.new()
-	title.text = "微信小游戏导出（新版预览）"
-	title.add_theme_font_size_override("font_size", 16)
-	body.add_child(title)
 	_engine_line = _label("", body)
 	_appid_line = _label("", body)
 	_output_line = _label("", body)
@@ -317,7 +327,7 @@ func _build_settings() -> void:
 
 func _build_actions() -> void:
 	var box := VBoxContainer.new()
-	add_child(box)
+	_target.add_child(box)
 	_export_button = Button.new()
 	_export_button.text = "导出并转换"
 	_export_button.custom_minimum_size.y = 34
@@ -494,7 +504,33 @@ func _save_settings() -> void:
 	_saved = _draft.duplicate()
 	if _write_settings():
 		_log_line("设置已保存。" + ("之前的转换结果不再适用，需要重新导出并转换。" if changed_build else ""))
+	if _settings_ready():
+		_settings.folded = true
 	_refresh()
+
+func _settings_ready() -> bool:
+	return not _saved.template.is_empty() and not _saved.output.is_empty() and _appid_valid(_saved.appid)
+
+func _set_locked(node: Node, locked: bool) -> void:
+	for child in node.get_children():
+		if child is Control:
+			if locked:
+				if not child.has_meta("wx_lock"):
+					child.set_meta("wx_lock", [child.mouse_filter, child.focus_mode])
+				child.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				child.focus_mode = Control.FOCUS_NONE
+			elif child.has_meta("wx_lock"):
+				var original: Array = child.get_meta("wx_lock")
+				child.mouse_filter = original[0]
+				child.focus_mode = original[1]
+				child.remove_meta("wx_lock")
+		_set_locked(child, locked)
+
+func _settings_summary() -> String:
+	var parts := PackedStringArray([TEMPLATES.get(_saved.template, "?"), "竖屏" if _saved.orientation == "portrait" else "横屏", "GLX" if _saved.glx else "WebGL"])
+	if _saved.skipPrewarm:
+		parts.append("跳过预热")
+	return "  ·  ".join(parts)
 
 func _preview_only(action: String) -> void:
 	_notice.dialog_text = "「%s」在预览版只检查前置条件，尚未接入执行。\n实际导出请暂用旧面板「微信导出·本地开发」。" % action
@@ -552,7 +588,16 @@ func _refresh() -> void:
 	_output_line.text = "输出：" + (_saved.output if not _saved.output.is_empty() else "未选择")
 
 	var settings_dirty := _settings_dirty()
-	_settings.title = "设置" + ("  ● 未保存" if settings_dirty else "")
+	var settings_ok := _settings_ready()
+	if settings_dirty:
+		_settings.title = "① 设置  ● 未保存"
+	elif settings_ok:
+		_settings.title = "① 设置：" + _settings_summary()
+	else:
+		_settings.title = "① 设置（必填，未完成）"
+	_lock_note.visible = not settings_ok
+	_lower.modulate = Color(1, 1, 1, 1.0 if settings_ok else 0.4)
+	_set_locked(_lower, not settings_ok)
 	_settings_save.disabled = not settings_dirty
 	_settings_discard.disabled = not settings_dirty
 	var resource_dirty := _resource_dirty()
