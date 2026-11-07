@@ -1,0 +1,86 @@
+{
+  "schema": "wxslim-quick-flow-same-package-acceptance-v1",
+  "at": "2026-11-07T11:38:21Z",
+  "status": "PASS_DEVTOOLS_WEBGL2_AND_IOS_GLX_FIRST_OPEN_USER_VISUAL",
+  "route": {
+    "command": "node wxslim.mjs quick run GAME --write --open",
+    "sourceCommit": "17d1124",
+    "steps": ["project-pck-export", "official-convert", "assemble-devtools-device", "open-devtools"],
+    "wallSeconds": 51,
+    "game": "examples/simple (copied to a scratch directory before export)"
+  },
+  "packageId": "wxslim-9eccd6fdf8e0eb408f7f",
+  "parentPackageId": "wxslim-2a6c7b156e33e7af122b",
+  "acceptancePolicy": {
+    "devtools": "webgl",
+    "device": "glx",
+    "capabilityFailure": "error",
+    "telemetry": "local-only",
+    "assemblerSha256": "2559b14c4ea993536b6076185602e9f408f99181f9f4650ce8ec5c70dbd9f2b3"
+  },
+  "pins": {
+    "engineJs": "54a18a0d5022979420a968f84616757f73cbdd2f0f36a94050e36a776ed1cf1e",
+    "wasm": "5dfe6064bc773569ad782eca8e07688c6d4a3f57fe590a5af2e730811da5fe16",
+    "pck": {"bytes": 5404, "sha256": "5eafd9620587e9b542e4c6a0e0aedde1e9ed6b531634c98a74a317df30d04dba"},
+    "exportPlanSha256": "ee33e2099e8002b93bc2b1b2ef5ffa68975870b3e36880a98d3758d6db606c14",
+    "framework": {"bytes": 489801, "sha256": "8ac1e02b8dfcd27a0779fc0c34d568ee7e05b60e938d7693dbb65bc988ab2332"},
+    "frameworkDevtools": {"bytes": 489803, "sha256": "6a684521c96e8670454ca20de005faabe52c5fdb65ba59067c2331791da6c5c7"},
+    "renderConfig": {"bytes": 3847, "sha256": "8c6b3fdfa7e49fb83cf911eab9c5065b72ee696c3a8411d4918c64daca30fb30"},
+    "interfaces": {"bytes": 3455, "sha256": "e028ac21e94fb4b92d5118066f6fd605145c00fe8dcb8ccc908e1a604a362be4"},
+    "payload": {"files": 35, "bytes": 10494851},
+    "engineProfile": "full-official-c050-capability-dev",
+    "locale": "zh_CN",
+    "transformer": "1.0.35",
+    "wxGameKit": "1.3.15"
+  },
+  "observations": [
+    {
+      "environment": "WeChat developer tools simulator (Windows, lib 3.17.5, env 2.02.2609250)",
+      "session": "mw6bshjt-uptxt32s",
+      "requestedMode": "webgl",
+      "actualContext": {"mode": "webgl", "webgl2": true},
+      "capabilityPresent": false,
+      "initialization": "initialized",
+      "failureReason": null,
+      "markers": ["SIMPLE_READY modeMatches=true", "SIMPLE_SCENE created", "WXSLIM_BOOT MAIN_RETURNED"],
+      "startupMs": 12139,
+      "callMainMs": 6235,
+      "nonFatalMessages": ["ScriptProcessorNode deprecation", "WX.ReportGameStart development hint"],
+      "userVisual": "normal",
+      "log": "console pasted by the user in chat; not preserved as a file"
+    },
+    {
+      "environment": "phone",
+      "device": {"model": "iPhone 16 Pro<iPhone17,1>", "system": "iOS 18.3.1", "wechatVersion": "8.0.75", "SDKVersion": "3.17.6", "benchmarkLevel": 41},
+      "session": "mw6bxedw-2whvp1hl",
+      "requestedMode": "glx",
+      "actualContext": {"mode": "glx", "webgl2": true},
+      "capabilityPresent": true,
+      "native": {"glxInit": "returned", "glxInitBufferDataAndGlState": "returned", "glxUpdateContextId": "returned x2"},
+      "moduleContextMatches": true,
+      "initialization": "initialized",
+      "failureReason": null,
+      "markers": ["当前为 EmscriptenGLX 渲染方案", "SIMPLE_READY modeMatches=true", "SIMPLE_SCENE created", "WXSLIM_BOOT MAIN_RETURNED", "SIMPLE_LIFECYCLE show"],
+      "startupMs": 25216,
+      "callMainMs": 20911,
+      "nonFatalMessages": [
+        "4x WARNING: Image format RGBAFloat not supported by hardware, converting to RGBAHalf (texture_storage.cpp:734); WeChat reports each as WXGameWASMLaunchException ReportType 6",
+        "high-performance mode without code subpackages development hint"
+      ],
+      "userVisual": "normal",
+      "log": {"file": "vconsole_1794051475625.log (WeChat vConsole export, kept outside the repository)", "sha256": "cad7c03a7d4bfbff93e6bf7728d6bc945b186ee1d775283892804b9335cd5c2e"}
+    }
+  ],
+  "findings": [
+    "The plain GLX package (parent) stops by design in the desktop devtools with WXSLIM_GLX_CAPABILITY_UNAVAILABLE; the same-package preview is required for desktop viewing.",
+    "iOS callMain took 20.9 s versus 6.2 s in devtools; cause not measured (default 3D prewarm on the full pair is a suspect)."
+  ],
+  "unverified": [
+    "Android for this package",
+    "background / foreground recovery, input, audio, storage, network",
+    "startup time cause and any optimisation",
+    "the parent GLX-only package wxslim-2a6c7b156e33e7af122b on a device",
+    "any game other than examples/simple",
+    "general production admission"
+  ]
+}
