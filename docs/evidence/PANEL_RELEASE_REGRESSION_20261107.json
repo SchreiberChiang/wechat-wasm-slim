@@ -14,21 +14,58 @@
     "releaseJsonSha256": "8843b50da3a87daea4772fb23625f32fe92cbd0ff7a0752caaad3602b888fea8",
     "runtimeFilesClosure": "all static imports of the 315 listed runtime files are listed"
   },
-  "tests": {"total": 366, "pass": 313, "fail": 14, "failNote": "same 14 pre-existing failures that need external inputs (OFFICIAL_CAPTURE_RAW_DIR etc.)"},
+  "tests": {
+    "total": 366,
+    "pass": 313,
+    "fail": 14,
+    "failNote": "same 14 pre-existing failures that need external inputs (OFFICIAL_CAPTURE_RAW_DIR etc.)"
+  },
   "blankGame": {
     "project": "new Node2D blank project in a scratch directory, Web preset copied from examples/simple",
     "install": "node install.mjs GAME GODOT_4.7.2 -> state under LOCALAPPDATA/Godot/WxSlim/projects (outside the game)",
     "editorLoad": "godot --headless --editor with plugin enabled: no script errors",
     "route": "same request files and quick-adapter.mjs the panel launches, driven by a script (no GUI clicks)",
     "plan": "ready, no blockers",
-    "run1": {"status": "SUCCESS", "seconds": 49, "devtoolsPackageId": "wxslim-ee1e8e77b1ef7577ca7a", "convertPackageId": "wxslim-7b36fe9b48c77d384a86"},
-    "run2": {"status": "SUCCESS", "seconds": 49, "devtoolsPackageId": "wxslim-85f532fc2969e391850f", "convertPackageId": "wxslim-7b36fe9b48c77d384a86", "newRunDirectory": true},
-    "pck": {"bytes": 2016, "sha256": "1ae265fe26c4e6b491af4e3c186b373b95ec39869fffba2b6f49fba5a7132c0d", "identicalAcrossRuns": true,
-      "entries": [".godot/exported/.../main.scn", ".godot/global_script_class_cache.cfg", ".godot/uid_cache.bin", "main.tscn.remap", "project.binary"],
-      "editorFiles": "none; addon paths appear only as references inside uid_cache.bin and project.binary"},
-    "open": {"status": "SUCCESS", "cliExitCode": 0, "appIdFieldsChanged": 0, "visual": "NOT_VERIFIED"},
+    "run1": {
+      "status": "SUCCESS",
+      "seconds": 49,
+      "devtoolsPackageId": "wxslim-ee1e8e77b1ef7577ca7a",
+      "convertPackageId": "wxslim-7b36fe9b48c77d384a86"
+    },
+    "run2": {
+      "status": "SUCCESS",
+      "seconds": 49,
+      "devtoolsPackageId": "wxslim-85f532fc2969e391850f",
+      "convertPackageId": "wxslim-7b36fe9b48c77d384a86",
+      "newRunDirectory": true
+    },
+    "pck": {
+      "bytes": 2016,
+      "sha256": "1ae265fe26c4e6b491af4e3c186b373b95ec39869fffba2b6f49fba5a7132c0d",
+      "identicalAcrossRuns": true,
+      "entries": [
+        ".godot/exported/.../main.scn",
+        ".godot/global_script_class_cache.cfg",
+        ".godot/uid_cache.bin",
+        "main.tscn.remap",
+        "project.binary"
+      ],
+      "editorFiles": "none; addon paths appear only as references inside uid_cache.bin and project.binary"
+    },
+    "open": {
+      "status": "SUCCESS",
+      "cliExitCode": 0,
+      "appIdFieldsChanged": 0,
+      "visual": "USER_CONFIRMED_NORMAL_IN_DEVTOOLS"
+    },
     "existingOutput": "re-planning run1's export and convert requests: both TASK_REJECTED, possibleSideEffects NONE",
-    "cancel": {"status": "CANCELLED", "seconds": 13, "step": "convert", "accepted": true, "terminal": "CANCELLED / TASK_CANCELLED"},
+    "cancel": {
+      "status": "CANCELLED",
+      "seconds": 13,
+      "step": "convert",
+      "accepted": true,
+      "terminal": "CANCELLED / TASK_CANCELLED"
+    },
     "taskLogsInGame": 0
   },
   "sourceCancelChecks": [
@@ -40,8 +77,18 @@
     "devtools preview package id differs between otherwise identical runs: wx-game-kit config.json convertPluginVersion is a converter timestamp (202611071257 vs 1258) and is included in the preview identity; the converted parent package id is stable"
   ],
   "notVerified": [
-    "clicking the panel in the Godot GUI (save settings, export, cancel button, open) - only the transport and script parse/load were exercised",
-    "devtools picture and real device for this release's package ids",
+    "real device for this release's package ids",
     "2D/custom templates and subpackages (still only in the old dock)"
-  ]
+  ],
+  "userGuiCheck": {
+    "at": "2026-11-07",
+    "by": "user",
+    "result": "PASS",
+    "steps": [
+      "save settings in the 微信导出 dock",
+      "export and convert, then Cancel: run stopped, cancelled run directory kept (by design, no rollback)",
+      "full run succeeded",
+      "open in devtools: picture normal"
+    ]
+  }
 }
