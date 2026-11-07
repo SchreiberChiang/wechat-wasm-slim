@@ -9,10 +9,10 @@ import {prepareCustomPairTask, executeCustomPairTask, CUSTOM_PAIR_CONFIG, CUSTOM
 import {planCustomProjectUsage} from '../convert/lib/custom-project-usage.mjs';
 import {readPreparedSource} from '../convert/lib/official-custom-context.mjs';
 
-const [recipe, rawArg, pckArg, workArg, confirmation, ...extra] = process.argv.slice(2);
+const [recipe, rawArg, pckArg, workArg, confirmation, example, ...extra] = process.argv.slice(2);
 assert(['full','conservative','pure-2d'].includes(recipe) && rawArg && pckArg && workArg &&
-  confirmation === '--confirm-game-features' && !extra.length,
-  'Usage: node offline/verify-rebuilt.mjs full|conservative|pure-2d RAW_TASK STARTUP.pck NEW_WORK --confirm-game-features');
+  confirmation === '--confirm-game-features' && (example === undefined || example === '--verify-example-edit') && !extra.length,
+  'Usage: node offline/verify-rebuilt.mjs full|conservative|pure-2d RAW_TASK STARTUP.pck NEW_WORK --confirm-game-features [--verify-example-edit]');
 const source = fileURLToPath(new URL('../',import.meta.url));
 const raw = fs.realpathSync(rawArg), pck = fs.realpathSync(pckArg);
 const work = path.resolve(workArg);
@@ -47,7 +47,31 @@ assert.equal(features.dimensions,custom?'2d':'3d');
 const usage = planCustomProjectUsage(features,fs.readFileSync(pck));
 const wasm = path.join(build.plan.artifactRoot || path.join(raw,'artifacts'),'godot.wasm');
 const digest = b => createHash('sha256').update(b).digest('hex');
-assert.equal(digest(fs.readFileSync(wasm)),prepared.summary.inputs.wasm.sha256);
+const rebuiltWasm = fs.readFileSync(wasm);
+assert.equal(digest(rebuiltWasm),prepared.summary.inputs.wasm.sha256);
+let sourceEdit;
+if (example) {
+  const originalText = 'GODOT_WECHAT_LIFECYCLE_MAIN_LOOP_NOT_READY';
+  const editedText = originalText + ': notification skipped';
+  const lock = load(path.join(source,'packaging/vendor-lock.json'));
+  const relative = lock.pairs[recipe].wasm;
+  const original = fs.readFileSync(path.join(source,'offline/vendor',relative));
+  const originalSha256 = digest(original);
+  assert.deepEqual({bytes:original.length, sha256:originalSha256}, lock.files[relative]);
+  assert.notEqual(originalSha256, prepared.summary.inputs.wasm.sha256, 'Rebuilt WASM matches the historical WASM');
+  for (const [bytes, expected, excluded] of [[original,originalText,editedText], [rebuiltWasm,editedText,originalText]]) {
+    assert(bytes.subarray(0,8).equals(Buffer.from([0,97,115,109,1,0,0,0])));
+    assert(bytes.includes(Buffer.from(expected+'\0')) && !bytes.includes(Buffer.from(excluded+'\0')),
+      'Expected a distinct compiled diagnostic in each WASM');
+  }
+  const cpp = 'platform/web/display_server_web.cpp';
+  const preparedCpp = fs.readFileSync(path.join(build.plan.source,cpp));
+  const exampleCppSha256 = '5106bed52d17bacba8b8b0d3e5ce498e4cc4cd598ea986ae0fea38f8108aec56';
+  assert.equal(digest(preparedCpp),exampleCppSha256,'The materialized C++ source differs from the example patch');
+  assert(preparedCpp.includes(Buffer.from('WARN_PRINT_ONCE("'+editedText+'");')));
+  sourceEdit = {cpp,cppSha256:exampleCppSha256,originalWasmSha256:originalSha256,
+    rebuiltWasmSha256:prepared.summary.inputs.wasm.sha256,compiledDiagnostic:editedText};
+}
 await prepared.recheck();
 const output = path.join(work,'wechat');
 save('convert.json',{schema:'wxslim-official-inputs-v1',engineProfile:CUSTOM_PAIR_PROFILE,
@@ -75,7 +99,7 @@ for(const entry of audit.files){
   assert.equal(digest(fs.readFileSync(file)),entry.sha256,entry.path);
 }
 const summary = {recipe,rawTaskId:terminal.taskId,wasm:prepared.summary.inputs.wasm,packageId:audit.packageId,
-  files:audit.files.length,pck:usage.declaration.pck,sourceAudit:review.status,runtime:'NOT_RUN'};
+  files:audit.files.length,pck:usage.declaration.pck,sourceAudit:review.status,...(sourceEdit ? {sourceEdit} : {}),runtime:'NOT_RUN'};
 save('result.json',summary);
 console.log(JSON.stringify(summary));
 
