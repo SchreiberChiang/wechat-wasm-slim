@@ -20,8 +20,11 @@ const CATEGORIES := [
 
 var _saved := {}
 var _draft := {}
-var _resource_saved := {"enabled": false, "pack": ""}
-var _resource_draft := {"enabled": false, "pack": ""}
+var _resource_saved := {"scenes": []}
+var _resource_draft := {"scenes": []}
+var _resource_list: VBoxContainer
+var _subpackage_buttons := {}
+var _subpackage_note: Label
 var _detection_confirmed := false
 var _capabilities := {}
 var _loading := false
@@ -47,7 +50,6 @@ var _output: LineEdit
 var _custom_box: VBoxContainer
 var _settings_save: Button
 var _settings_discard: Button
-var _resource_enabled: CheckBox
 var _resource_pack: LineEdit
 var _resource_save: Button
 var _resource_discard: Button
@@ -72,7 +74,7 @@ func _workbench_directory() -> String:
 	return ProjectSettings.globalize_path("res://")
 
 func _default_settings() -> Dictionary:
-	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "appid": "", "gameName": "", "output": ""}
+	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "subpackages": "none", "appid": "", "gameName": "", "output": ""}
 
 func _ready() -> void:
 	add_theme_constant_override("separation", 8)
@@ -296,6 +298,10 @@ func _build_settings() -> void:
 	choose.pressed.connect(func(): dir_picker.popup_centered_ratio(0.7))
 	output_row.add_child(choose)
 
+	_label("资源分包", body)
+	_radio_group(body, [["none", "不分包"], ["scenes", "分包（按场景延后下载）"]], _subpackage_buttons, "subpackages")
+	_subpackage_note = _label("", body, true)
+
 	_label("设置保存位置", body)
 	_storage = OptionButton.new()
 	for item in STORAGE:
@@ -342,40 +348,37 @@ func _build_actions() -> void:
 	_open_hint = _label("", box, true)
 
 func _build_resources() -> void:
-	var parts := _section("资源分包（可选）", true)
+	var parts := _section("② 分包场景", false)
 	_resources = parts[0]
 	var body: VBoxContainer = parts[1]
-	_label("游戏较大、需要按场景分包时使用。改动后须保存，否则不能导出并转换。", body, true)
-	_resource_enabled = CheckBox.new()
-	_resource_enabled.text = "本游戏启用资源分包"
-	_resource_enabled.toggled.connect(func(on: bool):
-		if not _loading:
-			_resource_draft.enabled = on
-			_refresh()
+	_label("每个选中的场景单独成为一个分包，进入该场景前再下载。启动场景和共用资源留在首包。改动后须保存。", body, true)
+	var pick := Button.new()
+	pick.text = "选择要延后下载的场景…"
+	body.add_child(pick)
+	var picker := FileDialog.new()
+	picker.file_mode = FileDialog.FILE_MODE_OPEN_FILES
+	picker.access = FileDialog.ACCESS_RESOURCES
+	picker.filters = PackedStringArray(["*.tscn,*.scn ; 场景"])
+	picker.files_selected.connect(func(paths: PackedStringArray):
+		var scenes: Array = _resource_draft.scenes.duplicate()
+		for path in paths:
+			if not scenes.has(path):
+				scenes.append(path)
+		_resource_draft.scenes = scenes
+		_refresh()
 	)
-	body.add_child(_resource_enabled)
-	_resource_pack = LineEdit.new()
-	_resource_pack.placeholder_text = "资源包名（演示字段）"
-	_resource_pack.text_changed.connect(func(value: String):
-		if not _loading:
-			_resource_draft.pack = value
-			_refresh()
-	)
-	body.add_child(_resource_pack)
-	var steps := ["1 读取 PCK 清单", "2 声明条目归属", "3 填写运行时依赖", "4 接入加载脚本", "5 资源接口计划", "6 最终组包"]
-	for step in steps:
-		var button := Button.new()
-		button.text = step
-		button.disabled = true
-		button.tooltip_text = "下一版接入；目前请用旧面板。"
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		body.add_child(button)
+	add_child(picker)
+	pick.pressed.connect(func(): picker.popup_centered_ratio(0.7))
+	_resource_list = VBoxContainer.new()
+	body.add_child(_resource_list)
+	_label("导出并转换时自动完成：接入加载脚本（写游戏工程前单独确认）→ 导出 → 拆包 → 生成接口 → 转换 → 组包。", body, true)
+	_label("游戏代码需要在切换到这些场景前调用 WxResource.load_pack(\"包名\")。", body, true)
 	var row := HBoxContainer.new()
 	body.add_child(row)
 	_resource_save = Button.new()
 	_resource_save.text = "保存分包设置"
 	_resource_save.pressed.connect(func():
-		_resource_saved = _resource_draft.duplicate()
+		_resource_saved = _resource_draft.duplicate(true)
 		_log_line("资源分包设置已保存（预览，仅本次编辑器会话）。")
 		_refresh()
 	)
@@ -383,11 +386,7 @@ func _build_resources() -> void:
 	_resource_discard = Button.new()
 	_resource_discard.text = "放弃改动"
 	_resource_discard.pressed.connect(func():
-		_resource_draft = _resource_saved.duplicate()
-		_loading = true
-		_resource_enabled.button_pressed = _resource_draft.enabled
-		_resource_pack.text = _resource_draft.pack
-		_loading = false
+		_resource_draft = _resource_saved.duplicate(true)
 		_refresh()
 	)
 	row.add_child(_resource_discard)
@@ -468,6 +467,8 @@ func _apply_draft_to_controls() -> void:
 		_template_buttons[key].button_pressed = key == _draft.template
 	for key in _orientation_buttons.keys():
 		_orientation_buttons[key].button_pressed = key == _draft.orientation
+	for key in _subpackage_buttons.keys():
+		_subpackage_buttons[key].button_pressed = key == _draft.subpackages
 	_glx.button_pressed = _draft.glx
 	_prewarm.button_pressed = _draft.skipPrewarm
 	_appid.text = _draft.appid
@@ -546,8 +547,10 @@ func _missing_for_export() -> Array:
 		missing.append(["AppID 未填写并保存", "appid"])
 	if _settings_dirty():
 		missing.append(["设置有未保存改动", "save"])
-	if _resource_dirty():
-		missing.append(["资源分包有未保存改动", "resources"])
+	if _saved.subpackages == "scenes" and _resource_saved.scenes.is_empty():
+		missing.append(["分包场景未选择并保存", "resources"])
+	if _saved.subpackages == "scenes" and _resource_dirty():
+		missing.append(["分包场景有未保存改动", "resources"])
 	if _saved.template == "custom" and not _detection_confirmed:
 		missing.append(["自定义模板未完成检测", "template"])
 	return missing
@@ -601,7 +604,10 @@ func _refresh() -> void:
 	_settings_save.disabled = not settings_dirty
 	_settings_discard.disabled = not settings_dirty
 	var resource_dirty := _resource_dirty()
-	_resources.title = "资源分包（可选）" + ("  ● 未保存" if resource_dirty else "")
+	_resources.title = "② 分包场景" + ("  ● 未保存" if resource_dirty else "（%d 个）" % _resource_saved.scenes.size())
+	_resources.visible = _saved.subpackages == "scenes"
+	_subpackage_note.text = "选「分包」并保存设置后，下方会出现「② 分包场景」，只需勾选要延后下载的场景。" if _draft.subpackages == "scenes" else "游戏全部内容放在首包里。"
+	_render_resource_list()
 	_resource_save.disabled = not resource_dirty
 	_resource_discard.disabled = not resource_dirty
 
@@ -629,6 +635,7 @@ func _refresh() -> void:
 	_open_hint.text = "还差：" + "、".join(PackedStringArray(open_missing.map(func(m): return m[0])))
 
 	for child in _missing_box.get_children():
+		child.get_parent().remove_child(child)
 		child.queue_free()
 	if not export_missing.is_empty():
 		var label := Label.new()
@@ -640,6 +647,71 @@ func _refresh() -> void:
 			link.text = item[0]
 			link.pressed.connect(_focus_missing.bind(item[1]))
 			_missing_box.add_child(link)
+
+func _pack_id(scene: String) -> String:
+	var base := scene.get_file().get_basename().to_lower()
+	var regex := RegEx.create_from_string("[^a-z0-9_-]")
+	base = regex.sub(base, "_", true)
+	return base if not base.is_empty() and base[0] >= "a" and base[0] <= "z" else "pack_" + base
+
+func _dependency_closure(path: String, seen: Dictionary) -> void:
+	if seen.has(path) or not ResourceLoader.exists(path):
+		return
+	seen[path] = true
+	for entry in ResourceLoader.get_dependencies(path):
+		var dep: String = entry.get_slice("::", entry.get_slice_count("::") - 1) if entry.contains("::") else entry
+		if dep.begins_with("uid://"):
+			dep = ResourceUID.uid_to_path(dep)
+		if dep.begins_with("res://"):
+			_dependency_closure(dep, seen)
+
+func _render_resource_list() -> void:
+	if _resource_list == null:
+		return
+	for child in _resource_list.get_children():
+		child.get_parent().remove_child(child)
+		child.queue_free()
+	var scenes: Array = _resource_draft.scenes
+	if scenes.is_empty():
+		_label("还没有选择场景。", _resource_list, true)
+		return
+	var owners := {}
+	var closures := {}
+	for scene in scenes:
+		var seen := {}
+		_dependency_closure(scene, seen)
+		closures[scene] = seen
+		for path in seen.keys():
+			owners[path] = owners.get(path, 0) + 1
+	for scene in scenes:
+		var own := 0
+		var shared := 0
+		for path in closures[scene].keys():
+			if path == scene:
+				continue
+			if owners[path] > 1:
+				shared += 1
+			else:
+				own += 1
+		var row := HBoxContainer.new()
+		_resource_list.add_child(row)
+		var info := Label.new()
+		info.text = "%s → 分包 %s\n自动带上 %d 个依赖；%d 个与其他分包共用，将放进首包" % [scene.get_file(), _pack_id(scene), own, shared]
+		info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(info)
+		var remove := Button.new()
+		remove.text = "移除"
+		remove.pressed.connect(func():
+			var next: Array = _resource_draft.scenes.duplicate()
+			next.erase(scene)
+			_resource_draft.scenes = next
+			_refresh()
+		)
+		row.add_child(remove)
+	_label("依赖由编辑器静态分析得出，代码里用字符串动态加载的资源分析不到，需要自行确认。", _resource_list, true)
+	if not _settings_ready():
+		_set_locked(_resource_list, true)
 
 func _log_line(text: String) -> void:
 	if _log == null:
