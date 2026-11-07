@@ -47,4 +47,6 @@ $forms = Get-ChildItem editor/workbench -File -Filter '*-tests.mjs'
 node --test @($forms.FullName) tests/startup-prewarm-option-tests.mjs tests/official-c050-existing-output-tests.mjs tests/official-c050-output-contract-tests.mjs
 ```
 
+一键运行：`node tests/run-external.mjs --all`。脚本在 `../../clean-20261104` 和 `../portable-proof-01/proof`（也可用 `--root` 另指）里收集原始抓取、转换输出、引擎源码、启动 PCK 和固定 Python，对每个需外部材料的测试逐个尝试候选，由测试自己按固定指纹核验；随后用找到的材料跑全部测试。已手动设置的环境变量优先。2026-11-07 本机结果：11 个此类测试文件中 9 个通过；`official-c050-existing-output`（首次真实 c050 转换的 framework.js）和 `official-shader-glue-reference`（图形修正用的原始 godot.raw.js）两份固定原件在本机已不存在，报「未运行」。
+
 独立游戏验收时，先从 release 安装并启用，再导出简单 PCK，连续转换两次，打开开发者工具。检查导出的 PCK 没有编辑器插件脚本。确认本项目专属任务状态在游戏目录外，读取日志不会改变导出计划。前后台、存档、中文输入、音频和资源的历史真机结果只适用于原封存包。公网 HTTPS、WSS 和业务登录留待业务接入验证。

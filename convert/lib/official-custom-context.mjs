@@ -24,9 +24,16 @@ export function customConversionContext() {
 }
 
 export async function readPreparedSource(file) {
-  const stat = fs.lstatSync(file);
-  assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 65536, 'bounded preparation config required');
-  const cfg = JSON.parse(fs.readFileSync(file));
+  let cfg;
+  try {
+    const stat = fs.lstatSync(file);
+    assert(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 65536, 'bounded preparation config required');
+    cfg = JSON.parse(fs.readFileSync(file));
+  } catch {
+    // 缺失、不是普通文件或不是 JSON：与其他准备失败一样报共用错误码，什么都没有写。
+    throw Object.assign(Error('TASK_PAIR_PREPARATION_FAILED'), {code:'TASK_PAIR_PREPARATION_FAILED',
+      reason:'PAIR_CUSTOM_PREPARATION_UNREADABLE', possibleSideEffects:'NONE'});
+  }
   if (cfg.schema === portablePairSchema) return readPortablePair(file);
   if (cfg.schema === 'wxslim-rebuilt-capability-pair-v1') {
     const {readRebuiltCapabilityPair} = await import('../../engine/rebuilt-capability-pair.mjs');
