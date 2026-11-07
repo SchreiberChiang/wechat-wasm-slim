@@ -60,6 +60,8 @@ for (const root of existingRoots) {
       if (text.includes('"gitExecutable"') && text.includes('"upstreamSource"')) found.requests.push(file);
     } else if (name.endsWith('.pck') && fs.statSync(file).size < 64 * 1024 * 1024) found.pcks.push(file);
     else if (name === 'python.exe' && file.includes(`${path.sep}venv${path.sep}`)) found.pythons.push(file);
+    // 原始 JS 不一定叫 godot.raw.js（例如 emscripten-before-godot-process.js），构建产物目录里的 JS 都算候选，靠指纹筛。
+    else if (name.endsWith('.js') && path.basename(path.dirname(file)) === 'artifacts') found.rawJs.push(file);
   });
 }
 // 2D 启动 PCK 只取被历史 2D 功能声明绑定的那一份，避免把所有 PCK 都试一遍。
@@ -109,7 +111,9 @@ function runTests(files, env) {
   const out = (result.stdout || '') + (result.stderr || '');
   const count = name => Number((out.match(new RegExp(`^ℹ ${name} (\\d+)`, 'm')) || [])[1] ?? NaN);
   const firstError = (out.match(/^\s*(AssertionError[^\n]*|Error[^\n]*)/m) || [])[1] ?? '';
-  return {pass: count('pass'), fail: count('fail'), tests: count('tests'), firstError: firstError.trim().slice(0, 200)};
+  const tail = out.split(/^✖ failing tests:/m)[1] || '';
+  const failing = [...new Set(tail.split(/\r?\n/).filter(l => l.startsWith('✖ ')).map(l => l.slice(2).replace(/ \([\d.]+ms\)$/, '')))];
+  return {pass: count('pass'), fail: count('fail'), tests: count('tests'), firstError: firstError.trim().slice(0, 200), failing};
 }
 
 const python = process.env.WXSLIM_MODEL_PYTHON || found.pythons[0] || '';
@@ -147,6 +151,7 @@ if (all) {
   const outcome = runTests(files, chosen);
   report.all = {env: chosen, ...outcome};
   console.log(`\n全部测试（带上面找到的材料）：${outcome.pass} 通过，${outcome.fail} 失败，共 ${outcome.tests}`);
+  for (const name of outcome.failing) console.log('  失败：' + name);
 }
 if (jsonOut) fs.writeFileSync(jsonOut, JSON.stringify(report, null, 2) + '\n');
 const failed = report.results.filter(r => r.status !== 'PASS').length;
