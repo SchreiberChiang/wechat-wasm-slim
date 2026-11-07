@@ -1,0 +1,602 @@
+@tool
+extends VBoxContainer
+
+# 新版面板预览：只演示布局、AppID 入口和前置条件门禁，不调用适配器、不执行任务。
+# 设置草稿保存在插件本机状态目录（*.private.* 已被 .gitignore 排除）。
+
+const INSTALL_LOCATOR := "res://addons/wxslim_readonly/workbench.path"
+const SETTINGS_FILE := "panel-preview-settings.private.json"
+const APPID_PATTERN := "^wx[0-9a-f]{16}$"
+const TEMPLATES := {"full": "完整模板", "2d": "2D 模板", "custom": "自定义"}
+const STORAGE := [["project", "跟随项目（res://wxslim.json）"], ["project-local", "仅本工程本机（.godot/wxslim/）"], ["machine", "仅本电脑（插件状态目录）"]]
+const STATUS_TEXT := {"implemented": "已实现待验证", "unsupported": "不支持", "missing": "未实现", "pending": "待核查", "verified": "已验证"}
+const STATUS_COLOR := {"implemented": Color(0.95, 0.75, 0.3), "unsupported": Color(0.6, 0.6, 0.6), "missing": Color(0.9, 0.4, 0.4), "pending": Color(0.55, 0.7, 0.9), "verified": Color(0.45, 0.85, 0.5)}
+const CATEGORIES := [
+	["渲染", ["render-"]], ["输入", ["input-"]], ["音频", ["audio"]], ["网络", ["network-"]],
+	["存档与系统", ["persistent-save", "secure-random", "lifecycle-"]], ["登录", ["login-"]],
+	["导出、转换与资源", ["project-pck-export", "official-convert", "resource-"]],
+	["引擎与构建", ["engine-", "trim-", "wasm-"]], ["插件", ["plugin-", "safe-task-"]],
+]
+
+var _saved := {}
+var _draft := {}
+var _resource_saved := {"enabled": false, "pack": ""}
+var _resource_draft := {"enabled": false, "pack": ""}
+var _detection_confirmed := false
+var _capabilities := {}
+var _loading := false
+
+var _engine_line: Label
+var _appid_line: Label
+var _output_line: Label
+var _task_line: Label
+var _missing_box: HFlowContainer
+var _settings: FoldableContainer
+var _resources: FoldableContainer
+var _template_buttons := {}
+var _orientation_buttons := {}
+var _storage: OptionButton
+var _glx: CheckBox
+var _glx_status: Label
+var _prewarm: CheckBox
+var _prewarm_note: Label
+var _appid: LineEdit
+var _appid_note: Label
+var _game_name: LineEdit
+var _output: LineEdit
+var _custom_box: VBoxContainer
+var _settings_save: Button
+var _settings_discard: Button
+var _resource_enabled: CheckBox
+var _resource_pack: LineEdit
+var _resource_save: Button
+var _resource_discard: Button
+var _export_button: Button
+var _open_button: Button
+var _export_hint: Label
+var _open_hint: Label
+var _log: TextEdit
+var _notice: AcceptDialog
+
+func _state_directory() -> String:
+	if FileAccess.file_exists(INSTALL_LOCATOR):
+		return FileAccess.get_file_as_string("res://.godot/wxslim/state.path").strip_edges()
+	return ProjectSettings.globalize_path("res://")
+
+func _workbench_directory() -> String:
+	if FileAccess.file_exists(INSTALL_LOCATOR):
+		return FileAccess.get_file_as_string(INSTALL_LOCATOR).strip_edges()
+	return ProjectSettings.globalize_path("res://")
+
+func _default_settings() -> Dictionary:
+	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "appid": "", "gameName": "", "output": ""}
+
+func _ready() -> void:
+	add_theme_constant_override("separation", 8)
+	_load_capabilities()
+	_load_settings()
+	_notice = AcceptDialog.new()
+	_notice.title = "新版面板预览"
+	add_child(_notice)
+	_build_status_card()
+	_build_settings()
+	_build_actions()
+	_build_resources()
+	_build_capabilities()
+	_build_advanced()
+	_build_log()
+	_apply_draft_to_controls()
+	_refresh()
+
+# ---------- 数据 ----------
+
+func _load_capabilities() -> void:
+	var file := _workbench_directory().path_join("../../lib/capabilities.json").simplify_path()
+	var data = JSON.parse_string(FileAccess.get_file_as_string(file)) if FileAccess.file_exists(file) else null
+	if data is Dictionary and data.get("capabilities") is Array:
+		for item in data.capabilities:
+			if item is Dictionary and item.get("id") is String:
+				_capabilities[item.id] = item
+
+func _load_settings() -> void:
+	_saved = _default_settings()
+	var file := _state_directory().path_join(SETTINGS_FILE)
+	if FileAccess.file_exists(file):
+		var data = JSON.parse_string(FileAccess.get_file_as_string(file))
+		if data is Dictionary:
+			for key in _saved.keys():
+				if data.has(key) and typeof(data[key]) == typeof(_saved[key]):
+					_saved[key] = data[key]
+	_draft = _saved.duplicate()
+
+func _write_settings() -> bool:
+	var file := FileAccess.open(_state_directory().path_join(SETTINGS_FILE), FileAccess.WRITE)
+	if file == null:
+		_log_line("设置保存失败：无法写入插件状态目录。")
+		return false
+	file.store_string(JSON.stringify(_saved, "\t") + "\n")
+	file.close()
+	return true
+
+func _appid_valid(value: String) -> bool:
+	var regex := RegEx.create_from_string(APPID_PATTERN)
+	return regex.search(value) != null
+
+func _mask_appid(value: String) -> String:
+	return value.left(6) + "…" + value.right(4) if value.length() > 10 else value
+
+func _settings_dirty() -> bool:
+	return _draft != _saved
+
+func _resource_dirty() -> bool:
+	return _resource_draft != _resource_saved
+
+func _capability_status(id: String) -> String:
+	var item: Dictionary = _capabilities.get(id, {})
+	return str(item.get("status", "pending"))
+
+# ---------- 界面 ----------
+
+func _label(text: String, parent: Control, dim := false) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if dim:
+		label.modulate = Color(1, 1, 1, 0.65)
+	parent.add_child(label)
+	return label
+
+func _section(title: String, folded: bool) -> Array:
+	var box := FoldableContainer.new()
+	box.title = title
+	box.folded = folded
+	add_child(box)
+	var body := VBoxContainer.new()
+	body.add_theme_constant_override("separation", 6)
+	box.add_child(body)
+	return [box, body]
+
+func _radio_group(parent: Control, items: Array, store: Dictionary, key: String) -> void:
+	var group := ButtonGroup.new()
+	var row := HFlowContainer.new()
+	parent.add_child(row)
+	for item in items:
+		var radio := CheckBox.new()
+		radio.text = item[1]
+		radio.button_group = group
+		radio.toggled.connect(func(on: bool):
+			if on and not _loading:
+				_draft[key] = item[0]
+				_on_draft_changed()
+		)
+		row.add_child(radio)
+		store[item[0]] = radio
+
+func _build_status_card() -> void:
+	var card := PanelContainer.new()
+	add_child(card)
+	var body := VBoxContainer.new()
+	card.add_child(body)
+	var title := Label.new()
+	title.text = "微信小游戏导出（新版预览）"
+	title.add_theme_font_size_override("font_size", 16)
+	body.add_child(title)
+	_engine_line = _label("", body)
+	_appid_line = _label("", body)
+	_output_line = _label("", body)
+	_task_line = _label("任务：空闲（预览版不执行任务）", body)
+	_missing_box = HFlowContainer.new()
+	body.add_child(_missing_box)
+
+func _build_settings() -> void:
+	var parts := _section("设置", false)
+	_settings = parts[0]
+	var body: VBoxContainer = parts[1]
+
+	_label("模板", body)
+	_radio_group(body, [["full", "完整模板"], ["2d", "2D 模板"], ["custom", "自定义…"]], _template_buttons, "template")
+	_custom_box = VBoxContainer.new()
+	body.add_child(_custom_box)
+	_label("自定义需要重新编译引擎。先一键检测游戏没用到的功能，再确认裁剪项。", _custom_box, true)
+	var detect := Button.new()
+	detect.text = "一键检测可裁剪功能（尚未实现）"
+	detect.disabled = true
+	detect.tooltip_text = "现有代码没有自动扫描能力；见 docs/面板简化需求.md 第 5 节。"
+	_custom_box.add_child(detect)
+
+	_label("屏幕方向", body)
+	_radio_group(body, [["portrait", "竖屏"], ["landscape", "横屏"]], _orientation_buttons, "orientation")
+
+	_glx = CheckBox.new()
+	_glx.text = "启用 GLX 渲染（取消则用 WebGL 电脑对照）"
+	_glx.toggled.connect(func(on: bool):
+		if not _loading:
+			_draft.glx = on
+			_on_draft_changed()
+	)
+	body.add_child(_glx)
+	_glx_status = _label("", body, true)
+
+	_prewarm = CheckBox.new()
+	_prewarm.text = "跳过默认 3D 预热"
+	_prewarm.toggled.connect(func(on: bool):
+		if not _loading:
+			_draft.skipPrewarm = on
+			_on_draft_changed()
+	)
+	body.add_child(_prewarm)
+	_prewarm_note = _label("", body, true)
+
+	_label("AppID", body)
+	var appid_row := HBoxContainer.new()
+	body.add_child(appid_row)
+	_appid = LineEdit.new()
+	_appid.placeholder_text = "wx 开头，共 18 位"
+	_appid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_appid.text_changed.connect(func(value: String):
+		if not _loading:
+			_draft.appid = value.strip_edges()
+			_on_draft_changed()
+	)
+	appid_row.add_child(_appid)
+	var read_config := Button.new()
+	read_config.text = "从 project.config.json 读取…"
+	appid_row.add_child(read_config)
+	var picker := FileDialog.new()
+	picker.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	picker.access = FileDialog.ACCESS_FILESYSTEM
+	picker.filters = PackedStringArray(["project.config.json ; 小游戏工程配置"])
+	picker.file_selected.connect(_read_appid_from)
+	add_child(picker)
+	read_config.pressed.connect(func(): picker.popup_centered_ratio(0.7))
+	_appid_note = _label("", body, true)
+
+	_label("游戏名", body)
+	_game_name = LineEdit.new()
+	_game_name.placeholder_text = "显示在开发者工具中的名称"
+	_game_name.text_changed.connect(func(value: String):
+		if not _loading:
+			_draft.gameName = value
+			_on_draft_changed()
+	)
+	body.add_child(_game_name)
+
+	_label("小游戏输出目录", body)
+	var output_row := HBoxContainer.new()
+	body.add_child(output_row)
+	_output = LineEdit.new()
+	_output.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_output.placeholder_text = "选择一个已存在的目录"
+	_output.text_changed.connect(func(value: String):
+		if not _loading:
+			_draft.output = value.strip_edges()
+			_on_draft_changed()
+	)
+	output_row.add_child(_output)
+	var dir_picker := FileDialog.new()
+	dir_picker.file_mode = FileDialog.FILE_MODE_OPEN_DIR
+	dir_picker.access = FileDialog.ACCESS_FILESYSTEM
+	dir_picker.dir_selected.connect(func(value: String):
+		_output.text = value
+		_output.text_changed.emit(value)
+	)
+	add_child(dir_picker)
+	var choose := Button.new()
+	choose.text = "选择…"
+	choose.pressed.connect(func(): dir_picker.popup_centered_ratio(0.7))
+	output_row.add_child(choose)
+
+	_label("设置保存位置", body)
+	_storage = OptionButton.new()
+	for item in STORAGE:
+		_storage.add_item(item[1])
+		_storage.set_item_metadata(_storage.item_count - 1, item[0])
+	_storage.item_selected.connect(func(index: int):
+		if not _loading:
+			_draft.storage = str(_storage.get_item_metadata(index))
+			_on_draft_changed()
+	)
+	body.add_child(_storage)
+	_label("预览版统一保存在插件本机状态目录；三种位置的实际读写在正式版实现。", body, true)
+
+	var buttons := HBoxContainer.new()
+	body.add_child(buttons)
+	_settings_save = Button.new()
+	_settings_save.text = "保存设置"
+	_settings_save.pressed.connect(_save_settings)
+	buttons.add_child(_settings_save)
+	_settings_discard = Button.new()
+	_settings_discard.text = "放弃改动"
+	_settings_discard.pressed.connect(func():
+		_draft = _saved.duplicate()
+		_apply_draft_to_controls()
+		_log_line("已放弃设置改动。")
+		_refresh()
+	)
+	buttons.add_child(_settings_discard)
+
+func _build_actions() -> void:
+	var box := VBoxContainer.new()
+	add_child(box)
+	_export_button = Button.new()
+	_export_button.text = "导出并转换"
+	_export_button.custom_minimum_size.y = 34
+	_export_button.pressed.connect(func(): _preview_only("导出并转换"))
+	box.add_child(_export_button)
+	_export_hint = _label("", box, true)
+	_open_button = Button.new()
+	_open_button.text = "在微信开发者工具中打开"
+	_open_button.custom_minimum_size.y = 34
+	_open_button.pressed.connect(func(): _preview_only("在开发者工具中打开"))
+	box.add_child(_open_button)
+	_open_hint = _label("", box, true)
+
+func _build_resources() -> void:
+	var parts := _section("资源分包（可选）", true)
+	_resources = parts[0]
+	var body: VBoxContainer = parts[1]
+	_label("游戏较大、需要按场景分包时使用。改动后须保存，否则不能导出并转换。", body, true)
+	_resource_enabled = CheckBox.new()
+	_resource_enabled.text = "本游戏启用资源分包"
+	_resource_enabled.toggled.connect(func(on: bool):
+		if not _loading:
+			_resource_draft.enabled = on
+			_refresh()
+	)
+	body.add_child(_resource_enabled)
+	_resource_pack = LineEdit.new()
+	_resource_pack.placeholder_text = "资源包名（演示字段）"
+	_resource_pack.text_changed.connect(func(value: String):
+		if not _loading:
+			_resource_draft.pack = value
+			_refresh()
+	)
+	body.add_child(_resource_pack)
+	var steps := ["1 读取 PCK 清单", "2 声明条目归属", "3 填写运行时依赖", "4 接入加载脚本", "5 资源接口计划", "6 最终组包"]
+	for step in steps:
+		var button := Button.new()
+		button.text = step
+		button.disabled = true
+		button.tooltip_text = "下一版接入；目前请用旧面板。"
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		body.add_child(button)
+	var row := HBoxContainer.new()
+	body.add_child(row)
+	_resource_save = Button.new()
+	_resource_save.text = "保存分包设置"
+	_resource_save.pressed.connect(func():
+		_resource_saved = _resource_draft.duplicate()
+		_log_line("资源分包设置已保存（预览，仅本次编辑器会话）。")
+		_refresh()
+	)
+	row.add_child(_resource_save)
+	_resource_discard = Button.new()
+	_resource_discard.text = "放弃改动"
+	_resource_discard.pressed.connect(func():
+		_resource_draft = _resource_saved.duplicate()
+		_loading = true
+		_resource_enabled.button_pressed = _resource_draft.enabled
+		_resource_pack.text = _resource_draft.pack
+		_loading = false
+		_refresh()
+	)
+	row.add_child(_resource_discard)
+
+func _build_capabilities() -> void:
+	var parts := _section("功能支持", true)
+	var body: VBoxContainer = parts[1]
+	if _capabilities.is_empty():
+		_label("没有读到 lib/capabilities.json。", body, true)
+		return
+	_label("状态来自能力清单，只代表实现情况；设备验收以证据范围为准。", body, true)
+	var used := {}
+	for category in CATEGORIES:
+		var items := []
+		for id in _capabilities.keys():
+			if used.has(id):
+				continue
+			for prefix in category[1]:
+				if str(id).begins_with(prefix):
+					items.append(id)
+					used[id] = true
+					break
+		if items.is_empty():
+			continue
+		var heading := Label.new()
+		heading.text = category[0]
+		heading.add_theme_font_size_override("font_size", 15)
+		body.add_child(heading)
+		for id in items:
+			_capability_row(body, _capabilities[id])
+	var rest := []
+	for id in _capabilities.keys():
+		if not used.has(id):
+			rest.append(id)
+	if not rest.is_empty():
+		var heading := Label.new()
+		heading.text = "其他"
+		body.add_child(heading)
+		for id in rest:
+			_capability_row(body, _capabilities[id])
+
+func _capability_row(parent: Control, item: Dictionary) -> void:
+	var status := str(item.get("status", "pending"))
+	var row := HBoxContainer.new()
+	parent.add_child(row)
+	var dot := Label.new()
+	dot.text = "●"
+	dot.add_theme_color_override("font_color", STATUS_COLOR.get(status, Color.WHITE))
+	row.add_child(dot)
+	var name_label := Label.new()
+	name_label.text = "%s · %s" % [item.get("name", item.get("id")), STATUS_TEXT.get(status, status)]
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(name_label)
+	var limit := _label(str(item.get("limit", "")), parent, true)
+	limit.add_theme_font_size_override("font_size", 12)
+
+func _build_advanced() -> void:
+	var parts := _section("高级", true)
+	var body: VBoxContainer = parts[1]
+	_label("自建引擎构建：给维护者用，需要固定 SDK、补丁配方和大型编译。预览版不提供入口，请用旧面板。", body, true)
+	_label("打开已有任务（原「手动任务」）：用来查看、执行或取消命令行或上次会话创建的任务。日常流程由面板自动跟踪，不需要它。预览版请用旧面板。", body, true)
+
+func _build_log() -> void:
+	var parts := _section("日志", true)
+	var body: VBoxContainer = parts[1]
+	_log = TextEdit.new()
+	_log.editable = false
+	_log.custom_minimum_size.y = 120
+	_log.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
+	body.add_child(_log)
+
+# ---------- 行为 ----------
+
+func _apply_draft_to_controls() -> void:
+	_loading = true
+	for key in _template_buttons.keys():
+		_template_buttons[key].button_pressed = key == _draft.template
+	for key in _orientation_buttons.keys():
+		_orientation_buttons[key].button_pressed = key == _draft.orientation
+	_glx.button_pressed = _draft.glx
+	_prewarm.button_pressed = _draft.skipPrewarm
+	_appid.text = _draft.appid
+	_game_name.text = _draft.gameName
+	_output.text = _draft.output
+	for index in _storage.item_count:
+		if _storage.get_item_metadata(index) == _draft.storage:
+			_storage.select(index)
+	_loading = false
+
+func _on_draft_changed() -> void:
+	_refresh()
+
+func _read_appid_from(path: String) -> void:
+	var data = JSON.parse_string(FileAccess.get_file_as_string(path))
+	var value := str(data.get("appid", "")) if data is Dictionary else ""
+	if not _appid_valid(value):
+		_appid_note.text = "这个文件里没有可用的 AppID。"
+		return
+	_appid.text = value
+	_appid.text_changed.emit(value)
+	_log_line("已从 %s 读取 AppID，保存设置后生效。" % path.get_file())
+
+func _save_settings() -> void:
+	if not _draft.appid.is_empty() and not _appid_valid(_draft.appid):
+		_appid_note.text = "AppID 格式不对，未保存。"
+		_settings.folded = false
+		_appid.grab_focus()
+		return
+	var changed_build := false
+	for key in ["template", "orientation", "glx", "skipPrewarm", "appid"]:
+		if _draft[key] != _saved[key]:
+			changed_build = true
+	_saved = _draft.duplicate()
+	if _write_settings():
+		_log_line("设置已保存。" + ("之前的转换结果不再适用，需要重新导出并转换。" if changed_build else ""))
+	_refresh()
+
+func _preview_only(action: String) -> void:
+	_notice.dialog_text = "「%s」在预览版只检查前置条件，尚未接入执行。\n实际导出请暂用旧面板「微信导出·本地开发」。" % action
+	_notice.popup_centered()
+
+func _missing_for_export() -> Array:
+	var missing := []
+	if _saved.template.is_empty():
+		missing.append(["未选模板", "template"])
+	if _saved.output.is_empty():
+		missing.append(["未选输出目录", "output"])
+	if not _appid_valid(_saved.appid):
+		missing.append(["AppID 未填写并保存", "appid"])
+	if _settings_dirty():
+		missing.append(["设置有未保存改动", "save"])
+	if _resource_dirty():
+		missing.append(["资源分包有未保存改动", "resources"])
+	if _saved.template == "custom" and not _detection_confirmed:
+		missing.append(["自定义模板未完成检测", "template"])
+	return missing
+
+func _missing_for_open() -> Array:
+	var missing := []
+	if _saved.template.is_empty():
+		missing.append(["未选模板", "template"])
+	if not _appid_valid(_saved.appid):
+		missing.append(["AppID 未填写并保存", "appid"])
+	missing.append(["当前设置还没有转换成功的输出", "export"])
+	return missing
+
+func _focus_missing(target: String) -> void:
+	match target:
+		"resources":
+			_resources.folded = false
+			_resource_save.grab_focus()
+		"export":
+			_export_button.grab_focus()
+		_:
+			_settings.folded = false
+			match target:
+				"appid":
+					_appid.grab_focus()
+				"output":
+					_output.grab_focus()
+				"save":
+					_settings_save.grab_focus()
+				_:
+					var first: CheckBox = _template_buttons.get("full")
+					first.grab_focus()
+
+func _refresh() -> void:
+	var template_name: String = TEMPLATES.get(_saved.template, "未选模板")
+	_engine_line.text = "引擎：" + template_name + ("（引擎文件由安装版自动提供）" if _saved.template in ["full", "2d"] else "")
+	_appid_line.text = "AppID：" + (_mask_appid(_saved.appid) + " ✓" if _appid_valid(_saved.appid) else "未设置")
+	_output_line.text = "输出：" + (_saved.output if not _saved.output.is_empty() else "未选择")
+
+	var settings_dirty := _settings_dirty()
+	_settings.title = "设置" + ("  ● 未保存" if settings_dirty else "")
+	_settings_save.disabled = not settings_dirty
+	_settings_discard.disabled = not settings_dirty
+	var resource_dirty := _resource_dirty()
+	_resources.title = "资源分包（可选）" + ("  ● 未保存" if resource_dirty else "")
+	_resource_save.disabled = not resource_dirty
+	_resource_discard.disabled = not resource_dirty
+
+	_custom_box.visible = _draft.template == "custom"
+	var glx_status := _capability_status("render-glx" if _draft.glx else "render-webgl")
+	_glx_status.text = ("GLX 渲染" if _draft.glx else "WebGL 对照") + "：" + STATUS_TEXT.get(glx_status, glx_status)
+	if _draft.template == "full":
+		_prewarm.disabled = true
+		_prewarm_note.text = "完整模板的引擎启动时固定预热，跳过需要重建引擎。"
+	else:
+		_prewarm.disabled = false
+		_prewarm_note.text = "是否生效以所选引擎为准，待核实。"
+	if _draft.appid.is_empty():
+		_appid_note.text = "转换前必须填写并保存。只检查格式，不代表微信后台有效。"
+	elif not _appid_valid(_draft.appid):
+		_appid_note.text = "格式应为 wx 加 16 位小写十六进制。"
+	else:
+		_appid_note.text = "格式正确。" + ("尚未保存。" if _draft.appid != _saved.appid else "")
+
+	var export_missing := _missing_for_export()
+	var open_missing := _missing_for_open()
+	_export_button.disabled = not export_missing.is_empty()
+	_export_hint.text = "可以开始。" if export_missing.is_empty() else "还差：" + "、".join(PackedStringArray(export_missing.map(func(m): return m[0])))
+	_open_button.disabled = not open_missing.is_empty()
+	_open_hint.text = "还差：" + "、".join(PackedStringArray(open_missing.map(func(m): return m[0])))
+
+	for child in _missing_box.get_children():
+		child.queue_free()
+	if not export_missing.is_empty():
+		var label := Label.new()
+		label.text = "还差："
+		label.add_theme_color_override("font_color", STATUS_COLOR.missing)
+		_missing_box.add_child(label)
+		for item in export_missing:
+			var link := LinkButton.new()
+			link.text = item[0]
+			link.pressed.connect(_focus_missing.bind(item[1]))
+			_missing_box.add_child(link)
+
+func _log_line(text: String) -> void:
+	if _log == null:
+		return
+	_log.text += Time.get_time_string_from_system() + "  " + text + "\n"
