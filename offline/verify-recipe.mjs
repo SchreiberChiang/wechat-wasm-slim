@@ -7,8 +7,10 @@ import {createHash} from 'node:crypto';
 import {inspectPck} from '../lib/pck-inventory.mjs';
 
 const [recipe, toolsArg, releaseArg, workArg, ...extra] = process.argv.slice(2);
-assert(['full','conservative','pure-2d'].includes(recipe) && toolsArg && releaseArg && workArg && !extra.length,
-  'Usage: node offline/verify-recipe.mjs full|conservative|pure-2d TOOLS RELEASE NEW_WORK');
+assert(['full','conservative','pure-2d'].includes(recipe) && toolsArg && releaseArg && workArg &&
+  (!extra.length || (extra.length===2 && extra[0]==='--rebuilt-preparation' && extra[1])),
+  'Usage: node offline/verify-recipe.mjs full|conservative|pure-2d TOOLS RELEASE NEW_WORK [--rebuilt-preparation FILE]');
+const rebuiltPreparation = extra.length ? fs.realpathSync(extra[1]) : '';
 const source = fileURLToPath(new URL('../',import.meta.url));
 const tools = fs.realpathSync(toolsArg), release = fs.realpathSync(releaseArg), work = path.resolve(workArg);
 function within(root, file) {
@@ -35,7 +37,8 @@ function sha(file){return createHash('sha256').update(fs.readFileSync(file)).dig
 fs.cpSync(path.join(source,'examples/simple'),game,{recursive:true,filter:file=>!['.godot','.git'].includes(path.basename(file))});
 const settings={schema:'wxslim-quick-settings-v1',template:recipe==='pure-2d'?'2d':recipe,
   glx:true,orientation:'portrait',output:runs,devtoolsPreview:false,gameName:'GLX-'+recipe,
-  confirmRemovedModules:recipe==='conservative',confirmNo3d:recipe==='pure-2d'};
+  confirmRemovedModules:recipe==='conservative',confirmNo3d:recipe==='pure-2d',
+  ...(rebuiltPreparation ? {rebuiltPreparation} : {})};
 fs.writeFileSync(path.join(game,'wxslim-export.json'),JSON.stringify(settings,null,2),{flag:'wx'});
 call('install',node,[path.join(release,'install.mjs'),game,editor,'--state-root',path.join(work,'state')]);
 const project=path.join(game,'project.godot');
@@ -43,7 +46,13 @@ assert(!fs.readFileSync(project,'utf8').includes('[editor_plugins]'),'Expected a
 fs.appendFileSync(project,'\n[editor_plugins]\nenabled=PackedStringArray("res://addons/wxslim_readonly/plugin.cfg")\n');
 call('import',editor,['--headless','--path',game,'--log-file',path.join(logs,'godot.log'),'--import']);
 const options=[game,'--editor',editor,'--release',release];
-assert.equal(JSON.parse(call('plan',node,[cli,'quick','plan',...options])).ready,true);
+const plan = JSON.parse(call('plan',node,[cli,'quick','plan',...options]));
+assert.equal(plan.ready,true);
+if (rebuiltPreparation) {
+  const config = JSON.parse(fs.readFileSync(rebuiltPreparation,'utf8'));
+  assert.equal(plan.rebuiltEngine.taskId,config.rawTaskId);
+  assert.equal(plan.rebuiltEngine.pair,recipe);
+}
 const result=JSON.parse(call('run',node,[cli,'quick','run',...options,'--write']));
 assert.equal(result.status,'SUCCESS');
 assert(within(runs,result.run));
@@ -62,17 +71,22 @@ for(const entry of audit.files){
   assert.equal(sha(file),entry.sha256,entry.path);
 }
 let pairAudit;
-if(recipe!=='full'){
+if(recipe!=='full' || rebuiltPreparation){
   const proof=env.WXSLIM_PAIR_PROOF || path.join(path.dirname(release),'proof');
-  const location=fs.realpathSync(path.join(proof,recipe+'.json'));
+  const location=rebuiltPreparation || fs.realpathSync(path.join(proof,recipe+'.json'));
   const config=JSON.parse(fs.readFileSync(path.join(result.run,'requests/convert-config.json'),'utf8'));
   assert.equal(path.relative(location,fs.realpathSync(config.customPreparation)),'','Unexpected proof selected');
+  if (rebuiltPreparation) {
+    assert.equal(sha(config.wasm),plan.rebuiltEngine.wasmSha256);
+    assert.equal(config.projectUsage.pck.sha256,sha(pck));
+  }
   pairAudit=JSON.parse(call('pair-review',node,[path.join(release,'runtime/convert/official.mjs'),
     'custom-output-audit',location,output]));
   assert.equal(pairAudit.status,'PASS_SOURCE_STATIC_ONLY');
   assert(pairAudit.sourceBuildReaudited && pairAudit.sevenRulesPreserved && pairAudit.hostBridgeExact);
 }
 const evidence={recipe,packageId:audit.packageId,files:audit.files.length,pckSha256:sha(pck),resources,
-  sourceAudit:pairAudit?.status,phone:'NOT_RUN',networkServices:'NOT_RUN'};
+  sourceAudit:pairAudit?.status,...(rebuiltPreparation ? {rebuiltEngine:plan.rebuiltEngine} : {}),
+  phone:'NOT_RUN',networkServices:'NOT_RUN'};
 fs.writeFileSync(path.join(work,'result.json'),JSON.stringify(evidence,null,2)+'\n',{flag:'wx'});
 console.log(JSON.stringify(evidence));

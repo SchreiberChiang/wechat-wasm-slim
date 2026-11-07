@@ -66,6 +66,26 @@ test('a timestamp collision never adds a result to a run owned by another caller
   assert.deepEqual(fs.readdirSync(run), []);
 });
 
+test('a missing or failed rebuilt source blocks both panel actions before any output', async () => {
+  const f = fixture({rebuiltPreparation:'review/preparation.json'});
+  const review = path.join(f.project,'review'), raw = path.join(review,'raw');
+  fs.mkdirSync(raw,{recursive:true});
+  const taskId = '3cc52e62-3086-4559-b050-e1dbff9d94a6';
+  for (const code of ['QUICK_REBUILT_CONFIG','QUICK_REBUILT_TASK']) {
+    const plan = await quickPlan(f.options);
+    const run = await quickRun(f.options);
+    assert.equal(plan.ready,false);
+    assert.equal(run.status,'BLOCKED');
+    assert.equal(run.writes,'NONE');
+    for (const result of [plan,run]) assert(result.blockers.some(b => b.field==='rebuiltPreparation' && b.code===code));
+    assert.deepEqual(fs.readdirSync(f.output),[]);
+    if (code==='QUICK_REBUILT_CONFIG') {
+      fs.writeFileSync(path.join(review,'preparation.json'),JSON.stringify({schema:'wxslim-rebuilt-capability-pair-v1',rawTaskRoot:'raw',rawTaskId:taskId}));
+      fs.writeFileSync(path.join(raw,'terminal.json'),JSON.stringify({status:'FAILED',taskId}));
+    }
+  }
+});
+
 test('conservative settings expose seven removals and require a PCK-specific confirmation', () => {
   const {confirmations} = templateRequirements('conservative');
   assert.equal(confirmations[0].removed3d, false);
