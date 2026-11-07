@@ -831,6 +831,12 @@ func _refresh() -> void:
 	_render_scene_list()
 	var glx_status := _capability_status("render-glx" if _draft.glx else "render-webgl")
 	_glx_status.text = ("GLX 渲染" if _draft.glx else "WebGL 对照") + "：" + STATUS_TEXT.get(glx_status, glx_status)
+	# 完整模板不能跳过预热：切到完整模板时自动取消勾选，而不是留下一个勾着但点不动的选项。
+	if _draft.template == "full" and _draft.skipPrewarm:
+		_draft.skipPrewarm = false
+		_loading = true
+		_prewarm.button_pressed = false
+		_loading = false
 	_prewarm.disabled = _draft.template == "full"
 	_prewarm_note.text = "完整模板启动时固定预热，跳过需重建引擎。" if _draft.template == "full" else "是否生效以所选引擎为准，待核实。"
 	if _draft.appid.is_empty():
