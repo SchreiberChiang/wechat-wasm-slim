@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   normalizeQuickSettings, settingsBlockers, findWebPresets, projectName, runName, resolveQuickInputs,
-  quickPlan, quickRun, exportPayload, convertPayload, QUICK_SETTINGS_SCHEMA, SIMPLE_INTERFACES,
+  quickPlan, quickRun, exportPayload, convertPayload, resolveMainScene, QUICK_SETTINGS_SCHEMA, SIMPLE_INTERFACES,
 } from '../lib/quick-flow.mjs';
 import {runQuickCli} from '../lib/quick-cli.mjs';
 import {taskPlanIdentity} from '../lib/task-core.mjs';
@@ -29,11 +29,11 @@ function fixture(overrides = {}) {
     pairs: {full: {profile: 'full-official-c050-capability-dev', js: 'engines/full/godot.prepared.js', wasm: 'engines/full/godot.wasm', requiresPreparedSource: false}},
   }));
   for (const file of ['engines/full/godot.prepared.js', 'engines/full/godot.wasm', 'tools/wx-transformer-v1.0.35-win.exe']) fs.writeFileSync(path.join(release, file), 'x');
-  fs.writeFileSync(path.join(project, 'project.godot'), '[application]\nconfig/name="小测试"\n');
+  fs.writeFileSync(path.join(project, 'project.godot'), '[application]\nconfig/name="小测试"\nrun/main_scene="res://main.tscn"\n');
   fs.writeFileSync(path.join(project, 'export_presets.cfg'), PRESETS);
   const editor = path.join(root, 'godot.exe');
   fs.writeFileSync(editor, 'x');
-  const settings = {schema: QUICK_SETTINGS_SCHEMA, template: 'full', orientation: 'landscape', glx: true, output, ...overrides};
+  const settings = {schema: QUICK_SETTINGS_SCHEMA, template: 'full', orientation: 'landscape', glx: true, devtoolsPreview: false, output, ...overrides};
   fs.writeFileSync(path.join(project, 'wxslim-export.json'), JSON.stringify(settings));
   return {root, release, project, output, editor, options: {project, editor, release, now: NOW}};
 }
@@ -74,13 +74,14 @@ test('settings: schema, unknown fields and types are rejected; defaults fill the
   assert.equal(value.template, 'full');
   assert.equal(value.orientation, 'portrait');
   assert.equal(value.glx, true);
-  assert.equal(value.locale, 'en');
+  assert.equal(value.locale, 'zh_CN');
+  assert.equal(value.devtoolsPreview, true);
 });
 
 test('blockers: unsupported combinations are named instead of silently downgraded', () => {
   const out = fs.mkdtempSync(path.join(os.tmpdir(), 'wxslim-quick-out-'));
   temporary.push(out);
-  const base = normalizeQuickSettings({schema: QUICK_SETTINGS_SCHEMA, template: 'full', output: out});
+  const base = normalizeQuickSettings({schema: QUICK_SETTINGS_SCHEMA, template: 'full', output: out, devtoolsPreview: false});
   assert.deepEqual(settingsBlockers(base), []);
   const codes = s => settingsBlockers({...base, ...s}).map(b => b.code);
   assert.deepEqual(codes({template: ''}), ['QUICK_TEMPLATE_MISSING']);
@@ -198,6 +199,51 @@ test('run: --open without an AppID source is blocked before anything is written'
   assert.deepEqual(result.blockers.map(b => b.code), ['QUICK_OPEN_NEEDS_APPID_SOURCE']);
   assert.deepEqual(fs.readdirSync(f.output), []);
   assert.deepEqual(service.calls, []);
+});
+
+test('preview: GLX preview needs an AppID source, zh_CN and a main scene', async () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'wxslim-quick-out-'));
+  temporary.push(out);
+  const base = normalizeQuickSettings({schema: QUICK_SETTINGS_SCHEMA, template: 'full', output: out});
+  assert.deepEqual(settingsBlockers(base).map(b => b.code), ['QUICK_PREVIEW_NEEDS_APPID_SOURCE']);
+  assert.deepEqual(settingsBlockers({...base, glx: false}).map(b => b.code), [], 'WebGL needs no preview package');
+  const source = path.join(out, 'project.config.json');
+  fs.writeFileSync(source, '{}');
+  assert.deepEqual(settingsBlockers({...base, appidFrom: source, locale: 'en'}).map(b => b.code), ['QUICK_PREVIEW_LOCALE']);
+  assert.equal(resolveMainScene(out, 'run/main_scene="res://a/b.tscn"\n'), 'res://a/b.tscn');
+  fs.mkdirSync(path.join(out, 'levels'));
+  fs.writeFileSync(path.join(out, 'levels', 'start.tscn'), '[gd_scene format=3 uid="uid://abc123"]\n');
+  assert.equal(resolveMainScene(out, 'run/main_scene="uid://abc123"\n'), 'res://levels/start.tscn');
+  assert.equal(resolveMainScene(out, '[application]\n'), '');
+});
+
+test('preview: run assembles the same-package preview and opens it without rewriting the AppID', async () => {
+  const f = fixture();
+  const appidFrom = path.join(f.root, 'project.config.json');
+  fs.writeFileSync(appidFrom, '{}');
+  const settingsFile = path.join(f.project, 'wxslim-export.json');
+  fs.writeFileSync(settingsFile, JSON.stringify({...JSON.parse(fs.readFileSync(settingsFile, 'utf8')), devtoolsPreview: true, appidFrom}));
+  const assembled = [], opened = [];
+  const assemble = args => {
+    assembled.push(args);
+    const mini = path.join(args.output, 'minigame');
+    fs.mkdirSync(mini, {recursive: true});
+    fs.writeFileSync(path.join(mini, 'project.config.json'), '{}');
+    return {packageId: 'wxslim-preview', parent: 'wxslim-parent', files: 3, bytes: 10};
+  };
+  const result = await quickRun(f.options, {service: fakeService(), assemble, openProject: (file, from) => { opened.push([file, from]); return {}; }});
+  assert.equal(result.status, 'SUCCESS', JSON.stringify(result.error));
+  assert.equal(assembled.length, 1);
+  assert.equal(assembled[0].convertOutput, path.join(result.run, 'wechat'));
+  assert.equal(assembled[0].output, path.join(result.run, 'devtools'));
+  assert.equal(assembled[0].appidFrom, appidFrom);
+  const packs = JSON.parse(fs.readFileSync(assembled[0].packsFile, 'utf8'));
+  assert.equal(packs.packs.length, 1);
+  assert.equal(packs.packs[0].role, 'boot');
+  assert.equal(packs.packs[0].entryScene, 'res://main.tscn');
+  assert.equal(packs.packs[0].file, path.join(result.run, 'pck', 'full.pck'));
+  assert.equal(result.steps.devtools.packageId, 'wxslim-preview');
+  assert.deepEqual(opened, [[path.join(result.run, 'devtools', 'minigame', 'project.config.json'), '']]);
 });
 
 test('run: blocked settings write nothing', async () => {
