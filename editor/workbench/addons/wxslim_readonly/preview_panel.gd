@@ -1,7 +1,7 @@
 @tool
 extends VBoxContainer
 
-# 新版面板预览：只演示布局、AppID 入口和前置条件门禁，不调用适配器、不执行任务。
+# 新版面板：设置、门禁，并通过 quick-adapter.mjs 调用快速流程（导出并转换、打开、取消）。
 # 设置草稿保存在插件本机状态目录（*.private.* 已被 .gitignore 排除）。
 #
 # 布局：顶栏（标题 + 保存/放弃）固定；中间滚动区是三个可折叠设置组，组标题直接显示当前取值；
@@ -280,7 +280,7 @@ func _build_header() -> void:
 	var row := HBoxContainer.new()
 	add_child(row)
 	var title := Label.new()
-	title.text = "微信小游戏导出（预览）"
+	title.text = "微信小游戏导出"
 	title.add_theme_font_size_override("font_size", 16)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.clip_text = true
@@ -498,8 +498,7 @@ func _build_advanced(parent: Control) -> void:
 		project_choose.pressed.connect(func(): project_picker.popup_centered_ratio(0.7))
 		project_row.add_child(project_choose)
 		_note("插件安装到游戏后，导出的就是当前打开的工程，不会显示这一项。改动后点顶部「保存设置」。", project)
-	_note("自建引擎构建：给维护者用，需要固定 SDK、补丁配方和大型编译。预览版请用旧面板。", body)
-	_note("打开已有任务（原「手动任务」）：查看、执行或取消命令行或上次会话创建的任务。日常流程由面板自动跟踪。预览版请用旧面板。", body)
+	_note("以下功能还在「微信导出·旧版（待并入）」停靠栏，接入本面板后移除旧版：2D 与自定义模板、按场景分包、自建引擎构建（维护者用）、打开已有任务（查看或取消命令行及上次会话的任务）。", body)
 
 func _build_log(parent: Control) -> void:
 	var body: VBoxContainer = _foldable("日志", parent, true)[1]
