@@ -207,7 +207,7 @@ async function executePreparedOfficialRaw(preflight){
   assert.deepEqual(json(materialization),record.materialization,'RAW_MATERIALIZATION_RECORD_CHANGED');
  };
  const sample=()=>{
-  const resources=officialRawResourceSnapshot(budgetRoot),size=measuredTree(budgetRoot),row={...resources,logicalBytes:size.bytes,transientFilesGone:size.transientGone};
+  const resources=officialRawResourceSnapshot(budgetRoot,r.sourceTransport ? r.python : undefined),size=measuredTree(budgetRoot),row={...resources,logicalBytes:size.bytes,transientFilesGone:size.transientGone};
   if(plan.controlBudgetBytes){row.controlBytes=measuredTree(work).bytes;assert(row.controlBytes<plan.controlBudgetBytes-1024*1024,'RAW_CONTROL_BUDGET_RESERVE');}
   record.samples.push(row);checkResourceHeadroom(row,{jobs:r.jobs,budgetBytes:r.budgetBytes,logicalBytes:size.bytes});return row;
  };

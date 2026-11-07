@@ -28,7 +28,7 @@ POLICY = HERE / "fixed-toolchain-cache.json"
 INPUTS = [Path(__file__).resolve(), LOCK, POLICY, HERE / "requirements-scons.lock",
           HERE / "official-cache-build.py",
           HERE / "fixed-dependency-audit.py", HERE / "official-build-preflight.mjs",
-          HERE / "fixed-build.mjs", HERE / "alpha-preserve-lighting/delivery-resources.ps1"]
+          HERE / "fixed-build.mjs", HERE / "alpha-preserve-lighting/delivery-resources.ps1", HERE / "windows-resource-counters.py"]
 
 
 def require(ok, code):
@@ -213,7 +213,7 @@ def execute(root, base_python, jobs=6, budget_bytes=8 * GIB, *, write=False, off
         require(identity(node)["sha256"] == lock["driverExecutableSha256"], "RESOURCE_NODE_IDENTITY")
         code = ("import {officialRawResourceSnapshot as snapshot} from " + json.dumps((HERE / "official-build-preflight.mjs").as_uri()) + ";"
                 "import {checkResourceHeadroom as check} from " + json.dumps((HERE / "fixed-build.mjs").as_uri()) + ";"
-                "const s=snapshot(" + json.dumps(str(root)) + ");process.stdout.write(JSON.stringify(s));"
+                "const s=snapshot(" + json.dumps(str(root)) + "," + json.dumps(str(base_python) if offline_inputs is not None else None) + ");process.stdout.write(JSON.stringify(s));"
                 "check(s," + json.dumps({"jobs": jobs, "budgetBytes": budget_bytes, "initial": initial, "logicalBytes": guard()}) + ");")
         result = subprocess.run([str(node), "--input-type=module", "-e", code], cwd=root, env=env,
                                 capture_output=True, text=True, encoding="utf8", creationflags=subprocess.CREATE_NO_WINDOW)

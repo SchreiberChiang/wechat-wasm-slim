@@ -237,6 +237,7 @@
   "engine/wechat-persistent-init.patch",
   "engine/wechat-websocket-error-privacy.patch",
   "engine/wechat-websocket-lifecycle.patch",
+  "engine/windows-resource-counters.py",
   "examples/glx-smoke/full-engine.gdbuild",
   "godot-addon/addons/wx_split/plugin.cfg",
   "godot-addon/addons/wx_split/plugin.gd",
