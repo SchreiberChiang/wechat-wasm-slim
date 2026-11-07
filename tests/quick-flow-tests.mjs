@@ -55,6 +55,17 @@ function fixture(overrides = {}) {
   return {root, release, project, output, editor, proof, options: {project, editor, release, now: NOW}};
 }
 
+test('a timestamp collision never adds a result to a run owned by another caller', async () => {
+  const f = fixture();
+  const {run} = resolveQuickInputs(f.options);
+  fs.mkdirSync(run);
+  const result = await quickRun(f.options);
+  assert.equal(result.status, 'FAILED');
+  assert.equal(result.error.code, 'QUICK_RUN_EXISTS');
+  assert.equal(result.writes, 'NONE');
+  assert.deepEqual(fs.readdirSync(run), []);
+});
+
 test('conservative settings expose seven removals and require a PCK-specific confirmation', () => {
   const {confirmations} = templateRequirements('conservative');
   assert.equal(confirmations[0].removed3d, false);
@@ -394,6 +405,19 @@ test('adapter: cancel finds the run from its start event and refuses ended or un
   assert.equal(ended.code, 'QUICK_ADAPTER_CANCEL_ENDED');
   const bad = await call('1-5', {runToken: '../x'});
   assert.equal(bad.code, 'QUICK_ADAPTER_CANCEL');
+});
+
+test('opening a finished run resolves its existing project and refuses an unfinished run', async () => {
+  const f = fixture();
+  const run = fakeRun(f.output, 'completed', {exportStatus:'SUCCESS', convertStatus:'SUCCESS'});
+  const source = path.join(f.root, 'project.config.json');
+  const launched = [];
+  const io = {stdout:{write(){}}, stderr:{write(){}}, openProject:(...args)=>{launched.push(args); return {opened:true};}};
+  assert.equal(await runQuickCli(['open', run, '--appid-from', source], io), 1);
+  assert.equal(await runQuickCli(['open', run, '--write', '--appid-from', source], io), 0);
+  const unfinished = fakeRun(f.output, 'unfinished', {exportStatus:'SUCCESS'});
+  assert.equal(await runQuickCli(['open', unfinished, '--write'], io), 1);
+  assert.deepEqual(launched, [[path.join(run,'wechat/converted/minigame/project.config.json'), source]]);
 });
 
 function fakeRun(output, name, {exportStatus, convertStatus, marker = false, preview = false, active = null} = {}) {
