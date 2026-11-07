@@ -70,6 +70,7 @@
   "editor/workbench/official-convert-request-form.mjs",
   "editor/workbench/open-project.mjs",
   "editor/workbench/payload-wire.mjs",
+  "editor/workbench/quick-adapter.mjs",
   "editor/workbench/raw-build-request-form.mjs",
   "editor/workbench/resource-config-form.mjs",
   "editor/workbench/resource-form-io.mjs",

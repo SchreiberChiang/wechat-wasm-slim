@@ -9,6 +9,8 @@ extends VBoxContainer
 
 const INSTALL_LOCATOR := "res://addons/wxslim_readonly/workbench.path"
 const SETTINGS_FILE := "panel-preview-settings.private.json"
+const LAST_RUN_FILE := "panel-preview-last-run.private.json"
+const STEP_TEXT := {"export": "导出 PCK", "convert": "官方转换", "devtools": "生成电脑预览包", "open": "打开开发者工具"}
 const APPID_PATTERN := "^wx[0-9a-f]{16}$"
 const TEMPLATES := {"full": "完整模板", "2d": "2D 模板", "custom": "自定义"}
 const STORAGE := [["project", "跟随项目（res://wxslim.json）"], ["project-local", "仅本工程本机（.godot/wxslim/）"], ["machine", "仅本电脑（插件状态目录）"]]
@@ -24,7 +26,7 @@ const CATEGORIES := [
 const GROUP_KEYS := {
 	"packing": ["template", "subpackages", "scenes"],
 	"runtime": ["orientation", "glx", "skipPrewarm"],
-	"publish": ["appid", "gameName", "output", "storage"],
+	"publish": ["appid", "appidFrom", "gameName", "output", "storage", "project"],
 }
 
 var _saved := {}
@@ -64,6 +66,12 @@ var _open_button: Button
 var _open_hint: Label
 var _log: TextEdit
 var _notice: AcceptDialog
+var _confirm: ConfirmationDialog
+var _project: LineEdit
+var _appid_source_value := ""
+var _job := {}
+var _poll_elapsed := 0.0
+var _last_run := {}
 
 func _state_directory() -> String:
 	if FileAccess.file_exists(INSTALL_LOCATOR):
@@ -76,15 +84,32 @@ func _workbench_directory() -> String:
 	return ProjectSettings.globalize_path("res://")
 
 func _default_settings() -> Dictionary:
-	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "subpackages": "none", "scenes": [], "appid": "", "gameName": "", "output": ""}
+	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "subpackages": "none", "scenes": [], "appid": "", "appidFrom": "", "gameName": "", "output": "", "project": ""}
+
+func _installed() -> bool:
+	return FileAccess.file_exists(INSTALL_LOCATOR)
+
+# 安装到游戏后导出的就是当前工程；在源码工作台里开发时由「游戏工程目录」指定。
+func _game_project() -> String:
+	return ProjectSettings.globalize_path("res://").trim_suffix("/") if _installed() else _saved.project
+
+func _config_file() -> String:
+	return _state_directory().path_join("local-config.json")
 
 func _ready() -> void:
 	add_theme_constant_override("separation", 6)
 	_load_capabilities()
 	_load_settings()
 	_notice = AcceptDialog.new()
-	_notice.title = "新版面板预览"
+	_notice.title = "微信小游戏导出"
 	add_child(_notice)
+	_confirm = ConfirmationDialog.new()
+	_confirm.title = "确认导出并转换"
+	_confirm.ok_button_text = "开始"
+	_confirm.cancel_button_text = "取消"
+	_confirm.confirmed.connect(func(): _quick_start("run"))
+	add_child(_confirm)
+	_load_last_run()
 	_build_header()
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -169,10 +194,12 @@ func _group_missing(group: String) -> Array:
 				missing.append("AppID")
 			if _draft.output.is_empty():
 				missing.append("输出目录")
+			if not _installed() and _draft.project.is_empty():
+				missing.append("游戏工程目录")
 	return missing
 
 func _settings_ready() -> bool:
-	return not _saved.template.is_empty() and not _saved.output.is_empty() and _appid_valid(_saved.appid)
+	return not _saved.template.is_empty() and not _saved.output.is_empty() and _appid_valid(_saved.appid) and (_installed() or not _saved.project.is_empty())
 
 func _capability_status(id: String) -> String:
 	var item: Dictionary = _capabilities.get(id, {})
@@ -344,6 +371,12 @@ func _build_publish(parent: Control) -> void:
 	var appid_row := HBoxContainer.new()
 	appid.add_child(appid_row)
 	_appid = _line_edit(appid_row, "wx 开头，共 18 位", "appid")
+	# 手动改动 AppID 后，之前从文件读到的来源不再对应，清掉来源记录。
+	_appid.text_changed.connect(func(value: String):
+		if not _loading and value.strip_edges() != _appid_source_value:
+			_draft.appidFrom = ""
+			_refresh()
+	)
 	var read_config := Button.new()
 	read_config.text = "从文件读取…"
 	read_config.tooltip_text = "从已有小游戏的 project.config.json 读取 AppID"
@@ -373,6 +406,25 @@ func _build_publish(parent: Control) -> void:
 	choose.text = "选择…"
 	choose.pressed.connect(func(): dir_picker.popup_centered_ratio(0.7))
 	output_row.add_child(choose)
+
+	if not _installed():
+		var project := _field("游戏工程目录（源码工作台开发用）", body, "project")
+		var project_row := HBoxContainer.new()
+		project.add_child(project_row)
+		_project = _line_edit(project_row, "含 project.godot 和 Web 导出预设的游戏目录", "project")
+		var project_picker := FileDialog.new()
+		project_picker.file_mode = FileDialog.FILE_MODE_OPEN_DIR
+		project_picker.access = FileDialog.ACCESS_FILESYSTEM
+		project_picker.dir_selected.connect(func(value: String):
+			_project.text = value
+			_project.text_changed.emit(value)
+		)
+		add_child(project_picker)
+		var project_choose := Button.new()
+		project_choose.text = "选择…"
+		project_choose.pressed.connect(func(): project_picker.popup_centered_ratio(0.7))
+		project_row.add_child(project_choose)
+		_note("插件安装到游戏后，导出的就是当前打开的工程，不会显示这一项。", project)
 
 	var game_name := _field("游戏名", body)
 	_game_name = _line_edit(game_name, "显示在开发者工具中的名称", "gameName")
@@ -465,7 +517,7 @@ func _build_footer() -> void:
 	_output_line.clip_text = true
 	body.add_child(_output_line)
 	_task_line = Label.new()
-	_task_line.text = "任务：空闲（预览版不执行任务）"
+	_task_line.text = "任务：空闲"
 	body.add_child(_task_line)
 	_missing_box = HFlowContainer.new()
 	body.add_child(_missing_box)
@@ -475,13 +527,13 @@ func _build_footer() -> void:
 	_export_button.text = "导出并转换"
 	_export_button.custom_minimum_size = Vector2(130, 32)
 	_export_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_export_button.pressed.connect(func(): _preview_only("导出并转换"))
+	_export_button.pressed.connect(func(): _quick_start("plan"))
 	row.add_child(_export_button)
 	_open_button = Button.new()
 	_open_button.text = "在开发者工具中打开"
 	_open_button.custom_minimum_size = Vector2(130, 32)
 	_open_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_open_button.pressed.connect(func(): _preview_only("在开发者工具中打开"))
+	_open_button.pressed.connect(func(): _quick_start("open"))
 	row.add_child(_open_button)
 	_open_hint = _note("", footer)
 
@@ -498,6 +550,9 @@ func _apply_draft_to_controls() -> void:
 	_glx.button_pressed = _draft.glx
 	_prewarm.button_pressed = _draft.skipPrewarm
 	_appid.text = _draft.appid
+	_appid_source_value = _draft.appid if not _draft.appidFrom.is_empty() else ""
+	if _project != null:
+		_project.text = _draft.project
 	_game_name.text = _draft.gameName
 	_output.text = _draft.output
 	for index in _storage.item_count:
@@ -511,9 +566,11 @@ func _read_appid_from(path: String) -> void:
 	if not _appid_valid(value):
 		_appid_note.text = "这个文件里没有可用的 AppID。"
 		return
+	_appid_source_value = value
+	_draft.appidFrom = path
 	_appid.text = value
 	_appid.text_changed.emit(value)
-	_log_line("已从 %s 读取 AppID，保存设置后生效。" % path.get_file())
+	_log_line("已从 %s 读取 AppID，保存设置后生效。" % path)
 
 func _save_settings() -> void:
 	if not _draft.appid.is_empty() and not _appid_valid(_draft.appid):
@@ -547,9 +604,143 @@ func _set_locked(node: Node, locked: bool) -> void:
 				child.remove_meta("wx_lock")
 		_set_locked(child, locked)
 
-func _preview_only(action: String) -> void:
-	_notice.dialog_text = "「%s」在预览版只检查前置条件，尚未接入执行。\n实际导出请暂用旧面板「微信导出·本地开发」。" % action
+# ---------- 快速流程任务 ----------
+
+func _show_notice(title: String, text: String) -> void:
+	_notice.title = title
+	_notice.dialog_text = text
 	_notice.popup_centered()
+
+func _load_last_run() -> void:
+	var file := _state_directory().path_join(LAST_RUN_FILE)
+	var data = JSON.parse_string(FileAccess.get_file_as_string(file)) if FileAccess.file_exists(file) else null
+	_last_run = data if data is Dictionary else {}
+
+func _save_last_run(result: Dictionary, settings_key: String) -> void:
+	_last_run = {"settings": settings_key, "run": result.get("run", ""), "projectConfig": result.get("projectConfig", ""),
+		"devtoolsConfig": result.get("devtoolsConfig", ""), "packageId": _package_id(result)}
+	var file := FileAccess.open(_state_directory().path_join(LAST_RUN_FILE), FileAccess.WRITE)
+	if file != null:
+		file.store_string(JSON.stringify(_last_run, "\t") + "\n")
+		file.close()
+
+# 上次成功的输出只在设置没变时可用；改过模板、方向等之后必须重新导出并转换。
+func _last_run_usable() -> bool:
+	if _last_run.is_empty() or _last_run.get("settings", "") != JSON.stringify(_saved):
+		return false
+	var target: String = _last_run.get("devtoolsConfig", "")
+	if target.is_empty():
+		target = _last_run.get("projectConfig", "")
+	return not target.is_empty() and FileAccess.file_exists(target)
+
+func _package_id(result: Dictionary) -> String:
+	var steps: Dictionary = result.get("steps", {})
+	if steps.get("devtools") is Dictionary:
+		return str(steps.devtools.get("packageId", ""))
+	if steps.get("convert") is Dictionary and steps.convert.get("outcome") is Dictionary:
+		return str(steps.convert.outcome.get("packageId", ""))
+	return ""
+
+func _quick_start(mode: String) -> void:
+	if not _job.is_empty():
+		return
+	var config = JSON.parse_string(FileAccess.get_file_as_string(_config_file())) if FileAccess.file_exists(_config_file()) else null
+	if not config is Dictionary or not FileAccess.file_exists(str(config.get("nodeExecutable", ""))):
+		_show_notice("无法开始", "没有找到插件本机配置或 Node：%s\n请先用安装版的 install.mjs 安装插件。" % _config_file())
+		return
+	var request := {}
+	if mode == "open":
+		if not _last_run_usable():
+			return
+		var target: String = _last_run.get("devtoolsConfig", "")
+		request = {"projectConfig": target if not target.is_empty() else _last_run.get("projectConfig", "")}
+	else:
+		request = {"project": _game_project(), "settings": _saved}
+	var token := "%d-%d" % [OS.get_process_id(), Time.get_ticks_usec()]
+	var logs := _state_directory().path_join("logs")
+	DirAccess.make_dir_recursive_absolute(logs)
+	var request_file := FileAccess.open(logs.path_join(token + ".quick-request.private.json"), FileAccess.WRITE)
+	if request_file == null:
+		_show_notice("无法开始", "无法写入插件日志目录：" + logs)
+		return
+	request_file.store_string(JSON.stringify(request))
+	request_file.close()
+	var adapter := _workbench_directory().path_join("quick-adapter.mjs")
+	var pid := OS.create_process(str(config.nodeExecutable), PackedStringArray([adapter, _config_file(), mode, token]), false)
+	if pid <= 0:
+		_show_notice("无法开始", "没能启动 Node 进程；没有执行任何步骤。")
+		return
+	# 记下发起时的设置：运行期间若又保存了新设置，结果只算在发起时那份设置名下。
+	_job = {"pid": pid, "mode": mode, "token": token, "started": Time.get_ticks_msec(), "settings": JSON.stringify(_saved),
+		"result": logs.path_join(token + ".quick-result.private.json"), "events": logs.path_join(token + ".quick-events.private.jsonl")}
+	_task_line.text = {"plan": "任务：正在检查…", "run": "任务：开始导出…", "open": "任务：正在打开开发者工具…"}[mode]
+	_log_line({"plan": "开始只读检查。", "run": "开始导出并转换，运行目录在输出目录下。", "open": "打开 " + str(request.get("projectConfig", ""))}[mode])
+	_poll_elapsed = 0.0
+	set_process(true)
+	_refresh()
+
+func _process(delta: float) -> void:
+	if _job.is_empty():
+		set_process(false)
+		return
+	_poll_elapsed += delta
+	if _poll_elapsed < 0.5:
+		return
+	_poll_elapsed = 0.0
+	var seconds := int((Time.get_ticks_msec() - int(_job.started)) / 1000)
+	if _job.mode == "run" and FileAccess.file_exists(_job.events):
+		var lines := FileAccess.get_file_as_string(_job.events).strip_edges().split("\n")
+		var last = JSON.parse_string(lines[lines.size() - 1]) if lines.size() > 0 and not lines[0].is_empty() else null
+		if last is Dictionary:
+			var phase := {"plan": "计划中", "execute": "进行中", "done": "完成"}.get(str(last.get("phase", "")), "")
+			_task_line.text = "任务：%s · %s（%d 秒）" % [STEP_TEXT.get(str(last.get("step", "")), ""), phase, seconds]
+	if FileAccess.file_exists(_job.result):
+		var result = JSON.parse_string(FileAccess.get_file_as_string(_job.result))
+		var job := _job
+		_job = {}
+		_on_quick_result(job, result if result is Dictionary else {})
+	elif not OS.is_process_running(int(_job.pid)):
+		_job = {}
+		_task_line.text = "任务：适配进程已退出但没有结果；请查看插件 logs。"
+		_refresh()
+
+func _on_quick_result(job: Dictionary, result: Dictionary) -> void:
+	var seconds := int((Time.get_ticks_msec() - int(job.started)) / 1000)
+	var blockers: Array = result.get("blockers", [])
+	var messages := PackedStringArray(blockers.map(func(b): return "· " + str(b.get("message", b.get("code", "")))))
+	match job.mode:
+		"plan":
+			if result.get("ready") == true:
+				var lines := PackedStringArray()
+				for step in result.get("steps", []):
+					lines.append("· %s：%s" % [step.get("title", ""), step.get("detail", "")])
+					if step.has("note"):
+						lines.append("    %s" % step.note)
+				_confirm.dialog_text = "将依次执行：\n%s\n\n每次运行使用新目录，不覆盖旧输出；任一步失败即停止，不回滚。" % "\n".join(lines)
+				_task_line.text = "任务：检查通过，等待确认"
+				_confirm.popup_centered()
+			else:
+				_task_line.text = "任务：检查未通过"
+				_show_notice("还不能导出", "\n".join(messages) if not messages.is_empty() else str(result.get("message", "检查失败")))
+		"run":
+			if result.get("status") == "SUCCESS":
+				_save_last_run(result, job.settings)
+				_task_line.text = "任务：完成（%d 秒）· 包号 %s" % [seconds, _last_run.packageId]
+				_log_line("导出并转换完成：" + str(result.get("run", "")))
+			elif result.get("status") == "BLOCKED":
+				_task_line.text = "任务：未开始"
+				_show_notice("还不能导出", "\n".join(messages))
+			else:
+				var error: Dictionary = result.get("error", {})
+				_task_line.text = "任务：失败 · %s" % str(error.get("code", result.get("code", "")))
+				_show_notice("导出并转换失败", "%s\n\n已写入的内容保留在：%s" % [str(error.get("message", result.get("message", ""))), str(result.get("run", "插件 logs"))])
+		"open":
+			if result.get("status") == "SUCCESS":
+				_task_line.text = "任务：开发者工具已打开"
+			else:
+				_task_line.text = "任务：打开失败"
+				_show_notice("打开失败", str(result.get("message", "")))
+	_refresh()
 
 func _missing_for_export() -> Array:
 	var missing := []
@@ -563,6 +754,8 @@ func _missing_for_export() -> Array:
 		missing.append(["AppID 未保存", "publish"])
 	if _saved.output.is_empty():
 		missing.append(["未选输出目录", "publish"])
+	if not _installed() and _saved.project.is_empty():
+		missing.append(["未选游戏工程目录", "publish"])
 	if _settings_dirty():
 		missing.append(["设置未保存", "save"])
 	return missing
@@ -573,7 +766,8 @@ func _missing_for_open() -> Array:
 		missing.append("未选模板")
 	if not _appid_valid(_saved.appid):
 		missing.append("AppID 未保存")
-	missing.append("当前设置还没有转换成功的输出")
+	if not _last_run_usable():
+		missing.append("当前设置还没有转换成功的输出")
 	return missing
 
 func _focus_missing(target: String) -> void:
@@ -610,7 +804,7 @@ func _refresh() -> void:
 		var marks := ("⚠ " if not missing.is_empty() else "")
 		_groups[key].title = "%s%s：%s%s" % [marks, names[key], _group_summary(key), "  ●" if _group_dirty(key) else ""]
 		_groups[key].tooltip_text = ("还差：" + "、".join(PackedStringArray(missing))) if not missing.is_empty() else ""
-	var filled := {"template": not _draft.template.is_empty(), "output": not _draft.output.is_empty(), "appid": _appid_valid(_draft.appid)}
+	var filled := {"template": not _draft.template.is_empty(), "output": not _draft.output.is_empty(), "appid": _appid_valid(_draft.appid), "project": _installed() or not _draft.project.is_empty()}
 	for key in _captions.keys():
 		if filled.get(key, true):
 			_captions[key].remove_theme_color_override("font_color")
@@ -643,8 +837,10 @@ func _refresh() -> void:
 		_appid_note.text = "转换前必填。只检查格式，不代表微信后台有效。"
 	elif not _appid_valid(_draft.appid):
 		_appid_note.text = "格式应为 wx 加 16 位小写十六进制。"
+	elif not _draft.appidFrom.is_empty():
+		_appid_note.text = "格式正确，来自 " + _draft.appidFrom
 	else:
-		_appid_note.text = "格式正确。"
+		_appid_note.text = "格式正确，手动填写；转换时作为本机 AppID 来源。"
 
 	_engine_line.text = "引擎：%s   AppID：%s" % [TEMPLATES.get(_saved.template, "未选"), _mask_appid(_saved.appid) + " ✓" if _appid_valid(_saved.appid) else "未设置"]
 	_engine_line.tooltip_text = "完整和 2D 模板的引擎文件由安装版自动提供。"
@@ -653,9 +849,11 @@ func _refresh() -> void:
 
 	var export_missing := _missing_for_export()
 	var open_missing := _missing_for_open()
-	_export_button.disabled = not export_missing.is_empty()
+	var busy := not _job.is_empty()
+	_export_button.disabled = busy or not export_missing.is_empty()
+	_export_button.text = "导出中…" if busy and _job.mode == "run" else "导出并转换"
 	_export_button.tooltip_text = "" if export_missing.is_empty() else "还差：" + "、".join(PackedStringArray(export_missing.map(func(m): return m[0])))
-	_open_button.disabled = not open_missing.is_empty()
+	_open_button.disabled = busy or not open_missing.is_empty()
 	_open_button.tooltip_text = "还差：" + "、".join(PackedStringArray(open_missing))
 	_open_hint.text = "打开还差：" + "、".join(PackedStringArray(open_missing))
 	_open_hint.visible = export_missing.is_empty() and not open_missing.is_empty()
