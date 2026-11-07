@@ -1,0 +1,47 @@
+{
+  "schema": "wxslim-panel-release-regression-v1",
+  "at": "2026-11-07T13:00:00Z",
+  "sourceCommit": "c046c5b",
+  "baseline": "codex/glx-plugin fast-forwarded e682ce2..c046c5b",
+  "release": {
+    "directory": "../release-c046c5b",
+    "builtFrom": "clean git worktree of c046c5b (removed after build); other sessions' uncommitted files excluded",
+    "command": "node packaging/build-release.mjs ../release-c046c5b --reuse ../release --write",
+    "pluginVersion": "0.2-development",
+    "files": 334,
+    "bytes": 234597809,
+    "manifestIdentity": "00abf07ae7bb39fe71703284932633f99ba04a2cf535a12d061f4ac14484ff9e",
+    "releaseJsonSha256": "8843b50da3a87daea4772fb23625f32fe92cbd0ff7a0752caaad3602b888fea8",
+    "runtimeFilesClosure": "all static imports of the 315 listed runtime files are listed"
+  },
+  "tests": {"total": 366, "pass": 313, "fail": 14, "failNote": "same 14 pre-existing failures that need external inputs (OFFICIAL_CAPTURE_RAW_DIR etc.)"},
+  "blankGame": {
+    "project": "new Node2D blank project in a scratch directory, Web preset copied from examples/simple",
+    "install": "node install.mjs GAME GODOT_4.7.2 -> state under LOCALAPPDATA/Godot/WxSlim/projects (outside the game)",
+    "editorLoad": "godot --headless --editor with plugin enabled: no script errors",
+    "route": "same request files and quick-adapter.mjs the panel launches, driven by a script (no GUI clicks)",
+    "plan": "ready, no blockers",
+    "run1": {"status": "SUCCESS", "seconds": 49, "devtoolsPackageId": "wxslim-ee1e8e77b1ef7577ca7a", "convertPackageId": "wxslim-7b36fe9b48c77d384a86"},
+    "run2": {"status": "SUCCESS", "seconds": 49, "devtoolsPackageId": "wxslim-85f532fc2969e391850f", "convertPackageId": "wxslim-7b36fe9b48c77d384a86", "newRunDirectory": true},
+    "pck": {"bytes": 2016, "sha256": "1ae265fe26c4e6b491af4e3c186b373b95ec39869fffba2b6f49fba5a7132c0d", "identicalAcrossRuns": true,
+      "entries": [".godot/exported/.../main.scn", ".godot/global_script_class_cache.cfg", ".godot/uid_cache.bin", "main.tscn.remap", "project.binary"],
+      "editorFiles": "none; addon paths appear only as references inside uid_cache.bin and project.binary"},
+    "open": {"status": "SUCCESS", "cliExitCode": 0, "appIdFieldsChanged": 0, "visual": "NOT_VERIFIED"},
+    "existingOutput": "re-planning run1's export and convert requests: both TASK_REJECTED, possibleSideEffects NONE",
+    "cancel": {"status": "CANCELLED", "seconds": 13, "step": "convert", "accepted": true, "terminal": "CANCELLED / TASK_CANCELLED"},
+    "taskLogsInGame": 0
+  },
+  "sourceCancelChecks": [
+    "CLI quick cancel during conversion: converter child closed, terminal CANCELLED, exit 3",
+    "workbench adapter cancel during export: export task CANCELLED",
+    "no leftover Godot or transformer process"
+  ],
+  "findings": [
+    "devtools preview package id differs between otherwise identical runs: wx-game-kit config.json convertPluginVersion is a converter timestamp (202611071257 vs 1258) and is included in the preview identity; the converted parent package id is stable"
+  ],
+  "notVerified": [
+    "clicking the panel in the Godot GUI (save settings, export, cancel button, open) - only the transport and script parse/load were exercised",
+    "devtools picture and real device for this release's package ids",
+    "2D/custom templates and subpackages (still only in the old dock)"
+  ]
+}
