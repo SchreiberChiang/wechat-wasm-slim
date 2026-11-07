@@ -3,6 +3,9 @@ extends VBoxContainer
 
 # 新版面板预览：只演示布局、AppID 入口和前置条件门禁，不调用适配器、不执行任务。
 # 设置草稿保存在插件本机状态目录（*.private.* 已被 .gitignore 排除）。
+#
+# 布局：顶栏（标题 + 保存/放弃）固定；中间滚动区是三个可折叠设置组，组标题直接显示当前取值；
+# 底栏（状态卡 + 导出与打开）固定。设置组完整时默认收起，一眼只看三行摘要。
 
 const INSTALL_LOCATOR := "res://addons/wxslim_readonly/workbench.path"
 const SETTINGS_FILE := "panel-preview-settings.private.json"
@@ -17,29 +20,30 @@ const CATEGORIES := [
 	["导出、转换与资源", ["project-pck-export", "official-convert", "resource-"]],
 	["引擎与构建", ["engine-", "trim-", "wasm-"]], ["插件", ["plugin-", "safe-task-"]],
 ]
+# 每个设置组包含的字段，用于判断该组是否有未保存改动。
+const GROUP_KEYS := {
+	"packing": ["template", "subpackages", "scenes"],
+	"runtime": ["orientation", "glx", "skipPrewarm"],
+	"publish": ["appid", "gameName", "output", "storage"],
+}
 
 var _saved := {}
 var _draft := {}
-var _resource_saved := {"scenes": []}
-var _resource_draft := {"scenes": []}
-var _resource_list: VBoxContainer
-var _subpackage_buttons := {}
-var _subpackage_note: Label
-var _captions := {}
 var _detection_confirmed := false
 var _capabilities := {}
 var _loading := false
 
-var _engine_line: Label
-var _appid_line: Label
-var _output_line: Label
-var _task_line: Label
-var _missing_box: HFlowContainer
-var _settings: FoldableContainer
-var _resources: FoldableContainer
+var _groups := {}
+var _captions := {}
+var _save_state: Label
+var _settings_save: Button
+var _settings_discard: Button
 var _template_buttons := {}
 var _orientation_buttons := {}
-var _storage: OptionButton
+var _subpackage_buttons := {}
+var _custom_box: VBoxContainer
+var _scene_box: VBoxContainer
+var _scene_list: VBoxContainer
 var _glx: CheckBox
 var _glx_status: Label
 var _prewarm: CheckBox
@@ -48,21 +52,18 @@ var _appid: LineEdit
 var _appid_note: Label
 var _game_name: LineEdit
 var _output: LineEdit
-var _custom_box: VBoxContainer
-var _settings_save: Button
-var _settings_discard: Button
-var _resource_pack: LineEdit
-var _resource_save: Button
-var _resource_discard: Button
+var _storage: OptionButton
+var _lock_note: Label
+var _lower: VBoxContainer
+var _engine_line: Label
+var _output_line: Label
+var _task_line: Label
+var _missing_box: HFlowContainer
 var _export_button: Button
 var _open_button: Button
-var _export_hint: Label
 var _open_hint: Label
 var _log: TextEdit
 var _notice: AcceptDialog
-var _lower: VBoxContainer
-var _lock_note: Label
-var _target: Control = self
 
 func _state_directory() -> String:
 	if FileAccess.file_exists(INSTALL_LOCATOR):
@@ -75,49 +76,39 @@ func _workbench_directory() -> String:
 	return ProjectSettings.globalize_path("res://")
 
 func _default_settings() -> Dictionary:
-	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "subpackages": "none", "appid": "", "gameName": "", "output": ""}
+	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "subpackages": "none", "scenes": [], "appid": "", "gameName": "", "output": ""}
 
 func _ready() -> void:
-	add_theme_constant_override("separation", 8)
+	add_theme_constant_override("separation", 6)
 	_load_capabilities()
 	_load_settings()
 	_notice = AcceptDialog.new()
 	_notice.title = "新版面板预览"
 	add_child(_notice)
-	var title := Label.new()
-	title.text = "微信小游戏导出（新版预览）"
-	title.add_theme_font_size_override("font_size", 16)
-	add_child(title)
-	# 上部内容可滚动；底栏（状态卡 + 导出与打开）固定在面板底部，不随展开内容下移。
+	_build_header()
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	add_child(scroll)
 	var content := VBoxContainer.new()
 	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	content.add_theme_constant_override("separation", 8)
+	content.add_theme_constant_override("separation", 4)
 	scroll.add_child(content)
-	_target = content
-	_build_settings()
-	_lock_note = _label("先在上方选好模板、输出目录并填写 AppID，点「保存设置」后，下面的功能才能使用。", content)
+	_build_packing(content)
+	_build_runtime(content)
+	_build_publish(content)
+	_lock_note = _note("保存必填设置后，下面的功能才能使用。", content)
 	_lock_note.add_theme_color_override("font_color", STATUS_COLOR.implemented)
 	_lower = VBoxContainer.new()
-	_lower.add_theme_constant_override("separation", 8)
+	_lower.add_theme_constant_override("separation", 4)
 	content.add_child(_lower)
-	_target = _lower
-	_build_resources()
-	_build_capabilities()
-	_build_advanced()
-	_build_log()
-	var footer := VBoxContainer.new()
-	footer.add_theme_constant_override("separation", 6)
-	add_child(footer)
-	_target = footer
-	footer.add_child(HSeparator.new())
-	_build_status_card()
-	_build_actions()
+	_build_capabilities(_lower)
+	_build_advanced(_lower)
+	_build_log(_lower)
+	_build_footer()
 	_apply_draft_to_controls()
-	_settings.folded = _settings_ready()
+	for key in _groups.keys():
+		_groups[key].folded = _group_missing(key).is_empty()
 	_refresh()
 
 # ---------- 数据 ----------
@@ -139,7 +130,7 @@ func _load_settings() -> void:
 			for key in _saved.keys():
 				if data.has(key) and typeof(data[key]) == typeof(_saved[key]):
 					_saved[key] = data[key]
-	_draft = _saved.duplicate()
+	_draft = _saved.duplicate(true)
 
 func _write_settings() -> bool:
 	var file := FileAccess.open(_state_directory().path_join(SETTINGS_FILE), FileAccess.WRITE)
@@ -151,8 +142,7 @@ func _write_settings() -> bool:
 	return true
 
 func _appid_valid(value: String) -> bool:
-	var regex := RegEx.create_from_string(APPID_PATTERN)
-	return regex.search(value) != null
+	return RegEx.create_from_string(APPID_PATTERN).search(value) != null
 
 func _mask_appid(value: String) -> String:
 	return value.left(6) + "…" + value.right(4) if value.length() > 10 else value
@@ -160,33 +150,65 @@ func _mask_appid(value: String) -> String:
 func _settings_dirty() -> bool:
 	return _draft != _saved
 
-func _resource_dirty() -> bool:
-	return _resource_draft != _resource_saved
+func _group_dirty(group: String) -> bool:
+	for key in GROUP_KEYS[group]:
+		if _draft[key] != _saved[key]:
+			return true
+	return false
+
+func _group_missing(group: String) -> Array:
+	var missing := []
+	match group:
+		"packing":
+			if _draft.template.is_empty():
+				missing.append("未选模板")
+			if _draft.subpackages == "scenes" and _draft.scenes.is_empty():
+				missing.append("未选分包场景")
+		"publish":
+			if not _appid_valid(_draft.appid):
+				missing.append("AppID")
+			if _draft.output.is_empty():
+				missing.append("输出目录")
+	return missing
+
+func _settings_ready() -> bool:
+	return not _saved.template.is_empty() and not _saved.output.is_empty() and _appid_valid(_saved.appid)
 
 func _capability_status(id: String) -> String:
 	var item: Dictionary = _capabilities.get(id, {})
 	return str(item.get("status", "pending"))
 
-# ---------- 界面 ----------
+# ---------- 界面部件 ----------
 
-func _label(text: String, parent: Control, dim := false) -> Label:
+func _note(text: String, parent: Control) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	if dim:
-		label.modulate = Color(1, 1, 1, 0.65)
+	label.modulate = Color(1, 1, 1, 0.6)
+	label.add_theme_font_size_override("font_size", 12)
 	parent.add_child(label)
 	return label
 
-func _section(title: String, folded: bool) -> Array:
+func _foldable(title: String, parent: Control, folded: bool) -> Array:
 	var box := FoldableContainer.new()
 	box.title = title
 	box.folded = folded
-	_target.add_child(box)
+	parent.add_child(box)
 	var body := VBoxContainer.new()
-	body.add_theme_constant_override("separation", 6)
+	body.add_theme_constant_override("separation", 8)
 	box.add_child(body)
 	return [box, body]
+
+func _field(caption: String, parent: Control, key := "") -> VBoxContainer:
+	var item := VBoxContainer.new()
+	item.add_theme_constant_override("separation", 2)
+	parent.add_child(item)
+	var label := Label.new()
+	label.text = caption + (" *" if not key.is_empty() else "")
+	item.add_child(label)
+	if not key.is_empty():
+		_captions[key] = label
+	return item
 
 func _radio_group(parent: Control, items: Array, store: Dictionary, key: String) -> void:
 	var group := ButtonGroup.new()
@@ -199,109 +221,129 @@ func _radio_group(parent: Control, items: Array, store: Dictionary, key: String)
 		radio.toggled.connect(func(on: bool):
 			if on and not _loading:
 				_draft[key] = item[0]
-				_on_draft_changed()
+				_refresh()
 		)
 		row.add_child(radio)
 		store[item[0]] = radio
 
-func _build_status_card() -> void:
-	var card := PanelContainer.new()
-	_target.add_child(card)
-	var body := VBoxContainer.new()
-	card.add_child(body)
-	_engine_line = _label("", body)
-	_appid_line = _label("", body)
-	_output_line = _label("", body)
-	_task_line = _label("任务：空闲（预览版不执行任务）", body)
-	_missing_box = HFlowContainer.new()
-	body.add_child(_missing_box)
+func _line_edit(parent: Control, placeholder: String, key: String) -> LineEdit:
+	var edit := LineEdit.new()
+	edit.placeholder_text = placeholder
+	edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	edit.text_changed.connect(func(value: String):
+		if not _loading:
+			_draft[key] = value.strip_edges()
+			_refresh()
+	)
+	parent.add_child(edit)
+	return edit
 
-func _group(title: String, parent: Control, first := false) -> VBoxContainer:
-	if not first:
-		var gap := Control.new()
-		gap.custom_minimum_size.y = 6
-		parent.add_child(gap)
-		parent.add_child(HSeparator.new())
-	var heading := Label.new()
-	heading.text = title
-	heading.add_theme_font_size_override("font_size", 15)
-	heading.add_theme_color_override("font_color", Color(0.55, 0.75, 1.0))
-	parent.add_child(heading)
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 12)
-	parent.add_child(box)
-	return box
+# ---------- 顶栏与设置组 ----------
 
-func _field(caption: String, parent: Control, key := "") -> VBoxContainer:
-	var item := VBoxContainer.new()
-	item.add_theme_constant_override("separation", 3)
-	parent.add_child(item)
-	var label := Label.new()
-	label.text = caption + (" *" if not key.is_empty() else "")
-	label.add_theme_font_size_override("font_size", 14)
-	item.add_child(label)
-	if not key.is_empty():
-		_captions[key] = label
-	return item
+func _build_header() -> void:
+	var row := HBoxContainer.new()
+	add_child(row)
+	var title := Label.new()
+	title.text = "微信小游戏导出（预览）"
+	title.add_theme_font_size_override("font_size", 16)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.clip_text = true
+	row.add_child(title)
+	_settings_save = Button.new()
+	_settings_save.text = "保存设置"
+	_settings_save.pressed.connect(_save_settings)
+	row.add_child(_settings_save)
+	_settings_discard = Button.new()
+	_settings_discard.text = "放弃"
+	_settings_discard.tooltip_text = "放弃所有未保存的设置改动"
+	_settings_discard.pressed.connect(func():
+		_draft = _saved.duplicate(true)
+		_apply_draft_to_controls()
+		_log_line("已放弃设置改动。")
+		_refresh()
+	)
+	row.add_child(_settings_discard)
+	_save_state = _note("", self)
 
-func _build_settings() -> void:
-	var parts := _section("设置", false)
-	_settings = parts[0]
+func _build_packing(parent: Control) -> void:
+	var parts := _foldable("打包方式", parent, false)
+	_groups.packing = parts[0]
 	var body: VBoxContainer = parts[1]
-	_label("带 * 的为必填。", body, true)
 
-	var packing := _group("打包方式", body, true)
-	var template := _field("模板", packing, "template")
-	_radio_group(template, [["full", "完整模板"], ["2d", "2D 模板"], ["custom", "自定义…"]], _template_buttons, "template")
+	var template := _field("模板", body, "template")
+	_radio_group(template, [["full", "完整"], ["2d", "2D"], ["custom", "自定义…"]], _template_buttons, "template")
 	_custom_box = VBoxContainer.new()
 	template.add_child(_custom_box)
-	_label("自定义需要重新编译引擎。先一键检测游戏没用到的功能，再确认裁剪项。", _custom_box, true)
+	_note("自定义需重新编译引擎：先检测游戏没用到的功能，再确认裁剪项。", _custom_box)
 	var detect := Button.new()
 	detect.text = "一键检测可裁剪功能（尚未实现）"
 	detect.disabled = true
-	detect.tooltip_text = "现有代码没有自动扫描能力；见 docs/面板简化需求.md 第 5 节。"
 	_custom_box.add_child(detect)
-	var subpackages := _field("资源分包", packing)
-	_radio_group(subpackages, [["none", "不分包"], ["scenes", "分包（按场景延后下载）"]], _subpackage_buttons, "subpackages")
-	_subpackage_note = _label("", subpackages, true)
 
-	var runtime := _group("运行效果", body)
-	var orientation := _field("屏幕方向", runtime)
+	var subpackages := _field("资源分包", body)
+	_radio_group(subpackages, [["none", "不分包"], ["scenes", "按场景分包"]], _subpackage_buttons, "subpackages")
+	_scene_box = VBoxContainer.new()
+	_scene_box.add_theme_constant_override("separation", 4)
+	subpackages.add_child(_scene_box)
+	var pick := Button.new()
+	pick.text = "添加延后下载的场景…"
+	_scene_box.add_child(pick)
+	var picker := FileDialog.new()
+	picker.file_mode = FileDialog.FILE_MODE_OPEN_FILES
+	picker.access = FileDialog.ACCESS_RESOURCES
+	picker.filters = PackedStringArray(["*.tscn,*.scn ; 场景"])
+	picker.files_selected.connect(func(paths: PackedStringArray):
+		var scenes: Array = _draft.scenes.duplicate()
+		for path in paths:
+			if not scenes.has(path):
+				scenes.append(path)
+		_draft.scenes = scenes
+		_refresh()
+	)
+	add_child(picker)
+	pick.pressed.connect(func(): picker.popup_centered_ratio(0.7))
+	_scene_list = VBoxContainer.new()
+	_scene_list.add_theme_constant_override("separation", 2)
+	_scene_box.add_child(_scene_list)
+	var how := _note("每个场景成为一个分包，进入前再下载；共用资源留在首包。", _scene_box)
+	how.tooltip_text = "导出并转换时自动完成：接入加载脚本（写游戏工程前单独确认）→ 导出 → 拆包 → 生成接口 → 转换 → 组包。\n游戏代码需要在进入这些场景前调用 WxResource.load_pack(\"包名\")。\n用字符串动态加载的资源分析不到，需要自行确认。"
+
+func _build_runtime(parent: Control) -> void:
+	var parts := _foldable("运行效果", parent, false)
+	_groups.runtime = parts[0]
+	var body: VBoxContainer = parts[1]
+	var orientation := _field("屏幕方向", body)
 	_radio_group(orientation, [["portrait", "竖屏"], ["landscape", "横屏"]], _orientation_buttons, "orientation")
-	var render := _field("渲染", runtime)
+	var render := _field("渲染", body)
 	_glx = CheckBox.new()
-	_glx.text = "启用 GLX（取消则用 WebGL 电脑对照）"
+	_glx.text = "启用 GLX（取消为 WebGL 电脑对照）"
 	_glx.toggled.connect(func(on: bool):
 		if not _loading:
 			_draft.glx = on
-			_on_draft_changed()
+			_refresh()
 	)
 	render.add_child(_glx)
-	_glx_status = _label("", render, true)
-	var prewarm := _field("启动预热", runtime)
+	_glx_status = _note("", render)
+	var prewarm := _field("启动预热", body)
 	_prewarm = CheckBox.new()
 	_prewarm.text = "跳过默认 3D 预热"
 	_prewarm.toggled.connect(func(on: bool):
 		if not _loading:
 			_draft.skipPrewarm = on
-			_on_draft_changed()
+			_refresh()
 	)
 	prewarm.add_child(_prewarm)
-	_prewarm_note = _label("", prewarm, true)
+	_prewarm_note = _note("", prewarm)
 
-	var publish := _group("发布信息", body)
-	var appid := _field("AppID", publish, "appid")
+func _build_publish(parent: Control) -> void:
+	var parts := _foldable("发布信息", parent, false)
+	_groups.publish = parts[0]
+	var body: VBoxContainer = parts[1]
+
+	var appid := _field("AppID", body, "appid")
 	var appid_row := HBoxContainer.new()
 	appid.add_child(appid_row)
-	_appid = LineEdit.new()
-	_appid.placeholder_text = "wx 开头，共 18 位"
-	_appid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_appid.text_changed.connect(func(value: String):
-		if not _loading:
-			_draft.appid = value.strip_edges()
-			_on_draft_changed()
-	)
-	appid_row.add_child(_appid)
+	_appid = _line_edit(appid_row, "wx 开头，共 18 位", "appid")
 	var read_config := Button.new()
 	read_config.text = "从文件读取…"
 	read_config.tooltip_text = "从已有小游戏的 project.config.json 读取 AppID"
@@ -313,30 +355,12 @@ func _build_settings() -> void:
 	picker.file_selected.connect(_read_appid_from)
 	add_child(picker)
 	read_config.pressed.connect(func(): picker.popup_centered_ratio(0.7))
-	_appid_note = _label("", appid, true)
+	_appid_note = _note("", appid)
 
-	var game_name := _field("游戏名", publish)
-	_game_name = LineEdit.new()
-	_game_name.placeholder_text = "显示在开发者工具中的名称"
-	_game_name.text_changed.connect(func(value: String):
-		if not _loading:
-			_draft.gameName = value
-			_on_draft_changed()
-	)
-	game_name.add_child(_game_name)
-
-	var output := _field("小游戏输出目录", publish, "output")
+	var output := _field("输出目录", body, "output")
 	var output_row := HBoxContainer.new()
 	output.add_child(output_row)
-	_output = LineEdit.new()
-	_output.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_output.placeholder_text = "选择一个已存在的目录"
-	_output.text_changed.connect(func(value: String):
-		if not _loading:
-			_draft.output = value.strip_edges()
-			_on_draft_changed()
-	)
-	output_row.add_child(_output)
+	_output = _line_edit(output_row, "选择一个已存在的目录", "output")
 	var dir_picker := FileDialog.new()
 	dir_picker.file_mode = FileDialog.FILE_MODE_OPEN_DIR
 	dir_picker.access = FileDialog.ACCESS_FILESYSTEM
@@ -350,7 +374,10 @@ func _build_settings() -> void:
 	choose.pressed.connect(func(): dir_picker.popup_centered_ratio(0.7))
 	output_row.add_child(choose)
 
-	var storage := _field("设置保存位置", publish)
+	var game_name := _field("游戏名", body)
+	_game_name = _line_edit(game_name, "显示在开发者工具中的名称", "gameName")
+
+	var storage := _field("设置保存位置", body)
 	_storage = OptionButton.new()
 	for item in STORAGE:
 		_storage.add_item(item[1])
@@ -358,101 +385,21 @@ func _build_settings() -> void:
 	_storage.item_selected.connect(func(index: int):
 		if not _loading:
 			_draft.storage = str(_storage.get_item_metadata(index))
-			_on_draft_changed()
+			_refresh()
 	)
+	_storage.tooltip_text = "预览版统一保存在插件本机状态目录；三种位置的实际读写在正式版实现。"
 	storage.add_child(_storage)
-	_label("预览版统一保存在插件本机状态目录；三种位置的实际读写在正式版实现。", storage, true)
-	body.add_child(HSeparator.new())
 
-	var buttons := HBoxContainer.new()
-	body.add_child(buttons)
-	_settings_save = Button.new()
-	_settings_save.text = "保存设置"
-	_settings_save.pressed.connect(_save_settings)
-	buttons.add_child(_settings_save)
-	_settings_discard = Button.new()
-	_settings_discard.text = "放弃改动"
-	_settings_discard.pressed.connect(func():
-		_draft = _saved.duplicate()
-		_apply_draft_to_controls()
-		_log_line("已放弃设置改动。")
-		_refresh()
-	)
-	buttons.add_child(_settings_discard)
+# ---------- 其他折叠区 ----------
 
-func _build_actions() -> void:
-	# 底栏要矮：两个按钮同一行（窄时自动换行），缺项只在状态卡里列一次，按钮悬停显示原因。
-	var row := HFlowContainer.new()
-	_target.add_child(row)
-	_export_button = Button.new()
-	_export_button.text = "③ 导出并转换"
-	_export_button.custom_minimum_size = Vector2(130, 32)
-	_export_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_export_button.pressed.connect(func(): _preview_only("导出并转换"))
-	row.add_child(_export_button)
-	_open_button = Button.new()
-	_open_button.text = "在开发者工具中打开"
-	_open_button.custom_minimum_size = Vector2(130, 32)
-	_open_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_open_button.pressed.connect(func(): _preview_only("在开发者工具中打开"))
-	row.add_child(_open_button)
-	_export_hint = _label("", _target, true)
-	_export_hint.visible = false
-	_open_hint = _label("", _target, true)
-
-func _build_resources() -> void:
-	var parts := _section("② 分包场景", false)
-	_resources = parts[0]
-	var body: VBoxContainer = parts[1]
-	_label("每个选中的场景单独成为一个分包，进入该场景前再下载。启动场景和共用资源留在首包。改动后须保存。", body, true)
-	var pick := Button.new()
-	pick.text = "选择要延后下载的场景…"
-	body.add_child(pick)
-	var picker := FileDialog.new()
-	picker.file_mode = FileDialog.FILE_MODE_OPEN_FILES
-	picker.access = FileDialog.ACCESS_RESOURCES
-	picker.filters = PackedStringArray(["*.tscn,*.scn ; 场景"])
-	picker.files_selected.connect(func(paths: PackedStringArray):
-		var scenes: Array = _resource_draft.scenes.duplicate()
-		for path in paths:
-			if not scenes.has(path):
-				scenes.append(path)
-		_resource_draft.scenes = scenes
-		_refresh()
-	)
-	add_child(picker)
-	pick.pressed.connect(func(): picker.popup_centered_ratio(0.7))
-	_resource_list = VBoxContainer.new()
-	body.add_child(_resource_list)
-	_label("导出并转换时自动完成：接入加载脚本（写游戏工程前单独确认）→ 导出 → 拆包 → 生成接口 → 转换 → 组包。", body, true)
-	_label("游戏代码需要在切换到这些场景前调用 WxResource.load_pack(\"包名\")。", body, true)
-	var row := HBoxContainer.new()
-	body.add_child(row)
-	_resource_save = Button.new()
-	_resource_save.text = "保存分包设置"
-	_resource_save.pressed.connect(func():
-		_resource_saved = _resource_draft.duplicate(true)
-		_log_line("资源分包设置已保存（预览，仅本次编辑器会话）。")
-		_refresh()
-	)
-	row.add_child(_resource_save)
-	_resource_discard = Button.new()
-	_resource_discard.text = "放弃改动"
-	_resource_discard.pressed.connect(func():
-		_resource_draft = _resource_saved.duplicate(true)
-		_refresh()
-	)
-	row.add_child(_resource_discard)
-
-func _build_capabilities() -> void:
-	var parts := _section("功能支持", true)
-	var body: VBoxContainer = parts[1]
+func _build_capabilities(parent: Control) -> void:
+	var body: VBoxContainer = _foldable("功能支持", parent, true)[1]
 	if _capabilities.is_empty():
-		_label("没有读到 lib/capabilities.json。", body, true)
+		_note("没有读到 lib/capabilities.json。", body)
 		return
-	_label("状态来自能力清单，只代表实现情况；设备验收以证据范围为准。", body, true)
+	_note("状态来自能力清单，只代表实现情况；设备验收以证据范围为准。", body)
 	var used := {}
-	for category in CATEGORIES:
+	for category in CATEGORIES + [["其他", [""]]]:
 		var items := []
 		for id in _capabilities.keys():
 			if used.has(id):
@@ -466,19 +413,8 @@ func _build_capabilities() -> void:
 			continue
 		var heading := Label.new()
 		heading.text = category[0]
-		heading.add_theme_font_size_override("font_size", 15)
 		body.add_child(heading)
 		for id in items:
-			_capability_row(body, _capabilities[id])
-	var rest := []
-	for id in _capabilities.keys():
-		if not used.has(id):
-			rest.append(id)
-	if not rest.is_empty():
-		var heading := Label.new()
-		heading.text = "其他"
-		body.add_child(heading)
-		for id in rest:
 			_capability_row(body, _capabilities[id])
 
 func _capability_row(parent: Control, item: Dictionary) -> void:
@@ -493,24 +429,61 @@ func _capability_row(parent: Control, item: Dictionary) -> void:
 	name_label.text = "%s · %s" % [item.get("name", item.get("id")), STATUS_TEXT.get(status, status)]
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.tooltip_text = str(item.get("limit", ""))
+	name_label.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(name_label)
-	var limit := _label(str(item.get("limit", "")), parent, true)
-	limit.add_theme_font_size_override("font_size", 12)
 
-func _build_advanced() -> void:
-	var parts := _section("高级", true)
-	var body: VBoxContainer = parts[1]
-	_label("自建引擎构建：给维护者用，需要固定 SDK、补丁配方和大型编译。预览版不提供入口，请用旧面板。", body, true)
-	_label("打开已有任务（原「手动任务」）：用来查看、执行或取消命令行或上次会话创建的任务。日常流程由面板自动跟踪，不需要它。预览版请用旧面板。", body, true)
+func _build_advanced(parent: Control) -> void:
+	var body: VBoxContainer = _foldable("高级", parent, true)[1]
+	_note("自建引擎构建：给维护者用，需要固定 SDK、补丁配方和大型编译。预览版请用旧面板。", body)
+	_note("打开已有任务（原「手动任务」）：查看、执行或取消命令行或上次会话创建的任务。日常流程由面板自动跟踪。预览版请用旧面板。", body)
 
-func _build_log() -> void:
-	var parts := _section("日志", true)
-	var body: VBoxContainer = parts[1]
+func _build_log(parent: Control) -> void:
+	var body: VBoxContainer = _foldable("日志", parent, true)[1]
 	_log = TextEdit.new()
 	_log.editable = false
 	_log.custom_minimum_size.y = 120
 	_log.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 	body.add_child(_log)
+
+# ---------- 底栏 ----------
+
+func _build_footer() -> void:
+	var footer := VBoxContainer.new()
+	footer.add_theme_constant_override("separation", 4)
+	add_child(footer)
+	footer.add_child(HSeparator.new())
+	var card := PanelContainer.new()
+	footer.add_child(card)
+	var body := VBoxContainer.new()
+	body.add_theme_constant_override("separation", 2)
+	card.add_child(body)
+	_engine_line = Label.new()
+	_engine_line.clip_text = true
+	body.add_child(_engine_line)
+	_output_line = Label.new()
+	_output_line.clip_text = true
+	body.add_child(_output_line)
+	_task_line = Label.new()
+	_task_line.text = "任务：空闲（预览版不执行任务）"
+	body.add_child(_task_line)
+	_missing_box = HFlowContainer.new()
+	body.add_child(_missing_box)
+	var row := HFlowContainer.new()
+	footer.add_child(row)
+	_export_button = Button.new()
+	_export_button.text = "导出并转换"
+	_export_button.custom_minimum_size = Vector2(130, 32)
+	_export_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_export_button.pressed.connect(func(): _preview_only("导出并转换"))
+	row.add_child(_export_button)
+	_open_button = Button.new()
+	_open_button.text = "在开发者工具中打开"
+	_open_button.custom_minimum_size = Vector2(130, 32)
+	_open_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_open_button.pressed.connect(func(): _preview_only("在开发者工具中打开"))
+	row.add_child(_open_button)
+	_open_hint = _note("", footer)
 
 # ---------- 行为 ----------
 
@@ -532,9 +505,6 @@ func _apply_draft_to_controls() -> void:
 			_storage.select(index)
 	_loading = false
 
-func _on_draft_changed() -> void:
-	_refresh()
-
 func _read_appid_from(path: String) -> void:
 	var data = JSON.parse_string(FileAccess.get_file_as_string(path))
 	var value := str(data.get("appid", "")) if data is Dictionary else ""
@@ -547,23 +517,20 @@ func _read_appid_from(path: String) -> void:
 
 func _save_settings() -> void:
 	if not _draft.appid.is_empty() and not _appid_valid(_draft.appid):
-		_appid_note.text = "AppID 格式不对，未保存。"
-		_settings.folded = false
+		_groups.publish.folded = false
 		_appid.grab_focus()
 		return
 	var changed_build := false
-	for key in ["template", "orientation", "glx", "skipPrewarm", "appid"]:
+	for key in ["template", "orientation", "glx", "skipPrewarm", "appid", "subpackages", "scenes"]:
 		if _draft[key] != _saved[key]:
 			changed_build = true
-	_saved = _draft.duplicate()
+	_saved = _draft.duplicate(true)
 	if _write_settings():
 		_log_line("设置已保存。" + ("之前的转换结果不再适用，需要重新导出并转换。" if changed_build else ""))
-	if _settings_ready():
-		_settings.folded = true
+	for key in _groups.keys():
+		if _group_missing(key).is_empty():
+			_groups[key].folded = true
 	_refresh()
-
-func _settings_ready() -> bool:
-	return not _saved.template.is_empty() and not _saved.output.is_empty() and _appid_valid(_saved.appid)
 
 func _set_locked(node: Node, locked: bool) -> void:
 	for child in node.get_children():
@@ -580,12 +547,6 @@ func _set_locked(node: Node, locked: bool) -> void:
 				child.remove_meta("wx_lock")
 		_set_locked(child, locked)
 
-func _settings_summary() -> String:
-	var parts := PackedStringArray([TEMPLATES.get(_saved.template, "?"), "竖屏" if _saved.orientation == "portrait" else "横屏", "GLX" if _saved.glx else "WebGL"])
-	if _saved.skipPrewarm:
-		parts.append("跳过预热")
-	return "  ·  ".join(parts)
-
 func _preview_only(action: String) -> void:
 	_notice.dialog_text = "「%s」在预览版只检查前置条件，尚未接入执行。\n实际导出请暂用旧面板「微信导出·本地开发」。" % action
 	_notice.popup_centered()
@@ -593,116 +554,116 @@ func _preview_only(action: String) -> void:
 func _missing_for_export() -> Array:
 	var missing := []
 	if _saved.template.is_empty():
-		missing.append(["未选模板", "template"])
-	if _saved.output.is_empty():
-		missing.append(["未选输出目录", "output"])
-	if not _appid_valid(_saved.appid):
-		missing.append(["AppID 未填写并保存", "appid"])
-	if _settings_dirty():
-		missing.append(["设置有未保存改动", "save"])
-	if _saved.subpackages == "scenes" and _resource_saved.scenes.is_empty():
-		missing.append(["分包场景未选择并保存", "resources"])
-	if _saved.subpackages == "scenes" and _resource_dirty():
-		missing.append(["分包场景有未保存改动", "resources"])
+		missing.append(["未选模板", "packing"])
+	if _saved.subpackages == "scenes" and _saved.scenes.is_empty():
+		missing.append(["未选分包场景", "packing"])
 	if _saved.template == "custom" and not _detection_confirmed:
-		missing.append(["自定义模板未完成检测", "template"])
+		missing.append(["自定义未完成检测", "packing"])
+	if not _appid_valid(_saved.appid):
+		missing.append(["AppID 未保存", "publish"])
+	if _saved.output.is_empty():
+		missing.append(["未选输出目录", "publish"])
+	if _settings_dirty():
+		missing.append(["设置未保存", "save"])
 	return missing
 
 func _missing_for_open() -> Array:
 	var missing := []
 	if _saved.template.is_empty():
-		missing.append(["未选模板", "template"])
+		missing.append("未选模板")
 	if not _appid_valid(_saved.appid):
-		missing.append(["AppID 未填写并保存", "appid"])
-	missing.append(["当前设置还没有转换成功的输出", "export"])
+		missing.append("AppID 未保存")
+	missing.append("当前设置还没有转换成功的输出")
 	return missing
 
 func _focus_missing(target: String) -> void:
+	if target == "save":
+		_settings_save.grab_focus()
+		return
+	_groups[target].folded = false
 	match target:
-		"resources":
-			_resources.folded = false
-			_resource_save.grab_focus()
-		"export":
-			_export_button.grab_focus()
+		"publish":
+			(_appid if not _appid_valid(_draft.appid) else _output).grab_focus()
 		_:
-			_settings.folded = false
-			match target:
-				"appid":
-					_appid.grab_focus()
-				"output":
-					_output.grab_focus()
-				"save":
-					_settings_save.grab_focus()
-				_:
-					var first: CheckBox = _template_buttons.get("full")
-					first.grab_focus()
+			(_template_buttons.full as CheckBox).grab_focus()
+
+func _group_summary(group: String) -> String:
+	var parts := PackedStringArray()
+	match group:
+		"packing":
+			parts.append(TEMPLATES.get(_draft.template, "未选模板"))
+			parts.append("分包 %d 个场景" % _draft.scenes.size() if _draft.subpackages == "scenes" else "不分包")
+		"runtime":
+			parts.append("竖屏" if _draft.orientation == "portrait" else "横屏")
+			parts.append("GLX" if _draft.glx else "WebGL")
+			if _draft.skipPrewarm:
+				parts.append("跳过预热")
+		"publish":
+			parts.append(_mask_appid(_draft.appid) if _appid_valid(_draft.appid) else "AppID 未填")
+			parts.append(_draft.output.get_file() if not _draft.output.is_empty() else "未选输出")
+	return " · ".join(parts)
 
 func _refresh() -> void:
-	var template_name: String = TEMPLATES.get(_saved.template, "未选模板")
-	_engine_line.text = "引擎：%s   AppID：%s" % [template_name, _mask_appid(_saved.appid) + " ✓" if _appid_valid(_saved.appid) else "未设置"]
-	_engine_line.tooltip_text = "完整和 2D 模板的引擎文件由安装版自动提供。"
-	_appid_line.visible = false
-	_output_line.text = "输出：" + (_saved.output if not _saved.output.is_empty() else "未选择")
-
-	var settings_dirty := _settings_dirty()
-	var settings_ok := _settings_ready()
-	if settings_dirty:
-		_settings.title = "① 设置  ● 未保存"
-	elif settings_ok:
-		_settings.title = "① 设置：" + _settings_summary()
-	else:
-		_settings.title = "① 设置（必填，未完成）"
-	_lock_note.visible = not settings_ok
+	var names := {"packing": "打包方式", "runtime": "运行效果", "publish": "发布信息"}
+	for key in _groups.keys():
+		var missing := _group_missing(key)
+		var marks := ("⚠ " if not missing.is_empty() else "")
+		_groups[key].title = "%s%s：%s%s" % [marks, names[key], _group_summary(key), "  ●" if _group_dirty(key) else ""]
+		_groups[key].tooltip_text = ("还差：" + "、".join(PackedStringArray(missing))) if not missing.is_empty() else ""
 	var filled := {"template": not _draft.template.is_empty(), "output": not _draft.output.is_empty(), "appid": _appid_valid(_draft.appid)}
 	for key in _captions.keys():
 		if filled.get(key, true):
 			_captions[key].remove_theme_color_override("font_color")
 		else:
 			_captions[key].add_theme_color_override("font_color", STATUS_COLOR.missing)
+
+	var dirty := _settings_dirty()
+	_settings_save.disabled = not dirty
+	_settings_discard.disabled = not dirty
+	_save_state.text = "● 有未保存的改动（带 ● 的组）" if dirty else "设置已保存。点组标题可展开修改，带 * 的为必填。"
+	_save_state.modulate = Color(1, 1, 1, 1.0 if dirty else 0.6)
+	if dirty:
+		_save_state.add_theme_color_override("font_color", STATUS_COLOR.implemented)
+	else:
+		_save_state.remove_theme_color_override("font_color")
+
+	var settings_ok := _settings_ready()
+	_lock_note.visible = not settings_ok
 	_lower.modulate = Color(1, 1, 1, 1.0 if settings_ok else 0.4)
 	_set_locked(_lower, not settings_ok)
-	_settings_save.disabled = not settings_dirty
-	_settings_discard.disabled = not settings_dirty
-	var resource_dirty := _resource_dirty()
-	_resources.title = "② 分包场景" + ("  ● 未保存" if resource_dirty else "（%d 个）" % _resource_saved.scenes.size())
-	_resources.visible = _saved.subpackages == "scenes"
-	_subpackage_note.text = "选「分包」并保存设置后，下方会出现「② 分包场景」，只需勾选要延后下载的场景。" if _draft.subpackages == "scenes" else "游戏全部内容放在首包里。"
-	_render_resource_list()
-	_resource_save.disabled = not resource_dirty
-	_resource_discard.disabled = not resource_dirty
 
 	_custom_box.visible = _draft.template == "custom"
+	_scene_box.visible = _draft.subpackages == "scenes"
+	_render_scene_list()
 	var glx_status := _capability_status("render-glx" if _draft.glx else "render-webgl")
 	_glx_status.text = ("GLX 渲染" if _draft.glx else "WebGL 对照") + "：" + STATUS_TEXT.get(glx_status, glx_status)
-	if _draft.template == "full":
-		_prewarm.disabled = true
-		_prewarm_note.text = "完整模板的引擎启动时固定预热，跳过需要重建引擎。"
-	else:
-		_prewarm.disabled = false
-		_prewarm_note.text = "是否生效以所选引擎为准，待核实。"
+	_prewarm.disabled = _draft.template == "full"
+	_prewarm_note.text = "完整模板启动时固定预热，跳过需重建引擎。" if _draft.template == "full" else "是否生效以所选引擎为准，待核实。"
 	if _draft.appid.is_empty():
-		_appid_note.text = "转换前必须填写并保存。只检查格式，不代表微信后台有效。"
+		_appid_note.text = "转换前必填。只检查格式，不代表微信后台有效。"
 	elif not _appid_valid(_draft.appid):
 		_appid_note.text = "格式应为 wx 加 16 位小写十六进制。"
 	else:
-		_appid_note.text = "格式正确。" + ("尚未保存。" if _draft.appid != _saved.appid else "")
+		_appid_note.text = "格式正确。"
+
+	_engine_line.text = "引擎：%s   AppID：%s" % [TEMPLATES.get(_saved.template, "未选"), _mask_appid(_saved.appid) + " ✓" if _appid_valid(_saved.appid) else "未设置"]
+	_engine_line.tooltip_text = "完整和 2D 模板的引擎文件由安装版自动提供。"
+	_output_line.text = "输出：" + (_saved.output if not _saved.output.is_empty() else "未选择")
+	_output_line.tooltip_text = _saved.output
 
 	var export_missing := _missing_for_export()
 	var open_missing := _missing_for_open()
 	_export_button.disabled = not export_missing.is_empty()
-	_export_hint.text = "可以开始。" if export_missing.is_empty() else "还差：" + "、".join(PackedStringArray(export_missing.map(func(m): return m[0])))
+	_export_button.tooltip_text = "" if export_missing.is_empty() else "还差：" + "、".join(PackedStringArray(export_missing.map(func(m): return m[0])))
 	_open_button.disabled = not open_missing.is_empty()
-	_export_button.tooltip_text = _export_hint.text
-	var open_text := "还差：" + "、".join(PackedStringArray(open_missing.map(func(m): return m[0])))
-	_open_button.tooltip_text = open_text
-	# 导出缺项已在状态卡列出；只在导出可用而打开仍受阻时补一行说明。
-	_open_hint.text = "打开" + open_text
+	_open_button.tooltip_text = "还差：" + "、".join(PackedStringArray(open_missing))
+	_open_hint.text = "打开还差：" + "、".join(PackedStringArray(open_missing))
 	_open_hint.visible = export_missing.is_empty() and not open_missing.is_empty()
-	_missing_box.visible = not export_missing.is_empty()
 
 	for child in _missing_box.get_children():
-		child.get_parent().remove_child(child)
+		_missing_box.remove_child(child)
 		child.queue_free()
+	_missing_box.visible = not export_missing.is_empty()
 	if not export_missing.is_empty():
 		var label := Label.new()
 		label.text = "还差："
@@ -715,9 +676,7 @@ func _refresh() -> void:
 			_missing_box.add_child(link)
 
 func _pack_id(scene: String) -> String:
-	var base := scene.get_file().get_basename().to_lower()
-	var regex := RegEx.create_from_string("[^a-z0-9_-]")
-	base = regex.sub(base, "_", true)
+	var base := RegEx.create_from_string("[^a-z0-9_-]").sub(scene.get_file().get_basename().to_lower(), "_", true)
 	return base if not base.is_empty() and base[0] >= "a" and base[0] <= "z" else "pack_" + base
 
 func _dependency_closure(path: String, seen: Dictionary) -> void:
@@ -731,15 +690,13 @@ func _dependency_closure(path: String, seen: Dictionary) -> void:
 		if dep.begins_with("res://"):
 			_dependency_closure(dep, seen)
 
-func _render_resource_list() -> void:
-	if _resource_list == null:
-		return
-	for child in _resource_list.get_children():
-		child.get_parent().remove_child(child)
+func _render_scene_list() -> void:
+	for child in _scene_list.get_children():
+		_scene_list.remove_child(child)
 		child.queue_free()
-	var scenes: Array = _resource_draft.scenes
+	var scenes: Array = _draft.scenes
 	if scenes.is_empty():
-		_label("还没有选择场景。", _resource_list, true)
+		_note("还没有添加场景。", _scene_list)
 		return
 	var owners := {}
 	var closures := {}
@@ -753,33 +710,32 @@ func _render_resource_list() -> void:
 		var own := 0
 		var shared := 0
 		for path in closures[scene].keys():
-			if path == scene:
-				continue
-			if owners[path] > 1:
-				shared += 1
-			else:
-				own += 1
+			if path != scene:
+				if owners[path] > 1:
+					shared += 1
+				else:
+					own += 1
 		var row := HBoxContainer.new()
-		_resource_list.add_child(row)
+		_scene_list.add_child(row)
 		var info := Label.new()
-		info.text = "%s → 分包 %s\n自动带上 %d 个依赖；%d 个与其他分包共用，将放进首包" % [scene.get_file(), _pack_id(scene), own, shared]
-		info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		info.text = "%s → %s（依赖 %d，共用 %d）" % [scene.get_file(), _pack_id(scene), own, shared]
+		info.tooltip_text = "%s\n自动带上 %d 个依赖；%d 个与其他分包共用，将放进首包。" % [scene, own, shared]
+		info.mouse_filter = Control.MOUSE_FILTER_PASS
+		info.clip_text = true
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(info)
 		var remove := Button.new()
-		remove.text = "移除"
+		remove.text = "×"
+		remove.tooltip_text = "移除这个场景"
+		remove.flat = true
 		remove.pressed.connect(func():
-			var next: Array = _resource_draft.scenes.duplicate()
+			var next: Array = _draft.scenes.duplicate()
 			next.erase(scene)
-			_resource_draft.scenes = next
+			_draft.scenes = next
 			_refresh()
 		)
 		row.add_child(remove)
-	_label("依赖由编辑器静态分析得出，代码里用字符串动态加载的资源分析不到，需要自行确认。", _resource_list, true)
-	if not _settings_ready():
-		_set_locked(_resource_list, true)
 
 func _log_line(text: String) -> void:
-	if _log == null:
-		return
-	_log.text += Time.get_time_string_from_system() + "  " + text + "\n"
+	if _log != null:
+		_log.text += Time.get_time_string_from_system() + "  " + text + "\n"
