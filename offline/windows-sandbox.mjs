@@ -49,7 +49,7 @@ function generate() {
   const mappings = shares.map(([dir,guest,readOnly])=>
     '    <MappedFolder>\n      <HostFolder>'+xml(dir)+'</HostFolder>\n      <SandboxFolder>'+guest+
     '</SandboxFolder>\n      <ReadOnly>'+readOnly+'</ReadOnly>\n    </MappedFolder>').join('\n');
-  const config = '<Configuration>\n  <Networking>Disable</Networking>\n  <ClipboardRedirection>Disable</ClipboardRedirection>\n  <MappedFolders>\n'+
+  const config = '<Configuration>\n  <MemoryInMB>20480</MemoryInMB>\n  <Networking>Disable</Networking>\n  <ClipboardRedirection>Disable</ClipboardRedirection>\n  <MappedFolders>\n'+
     mappings+'\n  </MappedFolders>\n</Configuration>\n';
   writeJson(path.join(evidence,'host-canaries.json'),{schema:'wxslim-isolation-host-v1',files});
   fs.writeFileSync(path.join(evidence,'GLX-offline.wsb'),config,{flag:'wx'});
@@ -80,7 +80,8 @@ function guestCheck() {
   const externalInterfaces = Object.entries(os.networkInterfaces()).filter(([,addresses])=>addresses.some(a=>!a.internal)).map(([name])=>name);
   const pass = ['EPERM','EACCES','EROFS'].includes(sourceWrite) && paths.every(row=>row.read!=='OPENED') && externalInterfaces.length===0;
   const evidence = {schema:'wxslim-isolation-observation-v1',at:new Date().toISOString(),status:pass?'PASS':'FAILED',
-    sourceWrite,paths,externalInterfaces};
+    sourceWrite,paths,externalInterfaces,
+    guestResources:{logicalProcessors:os.availableParallelism(),totalMemoryBytes:os.totalmem(),freeMemoryBytes:os.freemem()}};
   writeJson(path.join(guestEvidence,'guest-isolation.json'),evidence);
   assert(pass,'Isolation conditions failed. See guest-isolation.json');
   console.log('Read-only source, hidden host canaries and no non-loopback network interface verified.');
