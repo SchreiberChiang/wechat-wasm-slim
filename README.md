@@ -14,7 +14,6 @@
 固定上游 Godot 提交 `c050c09b105c3715e1caa57a7109cd752047fd89`，工具 Emscripten 4.0.10、SCons 4.11.1、Python 3.14.0、026e 静态库。工作树中保留了固定库、第三方许可、24 个补丁的物化规则、既定 return 0 和 alpha／阴影修正。源码输入、上游存档后端提交和路径见 `engine/official-build-plan.json`、`engine/official-upstream-storage-tail.json`；工具链锁见 `engine/official-toolchain-downloads.json`。编辑器与运行引擎的版本标识分别记录。
 
 ```text
-python -B engine/official-toolchain.py --root NEW_SDK --base-python FIXED_PYTHON --jobs 4
 node wxslim.mjs engine official-capability-plan full
 node wxslim.mjs engine official-capability-plan conservative
 node wxslim.mjs engine custom-plan engine/custom-2d-plan.example.json
@@ -38,15 +37,15 @@ node convert/assemble-devtools-device.mjs OFFICIAL_TASK RESOURCE_CONFIG.json NEW
 
 ## 本地回归
 
-工作台 13 份 Node 测试加预热及真实输出合同涵盖 112 项。保留配对和真实输出测试使用显式外部夹具。填写两个只读输入环境变量后从源码根运行。
+在 Windows x64 上，从源码根目录打开 PowerShell。首次准备时为解开的工具选一个新目录。测试入口使用随源码保存的真实夹具和 Git 源对象。
 
 ```powershell
-$env:OFFICIAL_CAPTURE_RAW_DIR = '已批准的完整原始配对目录'
-$env:WXSLIM_C050_EXISTING_FRAMEWORK = '已有真实官方转换目录/framework.js'
-$forms = Get-ChildItem editor/workbench -File -Filter '*-tests.mjs'
-node --test @($forms.FullName) tests/startup-prewarm-option-tests.mjs tests/official-c050-existing-output-tests.mjs tests/official-c050-output-contract-tests.mjs
+$tools = Join-Path (Split-Path (Get-Location)) 'glx-offline-tools'
+& .\offline\prepare.cmd $tools
+if ($LASTEXITCODE) { throw '离线工具准备失败' }
+& "$tools\node.exe" tests/run-offline.mjs $tools
 ```
 
-完整回归使用离线准备出的 Node 运行 `tests/run-offline.mjs TOOLS`。旧的 `tests/run-external.mjs` 供明确指定历史材料时诊断。历史基线记录了 427 项通过；当时 39 项可选来源回放未运行。离线入口启用这些回放并报告跳过数。
+再次回归时直接运行最后一条命令。首次 c050 转换的 framework.js 在 `offline/fixtures/c050`，df3 编译出的原始图形胶水在 `offline/fixtures/df3`。入口会绑定这些文件并检查全部测试的通过和跳过数。三种配方的离线 SDK 准备、源码重建和使用安装版验证重建配对的命令见[离线开发](docs/离线开发.md)。
 
 独立游戏验收时，先从 release 安装并启用，再导出简单 PCK，连续转换两次，打开开发者工具。检查导出的 PCK 没有编辑器插件脚本。确认本项目专属任务状态在游戏目录外，读取日志不会改变导出计划。前后台、存档、中文输入、音频和资源的历史真机结果只适用于原封存包。公网 HTTPS、WSS 和业务登录留待业务接入验证。
