@@ -29,7 +29,7 @@ function extract(source,name,acorn) {
   const code=source.slice(node.start,node.end);
   return {code,metadata:{name,start:node.start,end:node.end,...identity(code)}};
 }
-export function loadFixedSource(root=process.env.WXSLIM_FIXED_ENGINE_SOURCE) {
+export function loadFixedSource(root=process.env.WXSLIM_FIXED_HTTP_FIXTURES || process.env.WXSLIM_FIXED_ENGINE_SOURCE) {
   if(!root)return {skip:'WXSLIM_FIXED_ENGINE_SOURCE is not set; fixed source not evaluated'};
   assert(typeof root==='string'&&path.isAbsolute(root),'Explicit absolute fixed engine source required');
   const acorn=parser(),loaded={},texts={},sources=[];

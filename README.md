@@ -1,12 +1,12 @@
 # Godot 微信小游戏 GLX 插件源码
 
-这是本地唯一维护项目。Claude 修改界面、合并功能、修复错误和维护回归都在本项目进行。用户日常安装相邻的 release。详细入口见 [Claude 合并说明](CLAUDE.md)。
+本地维护源码包含编辑器面板、导出和转换服务、三种引擎配方以及离线依赖。首次准备、完整回归、安装包和证据恢复步骤见[离线开发](docs/离线开发.md)。Claude 的界面入口见[合并说明](CLAUDE.md)。
 
 ## 开发与安装
 
 1. 使用 Node 24.18.0 和 Godot 4.7.2。运行 `node packaging/configure-workbench.mjs "本机 Godot 编辑器路径"`，再在编辑器导入 `editor/workbench/project.godot`。工程自带右侧插件面板。个人路径和执行收据由本机生成。
-2. 编辑器脚本和表单适配器在 `editor/workbench`。任务主入口为 `wxslim.mjs`，`lib/task-core.mjs` 负责计划、执行、取消、状态；`convert/` 负责微信官方转换和宿主；`engine/` 负责引擎、固定来源、补丁和配对审核。普通测试游戏使用 `examples/simple/project.godot`。两关资源夹具作为测试输入外置。
-3. 打包前先检查运行文件白名单 `packaging/runtime-files.json`。在已验安装版旁生成新版本，使用 `node packaging/build-release.mjs NEW_RELEASE --reuse OLD_RELEASE` 先看大小和标识，再加 `--write` 写入新的空目录。工具和三份配对按 `packaging/vendor-lock.json` 全量校验。已有发行目录的用户不需要重编 Godot。没有旧安装版时，可通过 `--inputs LOCAL_VENDOR_JSON` 提供由锁文件相对目标名到本机原件绝对路径的映射。
+2. 编辑器脚本和表单适配器在 `editor/workbench`。任务主入口为 `wxslim.mjs`，`lib/task-core.mjs` 负责计划、执行、取消、状态；`convert/` 负责微信官方转换和宿主；`engine/` 负责引擎、固定来源、补丁和配对审核。普通测试游戏使用 `examples/simple/project.godot`。两关资源夹具随离线配对证据保存。
+3. 打包前检查运行文件白名单 `packaging/runtime-files.json`。使用 `node packaging/build-release.mjs NEW_RELEASE --write` 从随源码的已锁定配对和官方转换器生成安装包。保守及纯 2D 的证据按离线开发说明恢复到安装版旁。
 4. 在测试游戏运行新 release 自带的 `install.mjs`。更新旧受管安装时加 `--update`。安装、用户数据目录及日常流程见 [安装版使用](docs/安装版使用.md)。源码本身不需要相邻的 release 才能编辑或生成计划；真实组包需要固定引擎和转换器。
 
 ## 自建与审核
@@ -47,6 +47,6 @@ $forms = Get-ChildItem editor/workbench -File -Filter '*-tests.mjs'
 node --test @($forms.FullName) tests/startup-prewarm-option-tests.mjs tests/official-c050-existing-output-tests.mjs tests/official-c050-output-contract-tests.mjs
 ```
 
-一键运行：`node tests/run-external.mjs --all`。脚本在 `../../clean-20261104` 和 `../portable-proof-01/proof`（也可用 `--root` 另指）里收集原始抓取、转换输出、引擎源码、启动 PCK 和固定 Python，对每个需外部材料的测试逐个尝试候选，由测试自己按固定指纹核验；随后用找到的材料跑全部测试。已手动设置的环境变量优先。2026-11-07 本机结果：11 个此类测试文件全部通过，全量 427 项通过、0 失败。
+完整回归使用离线准备出的 Node 运行 `tests/run-offline.mjs TOOLS`。旧的 `tests/run-external.mjs` 供明确指定历史材料时诊断。历史基线记录了 427 项通过；当时 39 项可选来源回放未运行。离线入口启用这些回放并报告跳过数。
 
 独立游戏验收时，先从 release 安装并启用，再导出简单 PCK，连续转换两次，打开开发者工具。检查导出的 PCK 没有编辑器插件脚本。确认本项目专属任务状态在游戏目录外，读取日志不会改变导出计划。前后台、存档、中文输入、音频和资源的历史真机结果只适用于原封存包。公网 HTTPS、WSS 和业务登录留待业务接入验证。

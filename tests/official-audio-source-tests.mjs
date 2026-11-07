@@ -1,9 +1,9 @@
+import {readOfficialSource} from './pinned-godot-source.mjs';
 // Source replay and isolated method models; never execute an engine or WASM.
 // Explicit --fetch-fixed-three reuses three approved official files in memory.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import https from 'node:https';
 import crypto from 'node:crypto';
 import vm from 'node:vm';
 import {execFileSync} from 'node:child_process';
@@ -52,12 +52,9 @@ test('patch scope excludes helper/worker/other runtime libraries and JS preproce
   assert(!/^\+#(?:if|ifdef)/m.test(js));
 });
 let sources=null,derived=null,sourceJS,outputJS,originals,targets;
-if(process.argv.includes('--fetch-fixed-three')){
+if(process.env.WXSLIM_C050_GIT || process.argv.includes('--fetch-fixed-three')){
   sources=new Map();
-  for(const item of meta.inputs){const b=await new Promise((resolve,reject)=>https.get(`https://raw.githubusercontent.com/godotengine/godot/${meta.baseCommit}/${item.path}`,r=>{
-    if(r.statusCode!==200){r.resume();reject(Error('OFFICIAL_SOURCE_HTTP'));return;}const chunks=[];
-    r.on('data',b=>chunks.push(b));r.on('end',()=>resolve(Buffer.concat(chunks)));r.on('error',reject);
-  }).on('error',reject));assert.deepEqual(pin(b),{bytes:item.bytes,sha256:item.sha256});sources.set(item.path,b.toString());}
+  for(const item of meta.inputs){const b=await readOfficialSource(meta.baseCommit,item.path);assert.deepEqual(pin(b),{bytes:item.bytes,sha256:item.sha256});sources.set(item.path,b.toString());}
   derived=replayUnifiedPatch(patch,p=>sources.get(p));sourceJS=sources.get(meta.inputs[2].path);outputJS=derived.get(meta.inputs[2].path).text;
   originals=inventory(parse(sourceJS));targets=inventory(parse(outputJS));
 }else console.log('# NOT_RUN full source replay/models: explicit --fetch-fixed-three required; no implicit download');

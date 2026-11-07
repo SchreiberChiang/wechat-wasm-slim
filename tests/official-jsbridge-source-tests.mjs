@@ -1,3 +1,4 @@
+import {readOfficialSource} from './pinned-godot-source.mjs';
 // Actual pinned JS library functions with modeled heap/ID/C++ callback boundaries.
 // No engine, WASM, WeChat or linked-glue dead-code-elimination acceptance.
 import test from 'node:test';
@@ -49,14 +50,13 @@ function model(source,{wechat=false,browserWxOnly=false,globalRoot={},gameRoot={
       const type=context.Library.godot_js_wrapper_create_object(name,0,args.length,convert,10,20,(...v)=>freed.push(v));return {type,value:values.get(10)};},
   };
 }
-if(process.env.WXSLIM_OFFICIAL_JSBRIDGE_SOURCE!=='fetch-fixed-c050'||!process.env.WXSLIM_FIXED_ENGINE_SOURCE) {
+if((!process.env.WXSLIM_C050_GIT && process.env.WXSLIM_OFFICIAL_JSBRIDGE_SOURCE!=='fetch-fixed-c050')||!process.env.WXSLIM_FIXED_ENGINE_SOURCE) {
   test('JSBridge requires explicit fixed-source retrieval and local source opt-in',{skip:'Set WXSLIM_OFFICIAL_JSBRIDGE_SOURCE=fetch-fixed-c050 and WXSLIM_FIXED_ENGINE_SOURCE; no default network or source evaluation'},()=>{});
 } else {
   const root=process.env.WXSLIM_FIXED_ENGINE_SOURCE;assert(path.isAbsolute(root));
   const base=new Map(),fork=new Map();
   for(const [name,pin]of Object.entries(pins)) {
-    const r=await fetch('https://raw.githubusercontent.com/godotengine/godot/'+baseCommit+'/'+name,{redirect:'error',signal:AbortSignal.timeout(15000)});assert(r.ok);
-    const source=await r.text();assert.deepEqual(identity(source),{bytes:pin.bytes,sha256:pin.sha256});
+    const source=(await readOfficialSource(baseCommit,name)).toString('utf8');assert.deepEqual(identity(source),{bytes:pin.bytes,sha256:pin.sha256});
     const b=Buffer.from(source),blob=crypto.createHash('sha1').update(Buffer.concat([Buffer.from('blob '+b.length+'\0'),b])).digest('hex');assert.equal(blob,pin.blob);
     base.set(name,source);
     const local=execFileSync('git',['-C',root,'show',forkCommit+':'+name]);assert.deepEqual(identity(local),{bytes:pin.forkBytes,sha256:pin.forkSha256});fork.set(name,local.toString());

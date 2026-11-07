@@ -9,6 +9,7 @@ import {
   quickPlan, quickRun, cancelQuickRun, pure2dRemovedModules, resolvePairProof, planTaskRoot, CANCEL_MARKER, listQuickRuns, quickRunStatus, RUN_SUMMARY, exportPayload, convertPayload, resolveMainScene, QUICK_SETTINGS_SCHEMA, SIMPLE_INTERFACES,
 } from '../lib/quick-flow.mjs';
 import {runQuickCli} from '../lib/quick-cli.mjs';
+import {templateRequirements} from '../lib/quick-flow.mjs';
 import {runQuickAdapter} from '../editor/workbench/quick-adapter.mjs';
 import {taskPlanIdentity} from '../lib/task-core.mjs';
 import {buildExportRequestDraft} from '../editor/workbench/export-request-form.mjs';
@@ -53,6 +54,23 @@ function fixture(overrides = {}) {
   fs.writeFileSync(path.join(project, 'wxslim-export.json'), JSON.stringify(settings));
   return {root, release, project, output, editor, proof, options: {project, editor, release, now: NOW}};
 }
+
+test('conservative settings expose seven removals and require a PCK-specific confirmation', () => {
+  const {confirmations} = templateRequirements('conservative');
+  assert.equal(confirmations[0].removed3d, false);
+  assert.deepEqual(confirmations[0].removedModules, ['enet','fbx','gltf','mobile_vr','upnp','vhacd','webxr']);
+  const settings = normalizeQuickSettings({schema: QUICK_SETTINGS_SCHEMA, template: 'conservative', output: os.tmpdir(), devtoolsPreview:false});
+  assert(settingsBlockers(settings).some(b => b.field === 'confirmRemovedModules'));
+  const inputs = {settings, release:{profile:'custom-official-c050-dev', pair:'conservative'}, pairProof:'conservative.json'};
+  const bytes = makePck();
+  assert.throws(() => convertPayload(inputs, 'boot.pck', bytes), e => e.code === 'QUICK_CONSERVATIVE_NEEDS_CONFIRMATION');
+  settings.confirmRemovedModules = true;
+  const config = convertPayload(inputs, 'boot.pck', bytes);
+  assert.equal(config.customPreparation, inputs.pairProof);
+  assert.equal(config.projectUsage.pck.sha256, createHash('sha256').update(bytes).digest('hex'));
+  assert.deepEqual(config.projectUsage.removedModules, confirmations[0].removedModules);
+  assert.equal(config.projectUsage.engine3dRemoved, false);
+});
 
 function fakeService({eligible = true, status = 'SUCCESS'} = {}) {
   const calls = [];

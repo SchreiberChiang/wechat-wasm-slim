@@ -47,7 +47,9 @@ export function normalizeOfficialRawBuildRequest(value){
  const schema=Object.getOwnPropertyDescriptor(value??{},'schema');
  assert(schema&&Object.hasOwn(schema,'value'),'OFFICIAL_RAW_DATA_FIELDS');
  const custom=schema.value===OFFICIAL_CUSTOM_RAW_REQUEST;
- const r=exact(value,['schema','profile',...pathFields,'jobs','budgetBytes',...(custom?['features']:[])]);
+ const local=Object.hasOwn(value,'sourceTransport');
+ const r=exact(value,['schema','profile',...pathFields,'jobs','budgetBytes',...(custom?['features']:[]),...(local?['sourceTransport']:[])]);
+ if(local)assert.equal(r.sourceTransport,'bundled-c050-pack','OFFICIAL_RAW_UNKNOWN_SOURCE_TRANSPORT');
  assert(OFFICIAL_RAW_REQUEST_SCHEMAS.includes(r.schema),'OFFICIAL_RAW_RECIPE_SCHEMA');
  assert((custom?['custom']:['full','conservative']).includes(r.profile),'OFFICIAL_RAW_EXPLICIT_PROFILE');
  if(custom)r.features=normalizeCustomWasmRequest(r.features);

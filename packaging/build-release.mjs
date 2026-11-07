@@ -5,11 +5,14 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 
 const source = fileURLToPath(new URL('../', import.meta.url));
-const [destination, mode, inputs, flag] = process.argv.slice(2);
-assert(destination && ['--inputs','--reuse'].includes(mode) && inputs && [undefined,'--write'].includes(flag),
-  'node packaging/build-release.mjs OUTPUT --inputs LOCAL_VENDOR_JSON | --reuse PREVIOUS_RELEASE [--write]');
+const [destination, ...args] = process.argv.slice(2);
+const write = args.at(-1) === '--write';
+if (write) args.pop();
+const [mode, inputs] = args;
+assert(destination && (!args.length || (args.length === 2 && ['--inputs','--reuse'].includes(mode))),
+  'node packaging/build-release.mjs OUTPUT [--inputs LOCAL_VENDOR_JSON | --reuse PREVIOUS_RELEASE] [--write]');
 const output = path.resolve(destination);
-const previous = path.resolve(inputs);
+const previous = inputs ? path.resolve(inputs) : path.join(source,'offline','vendor');
 function within(root, file) {
   const relative = path.relative(root, file);
   return !path.isAbsolute(relative) && relative !== '..' && !relative.startsWith('..' + path.sep);
@@ -39,7 +42,7 @@ for(const [to,from] of Object.entries({'install.mjs':'packaging/install.mjs','pr
 const bytes = [...files.values()].reduce((total,entry)=>total+entry.record.bytes,0);
 assert(bytes+1048576<=256*1048576,'Release budget exceeded');
 const manifest = {schema:'wxslim-local-release-v1', pluginVersion:'0.2-development',files:Object.fromEntries([...files].map(([key,v])=>[key,v.record]).sort(([a],[b])=>a<b?-1:a>b?1:0))};
-if (flag === '--write') {
+if (write) {
   if (!fs.existsSync(output)) fs.mkdirSync(output);
   assert.deepEqual(fs.readdirSync(output),[],'Output must be empty');
   for(const [key,{file,record}] of files){
@@ -49,4 +52,4 @@ if (flag === '--write') {
   }
   fs.writeFileSync(path.join(output,'RELEASE.json'),JSON.stringify(manifest,null,2)+'\n',{flag:'wx'});
 }
-console.log(JSON.stringify({written:flag==='--write',files:files.size,bytes,manifestIdentity:pin(Buffer.from(JSON.stringify(manifest))).sha256}));
+console.log(JSON.stringify({written:write,files:files.size,bytes,manifestIdentity:pin(Buffer.from(JSON.stringify(manifest))).sha256}));
