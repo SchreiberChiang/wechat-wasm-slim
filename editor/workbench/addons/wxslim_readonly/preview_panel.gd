@@ -88,18 +88,33 @@ func _ready() -> void:
 	title.text = "微信小游戏导出（新版预览）"
 	title.add_theme_font_size_override("font_size", 16)
 	add_child(title)
+	# 上部内容可滚动；底栏（状态卡 + 导出与打开）固定在面板底部，不随展开内容下移。
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	add_child(scroll)
+	var content := VBoxContainer.new()
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override("separation", 8)
+	scroll.add_child(content)
+	_target = content
 	_build_settings()
-	_build_status_card()
-	_lock_note = _label("先在上方选好模板、输出目录并填写 AppID，点「保存设置」后，下面的功能才能使用。", self)
+	_lock_note = _label("先在上方选好模板、输出目录并填写 AppID，点「保存设置」后，下面的功能才能使用。", content)
 	_lock_note.add_theme_color_override("font_color", STATUS_COLOR.implemented)
 	_lower = VBoxContainer.new()
 	_lower.add_theme_constant_override("separation", 8)
-	add_child(_lower)
+	content.add_child(_lower)
 	_target = _lower
 	_build_resources()
 	_build_capabilities()
 	_build_advanced()
 	_build_log()
+	var footer := VBoxContainer.new()
+	footer.add_theme_constant_override("separation", 6)
+	add_child(footer)
+	_target = footer
+	footer.add_child(HSeparator.new())
+	_build_status_card()
 	_build_actions()
 	_apply_draft_to_controls()
 	_settings.folded = _settings_ready()
@@ -191,7 +206,7 @@ func _radio_group(parent: Control, items: Array, store: Dictionary, key: String)
 
 func _build_status_card() -> void:
 	var card := PanelContainer.new()
-	add_child(card)
+	_target.add_child(card)
 	var body := VBoxContainer.new()
 	card.add_child(body)
 	_engine_line = _label("", body)
@@ -366,26 +381,24 @@ func _build_settings() -> void:
 	buttons.add_child(_settings_discard)
 
 func _build_actions() -> void:
-	_target.add_child(HSeparator.new())
-	var box := VBoxContainer.new()
-	_target.add_child(box)
-	var heading := Label.new()
-	heading.text = "③ 导出与打开"
-	heading.add_theme_font_size_override("font_size", 15)
-	heading.add_theme_color_override("font_color", Color(0.55, 0.75, 1.0))
-	box.add_child(heading)
+	# 底栏要矮：两个按钮同一行（窄时自动换行），缺项只在状态卡里列一次，按钮悬停显示原因。
+	var row := HFlowContainer.new()
+	_target.add_child(row)
 	_export_button = Button.new()
-	_export_button.text = "导出并转换"
-	_export_button.custom_minimum_size.y = 34
+	_export_button.text = "③ 导出并转换"
+	_export_button.custom_minimum_size = Vector2(130, 32)
+	_export_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_export_button.pressed.connect(func(): _preview_only("导出并转换"))
-	box.add_child(_export_button)
-	_export_hint = _label("", box, true)
+	row.add_child(_export_button)
 	_open_button = Button.new()
-	_open_button.text = "在微信开发者工具中打开"
-	_open_button.custom_minimum_size.y = 34
+	_open_button.text = "在开发者工具中打开"
+	_open_button.custom_minimum_size = Vector2(130, 32)
+	_open_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_open_button.pressed.connect(func(): _preview_only("在开发者工具中打开"))
-	box.add_child(_open_button)
-	_open_hint = _label("", box, true)
+	row.add_child(_open_button)
+	_export_hint = _label("", _target, true)
+	_export_hint.visible = false
+	_open_hint = _label("", _target, true)
 
 func _build_resources() -> void:
 	var parts := _section("② 分包场景", false)
@@ -626,8 +639,9 @@ func _focus_missing(target: String) -> void:
 
 func _refresh() -> void:
 	var template_name: String = TEMPLATES.get(_saved.template, "未选模板")
-	_engine_line.text = "引擎：" + template_name + ("（引擎文件由安装版自动提供）" if _saved.template in ["full", "2d"] else "")
-	_appid_line.text = "AppID：" + (_mask_appid(_saved.appid) + " ✓" if _appid_valid(_saved.appid) else "未设置")
+	_engine_line.text = "引擎：%s   AppID：%s" % [template_name, _mask_appid(_saved.appid) + " ✓" if _appid_valid(_saved.appid) else "未设置"]
+	_engine_line.tooltip_text = "完整和 2D 模板的引擎文件由安装版自动提供。"
+	_appid_line.visible = false
 	_output_line.text = "输出：" + (_saved.output if not _saved.output.is_empty() else "未选择")
 
 	var settings_dirty := _settings_dirty()
@@ -678,7 +692,13 @@ func _refresh() -> void:
 	_export_button.disabled = not export_missing.is_empty()
 	_export_hint.text = "可以开始。" if export_missing.is_empty() else "还差：" + "、".join(PackedStringArray(export_missing.map(func(m): return m[0])))
 	_open_button.disabled = not open_missing.is_empty()
-	_open_hint.text = "还差：" + "、".join(PackedStringArray(open_missing.map(func(m): return m[0])))
+	_export_button.tooltip_text = _export_hint.text
+	var open_text := "还差：" + "、".join(PackedStringArray(open_missing.map(func(m): return m[0])))
+	_open_button.tooltip_text = open_text
+	# 导出缺项已在状态卡列出；只在导出可用而打开仍受阻时补一行说明。
+	_open_hint.text = "打开" + open_text
+	_open_hint.visible = export_missing.is_empty() and not open_missing.is_empty()
+	_missing_box.visible = not export_missing.is_empty()
 
 	for child in _missing_box.get_children():
 		child.get_parent().remove_child(child)

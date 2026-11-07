@@ -14,7 +14,7 @@ class EditorFilesOnly extends EditorExportPlugin:
 var export_filter := EditorFilesOnly.new()
 var panel: VBoxContainer
 var dock: ScrollContainer
-var preview_dock: ScrollContainer
+var preview_dock: VBoxContainer
 
 func _enter_tree() -> void:
 	add_export_plugin(export_filter)
@@ -24,12 +24,11 @@ func _enter_tree() -> void:
 	dock.name = "微信导出·本地开发"
 	dock.add_child(panel)
 	add_control_to_dock(DOCK_SLOT_RIGHT_UL, dock)
-	var preview: VBoxContainer = PreviewScript.new()
-	preview.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	preview_dock = ScrollContainer.new()
+	# 预览面板自带滚动区和固定底栏，因此直接作为停靠栏，不再外包一层滚动容器。
+	preview_dock = PreviewScript.new()
 	preview_dock.name = "微信导出·新版预览"
-	preview_dock.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	preview_dock.add_child(preview)
+	preview_dock.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	preview_dock.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_control_to_dock(DOCK_SLOT_RIGHT_UL, preview_dock)
 
 func _exit_tree() -> void:
