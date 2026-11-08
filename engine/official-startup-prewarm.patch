@@ -1,0 +1,15 @@
+diff --git a/drivers/gles3/rasterizer_scene_gles3.cpp b/drivers/gles3/rasterizer_scene_gles3.cpp
+--- a/drivers/gles3/rasterizer_scene_gles3.cpp
++++ b/drivers/gles3/rasterizer_scene_gles3.cpp
+@@ -4615,7 +4615,10 @@
+ 		}
+ 		material_storage->shaders.scene_shader.initialize(global_defines);
+ 		scene_globals.shader_default_version = material_storage->shaders.scene_shader.version_create();
+-		material_storage->shaders.scene_shader.version_bind_shader(scene_globals.shader_default_version, SceneShaderGLES3::MODE_COLOR);
++		// wxslim: a project may skip this default 3D shader compile at startup (startup/gles3/skip_default_3d_prewarm, default false).
++		if (!bool(GLOBAL_DEF("startup/gles3/skip_default_3d_prewarm", false))) {
++			material_storage->shaders.scene_shader.version_bind_shader(scene_globals.shader_default_version, SceneShaderGLES3::MODE_COLOR);
++		}
+ 	}
+ 
+ 	{

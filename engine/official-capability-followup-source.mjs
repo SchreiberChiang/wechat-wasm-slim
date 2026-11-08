@@ -10,6 +10,7 @@ import {prepareOfficialImeSessionSource,IME_SESSION_FILE} from './official-ime-s
 import {prepareHttpResponseSources} from './official-http-response-source.mjs';
 import {prepareOfficialAudioPendingPause,AUDIO_PENDING_PAUSE_FILE} from './official-audio-pending-pause.mjs';
 import {prepareOfficialLifecycleNotifications,LIFECYCLE_JS,LIFECYCLE_CPP} from './official-lifecycle-notifications.mjs';
+import {prepareOfficialStartupPrewarm,STARTUP_PREWARM_FILE,STARTUP_PREWARM_SETTING} from './official-startup-prewarm.mjs';
 import {replayUnifiedPatch} from './fixed-source-audit.mjs';
 export const followupIdentity = bytes => ({bytes:Buffer.byteLength(bytes),sha256:createHash('sha256').update(bytes).digest('hex')});
 const same=(bytes,p)=>assert.deepEqual(followupIdentity(bytes),{bytes:p.bytes,sha256:p.sha256},'FOLLOWUP_PIN '+p.path);
@@ -22,7 +23,7 @@ export function capabilityFollowupMetadata() {
   assert.equal(m.baseCommit,'c050c09b105c3715e1caa57a7109cd752047fd89');
   for(const p of m.dependencies)same(read(p.path),p);
   assert.deepEqual(m.profiles,['full','conservative']);
-  assert.equal(m.followupPatches.length,4);assert.equal(m.changedPaths.length,7);
+  assert.equal(m.followupPatches.length,5);assert.equal(m.changedPaths.length,8);
   return m;
 }
 let parser;
@@ -51,8 +52,8 @@ export function applyCapabilityFollowupSources(baseOutputs,extraOfficialBlobs) {
   assert.deepEqual([...extraOfficialBlobs.keys()].sort(),m.extraOfficialInputs.map(p=>p.path).sort(),'FOLLOWUP_EXACT_EXTRA_BLOBS');
   const before=new Map([...baseOutputs].map(([p,b])=>[p,Buffer.from(b)]));
   for(const p of m.extraOfficialInputs){const b=extraOfficialBlobs.get(p.path);assert(Buffer.isBuffer(b));same(b,p);assert.equal(gitBlob(b),p.gitBlob,'FOLLOWUP_EXTRA_GIT_BLOB');assert(!before.has(p.path));before.set(p.path,Buffer.from(b));}
-  assert.equal(before.size,33);const outputs=new Map(before);
-  const [imePatch,httpPatch,audioPatch,lifecyclePatch]=m.followupPatches.map(p=>{const bytes=read(p.path);same(bytes,p);return bytes;});
+  assert.equal(before.size,34);const outputs=new Map(before);
+  const [imePatch,httpPatch,audioPatch,lifecyclePatch,prewarmPatch]=m.followupPatches.map(p=>{const bytes=read(p.path);same(bytes,p);return bytes;});
   outputs.set(IME_SESSION_FILE,prepareOfficialImeSessionSource(outputs.get(IME_SESSION_FILE),imePatch));
   const httpParents=new Map(m.httpPaths.map(p=>[p,outputs.get(p).toString('utf8')]));
   const replay=replayUnifiedPatch(httpPatch,p=>{assert(m.httpPaths.includes(p),'FOLLOWUP_HTTP_PATCH_SCOPE');return httpParents.get(p);});
@@ -76,13 +77,20 @@ export function applyCapabilityFollowupSources(baseOutputs,extraOfficialBlobs) {
   assert.equal(lifecyclePrepared.receipt.explicitNewDependency,'$GodotOS');
   assert.equal(lifecyclePrepared.receipt.atexitFailurePolicy,m.lifecycle.atexitFailurePolicy);
   assert.deepEqual(displayDeps(outputs.get(LIFECYCLE_JS).toString()),[...displayDeps(before.get(LIFECYCLE_JS).toString()),'$GodotOS'],'FOLLOWUP_ONLY_DISPLAY_OS_DEPENDENCY_ADDED');
+  // Startup prewarm guard: one C++ call wrapped in a project setting that defaults to false.
+  const prewarmParent=outputs.get(STARTUP_PREWARM_FILE),prewarmPrepared=prepareOfficialStartupPrewarm(prewarmParent);
+  const prewarmReplay=replayUnifiedPatch(prewarmPatch,p=>{assert.equal(p,STARTUP_PREWARM_FILE,'FOLLOWUP_PREWARM_PATCH_SCOPE');return prewarmParent.toString('utf8');});
+  assert.deepEqual([...prewarmReplay.keys()],[STARTUP_PREWARM_FILE]);
+  const prewarmOutput=Buffer.from(prewarmReplay.get(STARTUP_PREWARM_FILE).text);
+  assert(prewarmOutput.equals(prewarmPrepared.source),'FOLLOWUP_PREWARM_EXACT_PREPARER_OUTPUT');
+  outputs.set(STARTUP_PREWARM_FILE,prewarmOutput);
   const changed=[...outputs.keys()].filter(p=>!outputs.get(p).equals(before.get(p))).sort();
-  assert.deepEqual(changed,m.changedPaths.slice().sort(),'FOLLOWUP_ONLY_SEVEN_CHANGED_PATHS');
+  assert.deepEqual(changed,m.changedPaths.slice().sort(),'FOLLOWUP_ONLY_EIGHT_CHANGED_PATHS');
   for(const p of m.outputs)same(outputs.get(p.path),p);
-  assert.equal(outputs.size,33);assert.equal(m.outputs.length,33);
+  assert.equal(outputs.size,34);assert.equal(m.outputs.length,34);
   for(const p of [IME_SESSION_FILE,m.httpPaths[0],AUDIO_PENDING_PAUSE_FILE,LIFECYCLE_JS])assert.deepEqual(jsAbi(outputs.get(p).toString()),jsAbi(before.get(p).toString()),'FOLLOWUP_JS_ABI_UNCHANGED');
   for(const p of m.preservedSourcePaths)assert(outputs.get(p).equals(before.get(p)),'FOLLOWUP_SELECTION_OR_ABI_CHANGED '+p);
-  return {outputs,receipt:{schema:'official-capability-followup-overlay-v1',status:'SOURCE_ONLY_UNREGISTERED_NO_JS_WASM',baseOutputs:31,extraOfficialInputs:2,distinctOfficialInputFiles:26,additionalDistinctOfficialInputs:1,overlappingOfficialInputPaths:m.overlappingOfficialInputPaths,outputFiles:33,changedPaths:changed,unchangedPaths:[...outputs.keys()].filter(p=>!changed.includes(p)).sort(),privateLayoutChange:m.privateLayoutChange,sourceWritten:false,compiled:false,executorRegistered:false,usableJsWasm:false,audioPauseCandidateIncluded:true,audioPauseHideShowWiring:'NOT_ADDED',lifecycleNotificationsCandidateIncluded:true,lifecycleRevision:2,lifecycleJsDependencyAdded:'$GodotOS',osSourceUnchanged:true,lifecycleCleanupFailureDoesNotRejectExit:true,nativeNotificationReceipt:'NOT_PROVEN_VOID_CALLBACK',automaticAudioRecoveryAdded:false}};
+  return {outputs,receipt:{schema:'official-capability-followup-overlay-v1',status:'SOURCE_ONLY_UNREGISTERED_NO_JS_WASM',baseOutputs:31,extraOfficialInputs:3,distinctOfficialInputFiles:27,additionalDistinctOfficialInputs:2,overlappingOfficialInputPaths:m.overlappingOfficialInputPaths,outputFiles:34,changedPaths:changed,unchangedPaths:[...outputs.keys()].filter(p=>!changed.includes(p)).sort(),privateLayoutChange:m.privateLayoutChange,sourceWritten:false,compiled:false,executorRegistered:false,usableJsWasm:false,audioPauseCandidateIncluded:true,audioPauseHideShowWiring:'NOT_ADDED',lifecycleNotificationsCandidateIncluded:true,lifecycleRevision:2,lifecycleJsDependencyAdded:'$GodotOS',osSourceUnchanged:true,lifecycleCleanupFailureDoesNotRejectExit:true,nativeNotificationReceipt:'NOT_PROVEN_VOID_CALLBACK',automaticAudioRecoveryAdded:false,startupPrewarmGuard:STARTUP_PREWARM_SETTING,startupPrewarmDefault:false}};
 }
 export function prepareOfficialCapabilityFollowupSources(options) {
   assert.equal(arguments.length,1);assert(options&&typeof options==='object'&&!Array.isArray(options));
@@ -95,5 +103,5 @@ export function prepareOfficialCapabilityFollowupSources(options) {
   for(const p of m.overlappingOfficialInputPaths)assert(options.officialBlobs.get(p).equals(options.extraOfficialBlobs.get(p)),'FOLLOWUP_OVERLAPPING_GIT_BLOB');
   const base=prepareOfficialBuildSources({profile:options.profile,officialBlobs:options.officialBlobs,upstreamSource:options.upstreamSource});
   const followup=applyCapabilityFollowupSources(base.outputs,options.extraOfficialBlobs);
-  return {...followup,receipt:{...followup.receipt,profile:options.profile,baseCommit:m.baseCommit,basePlanSha256:plan.planSha256,basePatchCount:20,followupPatchCount:4,officialInputs:25,upstreamSource:followupIdentity(options.upstreamSource),argumentTemplateUnchanged:true,libraryUnchanged:true,scsubUnchanged:true,abiSignaturesAndProxiesUnchanged:true,jsDependenciesUnchanged:false,executionAuthorized:false,buildReady:false}};
+  return {...followup,receipt:{...followup.receipt,profile:options.profile,baseCommit:m.baseCommit,basePlanSha256:plan.planSha256,basePatchCount:20,followupPatchCount:5,officialInputs:26,upstreamSource:followupIdentity(options.upstreamSource),argumentTemplateUnchanged:true,libraryUnchanged:true,scsubUnchanged:true,abiSignaturesAndProxiesUnchanged:true,jsDependenciesUnchanged:false,executionAuthorized:false,buildReady:false}};
 }

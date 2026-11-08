@@ -21,7 +21,7 @@ const base=Object.freeze({id:'official-c050-base-20',outputFiles:31,plan:planOff
     const result=await auditOfficialBuildCheckout({source,gitExecutable,profile,mode:'prepared'});
     assert.deepEqual(result,receipt.preparedAudit,'RAW_PRECOMPILE_SOURCE_DRIFT');return result;
   }});
-const capability=Object.freeze({id:'official-c050-capability-24',outputFiles:33,
+const capability=Object.freeze({id:'official-c050-capability-24',outputFiles:34,
   plan:({profile})=>{
     const result=planOfficialCapabilitySources({profile}),original=planOfficialBuild({profile});
     assert.equal(result.basePlanSha256,original.planSha256);
@@ -39,7 +39,7 @@ const capability=Object.freeze({id:'official-c050-capability-24',outputFiles:33,
     assert.deepEqual(receipt.overlayCompleted.slice().sort(),baseline.capabilityChangedPaths);
     return auditOfficialCapabilityPrecompileSource({source,gitExecutable,baseline});
   }});
-const custom=Object.freeze({id:'official-c050-capability-custom',outputFiles:33,plan:customRawSourcePlan,
+const custom=Object.freeze({id:'official-c050-capability-custom',outputFiles:34,plan:customRawSourcePlan,
   // Caller supplies the separately authenticated source profile ('full'). The
   // custom feature selection is exclusively an input/profile.gdbuild change.
   materialize:capability.materialize,postbuild:capability.postbuild,

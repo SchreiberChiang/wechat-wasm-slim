@@ -10,8 +10,8 @@
   "dependencies": [
     {
       "path": "engine/official-capability-followup-source.mjs",
-      "bytes": 9851,
-      "sha256": "02ebd0c7b057eecac9432077a9f3fbec13632d0e42e1398fc89cbdcda4ec942c"
+      "bytes": 10738,
+      "sha256": "363311aeb0374c8464cb7ea2d27ca64844477976be538c344dfefaafa9301d10"
     },
     {
       "path": "engine/official-build-source.mjs",
@@ -87,6 +87,16 @@
       "path": "engine/official-lifecycle-notifications.json",
       "bytes": 5581,
       "sha256": "1d5f6a4123f294d50874ec850b3e284e2652bccdbf7fe63dd68e8fdc8c05406d"
+    },
+    {
+      "path": "engine/official-startup-prewarm.mjs",
+      "bytes": 2235,
+      "sha256": "254db0866a837b15f1a0790ec1e79a262922ad3b55b7f9d011153f369f7f52ad"
+    },
+    {
+      "path": "engine/official-startup-prewarm.patch",
+      "bytes": 873,
+      "sha256": "17cd6dfcb7fa5925baf3ebf7dc0037493a0af664c62860f2d9e1ae7181b6fc80"
     }
   ],
   "followupPatches": [
@@ -109,6 +119,11 @@
       "path": "engine/official-lifecycle-notifications.patch",
       "bytes": 32924,
       "sha256": "ac1a01d742f6dbd523fd377d1c57413e9ecc78ac384a6cdff62216fea9dd5a0b"
+    },
+    {
+      "path": "engine/official-startup-prewarm.patch",
+      "bytes": 873,
+      "sha256": "17cd6dfcb7fa5925baf3ebf7dc0037493a0af664c62860f2d9e1ae7181b6fc80"
     }
   ],
   "baseOutputs": [
@@ -311,6 +326,12 @@
       "bytes": 4720,
       "sha256": "4f38e788c3c5af798cf5426fa19667b773771c45b5eb701521ce78757d0d817f",
       "gitBlob": "a76896ebf134010089c6578f5d3d8657d7e4dc96"
+    },
+    {
+      "path": "drivers/gles3/rasterizer_scene_gles3.cpp",
+      "bytes": 212186,
+      "sha256": "6d0719c9cd2caf685a9825028183bdf058081d7bc92d4b27ed2587f39b081221",
+      "gitBlob": "bf410127d10ed35e564ca055571c8f7822680a9a"
     }
   ],
   "outputs": [
@@ -511,6 +532,12 @@
       "bytes": 4762,
       "sha256": "69f109a0a40ee04731f3e1291ee2611c0254e1eddb0475c83f00438341c180c3",
       "added": false
+    },
+    {
+      "path": "drivers/gles3/rasterizer_scene_gles3.cpp",
+      "bytes": 212396,
+      "sha256": "18d9f4a0adc15ee9e75a2156091d640347c29d67f7cf8dec28833871d9ff7190",
+      "added": false
     }
   ],
   "changedPaths": [
@@ -520,7 +547,8 @@
     "platform/web/http_client_web.h",
     "platform/web/js/libs/library_godot_audio.js",
     "platform/web/js/libs/library_godot_display.js",
-    "platform/web/display_server_web.cpp"
+    "platform/web/display_server_web.cpp",
+    "drivers/gles3/rasterizer_scene_gles3.cpp"
   ],
   "httpPaths": [
     "platform/web/js/libs/library_wxslim_fetch.js",
@@ -1004,5 +1032,19 @@
     "onlyOneApprovedExpressionChanged": true,
     "reason": "Deep strict comparison includes realm prototype even when string elements are equal",
     "sourceOrRuntimeFailure": false
+  },
+  "startupPrewarm": {
+    "path": "drivers/gles3/rasterizer_scene_gles3.cpp",
+    "setting": "startup/gles3/skip_default_3d_prewarm",
+    "defaultValue": false,
+    "input": {
+      "bytes": 212186,
+      "sha256": "6d0719c9cd2caf685a9825028183bdf058081d7bc92d4b27ed2587f39b081221"
+    },
+    "output": {
+      "bytes": 212396,
+      "sha256": "18d9f4a0adc15ee9e75a2156091d640347c29d67f7cf8dec28833871d9ff7190"
+    },
+    "scope": "Guards only the startup version_bind_shader of the default scene shader version; unset or false keeps the original behaviour. Added 2026-11-08 for the conservative and pure-2d rebuilds; the shipped full engine is not rebuilt."
   }
 }

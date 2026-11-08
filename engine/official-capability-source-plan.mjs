@@ -20,7 +20,7 @@ export function planOfficialCapabilitySources(request){
     if(previous)assert.deepEqual({bytes:previous.bytes,sha256:previous.sha256},{bytes:input.bytes,sha256:input.sha256});
     inputs.set(input.path,{...previous,...input});
   }
-  assert.equal(inputs.size,26);
+  assert.equal(inputs.size,27);
   const dependencies=new Map();
   for(const input of [...base.dependencies,...m.dependencies]){
     const previous=dependencies.get(input.path);if(previous)assert.deepEqual(pin(read(input.path)),{bytes:previous.bytes,sha256:previous.sha256});
@@ -36,7 +36,7 @@ export function planOfficialCapabilitySources(request){
         patches:base.patches,generatedSources:base.generatedSources,postPatchTransform:base.postPatchTransform,outputFiles:31,
         note:'Use the exact existing generator, including the generated storage backend and SCsub relocation; applying patches alone is insufficient.'},
       {stage:'CAPABILITY',implementation:'engine/official-capability-followup-source.mjs',export:'applyCapabilityFollowupSources',
-        extraOfficialInputs:m.extraOfficialInputs,patches:m.followupPatches.map((p,i)=>({...p,order:21+i})),outputFiles:33,
+        extraOfficialInputs:m.extraOfficialInputs,patches:m.followupPatches.map((p,i)=>({...p,order:21+i})),outputFiles:34,
         changedPaths:m.changedPaths,note:'Overlay once on authenticated base outputs; reject already patched or drifted inputs.'}
     ],
     finalOutputs:m.outputs,retiredSources:base.retiredSources,dependencies:[...dependencies.values()],

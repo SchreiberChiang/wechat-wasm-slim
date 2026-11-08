@@ -21,7 +21,7 @@ for(const p of [requestFile,request.gitExecutable,upstreamFile]){const st=fs.lst
 const upstreamBefore=fs.statSync(upstreamFile),upstreamSource=fs.readFileSync(upstreamFile);
 const upstreamPin={bytes:m.upstreamSource.fixedSource.bytes,sha256:m.upstreamSource.fixedSource.sha256};
 assert.deepEqual(followupIdentity(upstreamSource),upstreamPin);
-const entries=[...new Map([...plan.officialInputs,...m.extraOfficialInputs].map(p=>[p.path,p])).values()];assert.equal(entries.length,26);
+const entries=[...new Map([...plan.officialInputs,...m.extraOfficialInputs].map(p=>[p.path,p])).values()];assert.equal(entries.length,27);
 const specs=[m.baseCommit,...entries.map(p=>m.baseCommit+':'+p.path)];
 const stdout=execFileSync(request.gitExecutable,['--no-optional-locks','--no-replace-objects','-C',source,'cat-file','--batch'],{input:specs.join('\n')+'\n',windowsHide:true,maxBuffer:8*1024*1024});
 const blobs=new Map();let cursor=0;
@@ -47,19 +47,20 @@ for(const pin of m.followupPatches.slice().reverse()){
   for(const [p,v]of replayUnifiedPatch(reverse,name=>reconstructedBase.get(name)))reconstructedBase.set(p,Buffer.from(v.text));
 }
 for(const p of m.extraOfficialInputs)reconstructedBase.delete(p.path);
-test('authenticated c050 commit, 25 base blobs and two overlay parents with one overlap; 26 distinct official blobs',()=>{
-  assert.equal(officialBlobs.size,25);assert.equal(extraOfficialBlobs.size,2);assert.equal(blobs.size,26);
+test('authenticated c050 commit, 25 base blobs and three overlay parents with one overlap; 27 distinct official blobs',()=>{
+  assert.equal(officialBlobs.size,25);assert.equal(extraOfficialBlobs.size,3);assert.equal(blobs.size,27);
   assert(officialBlobs.get(m.overlappingOfficialInputPaths[0]).equals(extraOfficialBlobs.get(m.overlappingOfficialInputPaths[0])));
   assert.equal(m.extraOfficialInputs[0].gitBlob,'b3c5f2fc87e2e601d0016835f428f547ce870ec0');
   assert.equal(m.extraOfficialInputs[1].gitBlob,'a76896ebf134010089c6578f5d3d8657d7e4dc96');
+  assert.equal(m.extraOfficialInputs[2].gitBlob,'bf410127d10ed35e564ca055571c8f7822680a9a');
 });
-test('full/conservative produce identical 33 source outputs and exactly seven changed paths',()=>{
-  assert.equal(full.outputs.size,33);assert.equal(conservative.outputs.size,33);
+test('full/conservative produce identical 34 source outputs and exactly eight changed paths',()=>{
+  assert.equal(full.outputs.size,34);assert.equal(conservative.outputs.size,34);
   assert.deepEqual([...full.outputs.keys()],[...conservative.outputs.keys()]);
   for(const [p,b]of full.outputs)assert(b.equals(conservative.outputs.get(p)),p);
   for(const result of [full,conservative]){
     assert.deepEqual(result.receipt.changedPaths,m.changedPaths.slice().sort());assert.equal(result.receipt.unchangedPaths.length,26);
-    assert.equal(result.receipt.baseOutputs,31);assert.equal(result.receipt.extraOfficialInputs,2);assert.equal(result.receipt.basePatchCount,20);assert.equal(result.receipt.followupPatchCount,4);
+    assert.equal(result.receipt.baseOutputs,31);assert.equal(result.receipt.extraOfficialInputs,3);assert.equal(result.receipt.basePatchCount,20);assert.equal(result.receipt.followupPatchCount,5);
   }
   // All 26 preserved paths are authenticated original-combination outputs.
   // Only seven paths receive the four followup patches.
@@ -111,4 +112,13 @@ test('read-only inputs and existing source dependency snapshots remain unchanged
   assert.deepEqual(followupIdentity(fs.readFileSync(upstreamFile)),upstreamPin);assert.equal(fs.statSync(upstreamFile).mtimeMs,upstreamBefore.mtimeMs);
   const after=capabilityFollowupMetadata();assert.deepEqual(after,m);
   for(const [p,b]of officialBlobs)assert.deepEqual(followupIdentity(b),followupIdentity(blobs.get(p)));
+});
+test('startup prewarm guard wraps only the default scene shader bind and keeps it when the setting is unset',()=>{
+  const p=m.startupPrewarm.path,before=blobs.get(p).toString(),after=full.outputs.get(p).toString();
+  assert.deepEqual(followupIdentity(full.outputs.get(p)),m.startupPrewarm.output);
+  assert.equal(full.receipt.startupPrewarmGuard,'startup/gles3/skip_default_3d_prewarm');assert.equal(full.receipt.startupPrewarmDefault,false);
+  const added=after.split('\n').filter(l=>!before.split('\n').includes(l));
+  assert.deepEqual(added.map(l=>l.trim()),['// wxslim: a project may skip this default 3D shader compile at startup (startup/gles3/skip_default_3d_prewarm, default false).',
+    'if (!bool(GLOBAL_DEF("startup/gles3/skip_default_3d_prewarm", false))) {','material_storage->shaders.scene_shader.version_bind_shader(scene_globals.shader_default_version, SceneShaderGLES3::MODE_COLOR);']);
+  assert.equal(after.split('version_bind_shader(scene_globals.shader_default_version').length,before.split('version_bind_shader(scene_globals.shader_default_version').length);
 });
