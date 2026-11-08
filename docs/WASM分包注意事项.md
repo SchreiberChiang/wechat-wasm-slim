@@ -84,6 +84,8 @@
 
 **怎么避免**：面板「iPhone 余包提前下载（秒）」可以把它调小，插件会在生成分包后改运行时里的这个数；微信后台下发了配置时以后台为准。调小后 `wasmcode2`（约 7 MB）会更早和游戏启动抢网络，改了要在 iPhone 上看一下启动时间。
 
+**实测**（2026-11-08，iPhone 16 Pro，Wi-Fi，正式分包 subVersion 7）：设为 5 秒后，日志出现 `setTimeout for download wasmcode2: 5000`，`wasmcode2` 在游戏启动完成后 5.0 秒开始下载，7.37 MB 用 2.33 秒，初始化 22 毫秒，早于缺函数；游戏启动耗时 2.44 秒，没有变慢（30 秒那次是 3.75 秒）。4G 和低端机还没测。同一份日志开头有一行微信运行库自己的 `LifeCycle.start fail: Length out of range of buffer`，出现在引擎和分包运行时之前，与这个设置无关，游戏正常启动；之前的日志里没有，再出现时要查。
+
 **来源**：官方运行时 `wasm-split.js`（`kDelayLoadWasmcode2Time:3e4`、`getFeatures` / `delayInitTime`）；iPhone 16 Pro 日志。
 
 ## 10. 密钥用错
