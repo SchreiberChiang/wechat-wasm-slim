@@ -15,7 +15,7 @@
       "path": "login, level1, level2",
       "splitAt": "21:58:37 (about 70 s after the QR)",
       "increment": 0,
-      "note": "split before it was clear whether data had arrived; led to 5237644 asking before a zero-increment supplement split"
+      "note": "split before it was clear whether data had arrived; led to commit 7311af4 (release directory ../release-5237644) asking before a zero-increment supplement split"
     },
     {
       "profileAt": "22:09",

@@ -2,7 +2,7 @@
   "schema": "wxslim-wasm-split-panel-acceptance-v1",
   "date": "2026-11-08",
   "timezone": "Asia/Shanghai",
-  "sourceCommitAtStart": "581b611",
+  "sourceCommitAtStart": "172792f",
   "branch": "claude/panel-simplify",
   "release": {
     "directory": "../release-82d3446",
