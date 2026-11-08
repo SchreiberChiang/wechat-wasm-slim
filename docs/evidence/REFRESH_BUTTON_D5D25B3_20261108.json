@@ -1,0 +1,23 @@
+{
+  "schema": "wxslim-refresh-button-acceptance-v1",
+  "at": "2026-11-08T07:20:00Z",
+  "sourceCommit": "d5d25b3",
+  "release": {"directory": "../release-d5d25b3", "files": 343, "bytes": 327339643, "manifestIdentity": "655b560b8ab9c46d386fe3c74ceca20cef1fd2927b7e24274bc9fc237396ca43"},
+  "regression": {"command": "node tests/run-offline.mjs <test-cache>", "tests": 534, "pass": 534, "fail": 0},
+  "game": "verify/面板试用游戏 (Node2D + Label, full template, GLX, computer preview package)",
+  "commandLine": {
+    "fullExportSeconds": 40,
+    "refreshSeconds": 4.5,
+    "replacedInPlace": "devtools/minigame data-package now holds the new label text, old text gone, wx-game-kit fileMD5 matches the new data.bin",
+    "conversionResultUntouched": true,
+    "noLiveCopy": true,
+    "workFolderRemovedAfterSuccess": true,
+    "unchangedPckGivesChangedFalseAndDoesNotOpen": true
+  },
+  "userGui": {
+    "result": "PASS",
+    "steps": "导出并转换 → 在开发者工具中打开 → 改 Label 文字 → 只更新游戏资源; DevTools showed the new text in the project it already had open",
+    "userReplies": ["变了（ba39e47：原地替换生效，但留下 refresh-时间 文件夹）", "ok通过（d5d25b3：不再留下文件夹）"]
+  },
+  "notVerified": ["phone", "refresh with scene packs (blocked by design)", "WebGL run without preview package opened through the panel"]
+}
