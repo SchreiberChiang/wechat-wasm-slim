@@ -1,0 +1,18 @@
+{
+  "schema": "wxslim-plugin-folder-acceptance-v1",
+  "at": "2026-11-08T02:55:00Z",
+  "sourceCommit": "bf96f08",
+  "change": "release is addons/wxslim_readonly/ (plugin + kit/ with .gdignore); enabling the plugin runs kit/install.mjs in place; double-click installer removed; 给AI的安装说明.md added",
+  "release": {"directory": "../release-bf96f08", "files": 338, "bytes": 234606640, "manifestIdentity": "2bed9b2f7b4e4a14cfcb57bf750fb530d4a4bda3317d19783ccc8fbe94a959a8", "pluginVersion": "0.3-development"},
+  "tests": {"total": 527, "pass": 527, "fail": 0},
+  "checked": [
+    "copy addons into a blank game + plugin enabled: headless editor ran setup by itself (Steam Godot 4.7.2, Node from PATH), receipt and workbench.path written",
+    "second editor start: no setup again",
+    "Godot filesystem cache has no kit/ entries (.gdignore)",
+    "quick run from the copied plugin: SUCCESS, PCK 1,680 bytes, conversion with the kit inside the game accepted",
+    "AI route: node kit/install.mjs EDITOR on a fresh game: SUCCESS and plugin enabled in project.godot",
+    "edited kit file: SETUP_KIT_CHANGED; folder outside addons/: SETUP_NOT_IN_GAME",
+    "old managed install (release-e573883): replace the folder, reopen: setup ran again and points at the new kit"
+  ],
+  "notChecked": ["the person copying the folder and ticking the plugin in the Godot GUI", "a machine without Node.js (dialog text only)", "macOS/Linux node lookup"]
+}
