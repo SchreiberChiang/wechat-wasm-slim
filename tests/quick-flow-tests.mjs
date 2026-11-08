@@ -153,8 +153,9 @@ test('blockers: unsupported combinations are named instead of silently downgrade
   assert.deepEqual(codes({template: '2d'}), ['QUICK_2D_NEEDS_CONFIRMATION']);
   assert.deepEqual(codes({template: '2d', confirmNo3d: true}), []);
   assert.deepEqual(codes({template: 'custom'}), ['QUICK_TEMPLATE_CUSTOM_PENDING']);
-  assert.deepEqual(codes({skipPrewarm: true}), ['QUICK_PREWARM_UNSUPPORTED']);
-  assert.deepEqual(codes({template: '2d', confirmNo3d: true, skipPrewarm: true}), ['QUICK_PREWARM_UNSUPPORTED']);
+  assert.deepEqual(codes({skipPrewarm: true}), ['QUICK_PREWARM_FULL']);
+  // 2D / 保守模板能否跳过取决于安装版引擎（profiles.json 的 startupPrewarmSkippable），在 resolveTaskInputs 里检查。
+  assert.deepEqual(codes({template: '2d', confirmNo3d: true, skipPrewarm: true}), []);
   assert.deepEqual(codes({subpackages: 'scenes'}), ['QUICK_SCENES_EMPTY']);
   assert.deepEqual(codes({subpackages: 'scenes', scenes: ['levels/a.tscn']}), ['QUICK_SCENES_PATH']);
   assert.deepEqual(codes({subpackages: 'scenes', scenes: ['res://levels/a.tscn']}), []);

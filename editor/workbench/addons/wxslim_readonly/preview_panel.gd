@@ -989,10 +989,19 @@ func _save_last_run(result: Dictionary, settings_key: String) -> void:
 
 # 上次成功的运行只在设置没变时可用；改过模板、方向等之后必须重新导出并转换。打开时由快速流程再核对一次运行状态。
 func _last_run_usable() -> bool:
-	if _last_run.is_empty() or _last_run.get("settings", "") != JSON.stringify(_saved):
+	if _last_run.is_empty() or _without_prewarm(_last_run.get("settings", "")) != _without_prewarm(JSON.stringify(_saved)):
 		return false
 	var run: String = _last_run.get("run", "")
 	return not run.is_empty() and DirAccess.dir_exists_absolute(run)
+
+# 跳过预热只是游戏资源里的一条设置：改了它，上次的转换结果仍可用「只更新游戏资源」更新。
+func _without_prewarm(settings_json: String) -> String:
+	var parsed: Variant = JSON.parse_string(settings_json)
+	if not parsed is Dictionary:
+		return settings_json
+	var copy: Dictionary = parsed.duplicate()
+	copy.erase("skipPrewarm")
+	return JSON.stringify(copy, "", true)
 
 func _package_id(result: Dictionary) -> String:
 	var steps: Dictionary = result.get("steps", {})
@@ -1580,14 +1589,21 @@ func _refresh() -> void:
 		_loading = false
 	_login_code.disabled = _draft.template != "full"
 	_login_note.text = "只在完整模板可用。" if _draft.template != "full" else ("暂时不能和按场景分包同时用。" if _draft.subpackages == "scenes" else "默认关闭；开启后游戏要主动请求 code，不会自动登录。")
-	# 安装版里的引擎启动时都固定预热：保持不勾选，而不是留下一个勾着但不会生效的选项。
-	if _draft.skipPrewarm:
+	# 跳过默认 3D 预热只在保守和 2D 模板可用（这两个引擎带开关）；完整模板保留预热，切到完整时清掉勾选。
+	var prewarm_ok: bool = _draft.template in ["conservative", "2d"]
+	if _draft.skipPrewarm and not prewarm_ok:
 		_draft.skipPrewarm = false
 		_loading = true
 		_prewarm.button_pressed = false
 		_loading = false
-	_prewarm.disabled = true
-	_prewarm_note.text = "安装版的引擎启动时都固定预热，跳过需要重建引擎（命令行）。"
+	_prewarm.disabled = not prewarm_ok
+	_prewarm.tooltip_text = "引擎启动时默认会先编译一个 3D 着色器。跳过后启动更快，但游戏第一次画 3D 物体时可能卡一下。\n设置写进导出的游戏资源，不改 project.godot；改了勾选后重新导出或「只更新游戏资源」即可。"
+	if not prewarm_ok:
+		_prewarm_note.text = "完整模板保留启动预热；保守和 2D 模板可以跳过。"
+	elif _draft.skipPrewarm:
+		_prewarm_note.text = "启动时不编译默认 3D 着色器。2D 游戏建议勾选；有 3D 的游戏第一次画 3D 时可能卡一下。"
+	else:
+		_prewarm_note.text = "默认照常预热。纯 2D 游戏可以勾选，启动更快。"
 	if _draft.appid.is_empty():
 		_appid_note.text = "转换前必填。只检查格式，不代表微信后台有效。"
 	elif not _appid_valid(_draft.appid):
