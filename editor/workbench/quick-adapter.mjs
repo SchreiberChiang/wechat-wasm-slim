@@ -10,18 +10,19 @@
 //   runs 的请求是 {output}，只读列出该目录下的运行；status 的请求是 {run}，等同 quick status；
 //   open 的请求是 {run, settings}，等同 quick open：只打开已完成转换的运行，需要时用面板的 AppID 来源；
 //   requirements 的请求是 {template}，等同 quick requirements；
+//   refresh 的请求是 {project, settings, run, open}，等同 quick refresh：只重新导出 PCK，放进那次运行的实时预览副本；
 //   receiver 的请求是 {project, settings, write}，等同 quick receiver（按场景分包前往游戏里装分包加载脚本）。
 //   请求内容读自 logs/TOKEN.quick-request.private.json
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {loadConfig} from './adapter.mjs';
-import {quickPlan, quickRun, cancelQuickRun, listQuickRuns, quickRunStatus, templateRequirements, installReceiver, QUICK_SETTINGS_SCHEMA} from '../../lib/quick-flow.mjs';
+import {quickPlan, quickRun, quickRefresh, cancelQuickRun, listQuickRuns, quickRunStatus, templateRequirements, installReceiver, QUICK_SETTINGS_SCHEMA} from '../../lib/quick-flow.mjs';
 import {openWeChatProject} from './open-project.mjs';
 
 const PANEL_KEYS = ['template', 'orientation', 'glx', 'skipPrewarm', 'subpackages', 'scenes', 'appid', 'appidFrom', 'gameName', 'output', 'confirmNo3d',
   'confirmRemovedModules', 'locale', 'largePck', 'loginCode', 'devtoolsPreview', 'devtools'];
-const MODES = ['plan', 'run', 'open', 'cancel', 'runs', 'status', 'requirements', 'receiver'];
+const MODES = ['plan', 'run', 'refresh', 'open', 'cancel', 'runs', 'status', 'requirements', 'receiver'];
 const TOKEN = /^[0-9]{1,12}-[0-9]{1,24}$/;
 
 function reject(code, message) {
@@ -49,7 +50,7 @@ function writeResult(file, value) {
   fs.renameSync(temporary, file);
 }
 
-export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan, run = quickRun, open = openWeChatProject, cancel = cancelQuickRun, load = loadConfig, runs = listQuickRuns, receiver = installReceiver} = {}) {
+export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan, run = quickRun, refresh = quickRefresh, open = openWeChatProject, cancel = cancelQuickRun, load = loadConfig, runs = listQuickRuns, receiver = installReceiver} = {}) {
   if (!MODES.includes(mode) || !TOKEN.test(token)) reject('QUICK_ADAPTER_ARGUMENT', '参数无效');
   const config = load(configFile);
   const logs = path.join(path.dirname(path.resolve(configFile)), 'logs');
@@ -103,7 +104,9 @@ export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan
       const settingsFile = stem + '.quick-settings.private.json';
       fs.writeFileSync(settingsFile, JSON.stringify(quickSettingsFromPanel(request.settings ?? {}, logs, token), null, 2) + '\n', {flag: 'wx'});
       const options = {project: request.project, settingsFile, editor: config.editorExecutable};
-      result = mode === 'plan' ? await plan(options) : await run(options, {report, openProject: request.open === true ? open : null});
+      if (mode === 'refresh' && (typeof request.run !== 'string' || !path.isAbsolute(request.run))) reject('QUICK_ADAPTER_RUN', '没有要更新的运行');
+      result = mode === 'plan' ? await plan(options) : mode === 'refresh' ? await refresh({...options, run: request.run}, {report, openProject: request.open === true ? open : null})
+        : await run(options, {report, openProject: request.open === true ? open : null});
       // 计划详情体积大且面板不直接展示，只保留摘要；完整计划仍可由 quick plan 命令行重现。
       if (result.exportPlanDetail) delete result.exportPlanDetail;
     }
