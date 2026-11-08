@@ -7,7 +7,7 @@ import {prepareSecureRandomBridge} from './secure-random-bridge.mjs';
 export const bundledPairSchema = 'wxslim-bundled-engine-fingerprint-v1';
 const fingerprints = Object.freeze({
   conservative: 'cef29ea4b1ba2f445cbfd91be9569c92295954103b974d729365072663f1d986',
-  'pure-2d': '53f99c65f133629fcf1582addd22bd92aa092cb20a97dac56b2dd51561774df0',
+  'pure-2d': '3f9a4cfc11bbd07bd421471c8d4eae65c494cf625f4c35a6e2274c32e6aa78b3',
 });
 
 function readFile(file, maximum) {

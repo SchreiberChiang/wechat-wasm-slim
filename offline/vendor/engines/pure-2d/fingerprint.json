@@ -6,8 +6,8 @@
     "sha256": "9fb6e1857f2866ba7ce6e68429b295aaee398e7026f11fb078415e1a4702a84e"
   },
   "wasm": {
-    "bytes": 52243631,
-    "sha256": "4585d1710ac4b942fb0305073c7b9a925f90a429ff4a74294ddc7775cd0fd2e4"
+    "bytes": 52244236,
+    "sha256": "ac7eaa363b5d7835f1bbe3aa049e6625621a91fd711729e41ef72219c1c11ff5"
   },
   "features": {
     "schema": "wxslim-custom-wasm-plan-v1",
@@ -17,16 +17,16 @@
   },
   "sourceCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
   "sourceRecipe": "official-c050-capability-custom",
-  "sourcePlanSha256": "314c32db705ed1467ea2d6e3b0f3702144855e76a2f5da11ba251185b7b6747b",
-  "taskId": "afff8268-4e8f-4335-a96b-42593411cd1a",
-  "originalBuildStatus": "FAILED",
+  "sourcePlanSha256": "82e3e6118c178b85758de302b9a373a1189bb0c7058030fcd5bce36ce4069afe",
+  "taskId": "53c9e607-067d-4f36-9827-2bca83c82e64",
+  "originalBuildStatus": "SUCCESS",
   "receipt": {
-    "bytes": 400309,
-    "sha256": "af14e15cb964635ab608580d43b26493110a1132cf3d477db92d54dc08895027"
+    "bytes": 396588,
+    "sha256": "ad70fd434c2528af5e116a09b34340f55760532b0ba75181242ba042b907a91a"
   },
   "build": {
-    "bytes": 213640,
-    "sha256": "666c30413f18129cdc3116e9b7ba32a151a4841b4f3f7683402ae3051abf563f"
+    "bytes": 3648583,
+    "sha256": "14f2954c89dc9d587b1edbe9bfe237349f68d96a4f1453184f14f284a879671b"
   },
   "selectedProfile": {
     "kind": "GENERATED_FROM_NORMALIZED_FEATURES",
@@ -78,7 +78,9 @@
           127
         ],
         "results": []
-      }
+      },
+      "proof": "DECLARATIVE_FUNCTION_LINK",
+      "definitionSha256": "328aa306cc3fad03e17fb895d1d0ff9cece3b0e8123b2edfb90e7aefef90c670"
     },
     {
       "module": "a",
@@ -89,7 +91,9 @@
           127
         ],
         "results": []
-      }
+      },
+      "proof": "DECLARATIVE_FUNCTION_LINK",
+      "definitionSha256": "b28b72d26f7eaec77c5b7129f5baea244a0671290f13d468e07e6602c6219f04"
     }
   ],
   "removedModules": [
@@ -104,5 +108,6 @@
     "navigation_3d",
     "vhacd",
     "webxr"
-  ]
+  ],
+  "startupPrewarmSkippable": true
 }
