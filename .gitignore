@@ -5,3 +5,31 @@ editor/workbench/logs/
 *.private.*
 node_modules/
 __pycache__/
+
+# Large offline binaries stay local; their pins live in offline/inputs.json, platform.json, proof/pack.json and vendor fingerprints.
+/offline/downloads/emscripten-4.0.10-wasm-binaries.zip
+/offline/downloads/node-v24.18.0-win-x64.zip
+/offline/downloads/node-v24.19.0-win-x64.zip
+/offline/downloads/python-3.13.3-0-win-amd64.zip
+/offline/downloads/scons-4.11.1-py3-none-any.whl
+/offline/fixtures/c050/godot.wasm
+/offline/fixtures/reference-parents/a3fa7032ace37840021c58bd06b6b49f7b0468c01dde4b9d63a33bc2d2cd82cf
+/offline/fixtures/stored/wasmcode/927543c35b933d9.wasm.br
+/offline/platform/git-windows.zip
+/offline/platform/godot-4.7.2.zip
+/offline/platform/python-3.14.0.zip
+/offline/proof/paired-evidence.zip
+/offline/upstream/c050.pack
+/offline/upstream/df3.pack
+/offline/vendor/engines/conservative/godot.wasm
+/offline/vendor/engines/full/godot.wasm
+/offline/vendor/engines/pure-2d/godot.wasm
+/offline/vendor/tools/wx-transformer-v1.0.35-win.exe
+
+# Fixtures whose redistribution is unconfirmed (converted WeChat package with an AppID, converter output, test game data) stay local.
+/offline/fixtures/reference-parents/
+/offline/fixtures/c050/framework.js
+/offline/fixtures/c050/godot.raw.js
+/offline/fixtures/df3/emscripten-before-godot-process.js
+/offline/fixtures/game/boot.pck
+/offline/fixtures/stored/wx-game-kit/config.json
