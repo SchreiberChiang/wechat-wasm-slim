@@ -8,7 +8,13 @@
     "0a02684": "修复：组包任务读 converted 目录；登录 code 与按场景分包暂不能同时用；意外错误用大白话",
     "59acd35": "修复：组包后的分包工程可以写入本机 AppID 并打开"
   },
-  "tests": {"command": "node tests/run-offline.mjs <prepared cache>", "total": 527, "pass": 527, "fail": 0, "baselineBefore": "520/520"},
+  "tests": {
+    "command": "node tests/run-offline.mjs <prepared cache>",
+    "total": 527,
+    "pass": 527,
+    "fail": 0,
+    "baselineBefore": "520/520"
+  },
   "panelSmoke": "godot --headless --script res://panel-smoke-check.gd：7 项检查通过（模板三选一、空闲状态、状态卡四行自动换行、语言两项、保守确认、登录 code 只限完整模板、错误按 field 落到对应设置组）",
   "release": {
     "directory": "../release-59acd35",
@@ -43,9 +49,9 @@
     }
   },
   "notVerified": [
-    "面板由人亲手点击（待用户在 Godot 里确认）",
     "分包在开发者工具画面和真机上的下载、挂载、切场景",
     "设备与 GLX 画面",
     "登录 code 与按场景分包同时使用（组包核对要求接口逐字节一致，暂时拦下）"
-  ]
+  ],
+  "userGuiCheck": "2026-11-08：用户在 Godot 里打开 verify/gui-59acd35，亲手点了一遍「微信导出」面板，回复面板正常"
 }
