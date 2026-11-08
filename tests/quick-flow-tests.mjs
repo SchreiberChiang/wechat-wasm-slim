@@ -155,7 +155,16 @@ test('blockers: unsupported combinations are named instead of silently downgrade
   assert.deepEqual(codes({template: 'custom'}), ['QUICK_TEMPLATE_CUSTOM_PENDING']);
   assert.deepEqual(codes({skipPrewarm: true}), ['QUICK_PREWARM_UNSUPPORTED']);
   assert.deepEqual(codes({template: '2d', confirmNo3d: true, skipPrewarm: true}), ['QUICK_PREWARM_UNSUPPORTED']);
-  assert.deepEqual(codes({subpackages: 'scenes'}), ['QUICK_SUBPACKAGES_PENDING']);
+  assert.deepEqual(codes({subpackages: 'scenes'}), ['QUICK_SCENES_EMPTY']);
+  assert.deepEqual(codes({subpackages: 'scenes', scenes: ['levels/a.tscn']}), ['QUICK_SCENES_PATH']);
+  assert.deepEqual(codes({subpackages: 'scenes', scenes: ['res://levels/a.tscn']}), []);
+  assert.deepEqual(codes({subpackages: 'parts'}), ['QUICK_SUBPACKAGES_UNKNOWN']);
+  assert.deepEqual(codes({locale: 'en'}), []);
+  assert.deepEqual(codes({locale: 'zh CN'}), ['QUICK_LOCALE_FORMAT']);
+  assert.deepEqual(codes({loginCode: true}), []);
+  assert.deepEqual(codes({loginCode: true, template: '2d', confirmNo3d: true}), ['QUICK_LOGIN_CODE_TEMPLATE']);
+  for (const s of [{subpackages: 'scenes'}, {locale: 'x'}, {loginCode: true, template: 'conservative', confirmRemovedModules: true}])
+    assert.ok(settingsBlockers({...base, ...s}).every(b => typeof b.field === 'string'), '每个拦截都要指向一个设置');
   assert.deepEqual(codes({output: ''}), ['QUICK_OUTPUT_MISSING']);
   assert.deepEqual(codes({output: 'relative/out'}), ['QUICK_OUTPUT_RELATIVE']);
   assert.deepEqual(codes({output: path.join(out, 'missing')}), ['QUICK_OUTPUT_NOT_FOUND']);

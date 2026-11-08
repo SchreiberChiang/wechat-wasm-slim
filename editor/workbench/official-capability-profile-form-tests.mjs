@@ -26,12 +26,12 @@ test('old explicit and legacy full drafts retain their previous profile and do n
   const {engineProfile,removedModules,...legacy}=old;assert.equal(prepareOfficialFormDraft(legacy,f.files).config.engineProfile,FULL);
   assert.throws(()=>prepareOfficialFormDraft({...f.payload,purpose:'supported-use'},f.files),{code:'LOCAL_OFFICIAL_FORM_FIELDS'});
 });
-test('actual panel source lists the new choice, preserves default and trim-only controls without dispatch',()=>{
-  const source=fs.readFileSync(new URL('./addons/wxslim_readonly/panel.gd',import.meta.url),'utf8');
-  assert(source.includes('_official_profile.set_item_metadata(0, "'+FULL+'")'));
-  assert(source.includes('_official_profile.set_item_metadata(1, "'+TRIM+'")'));
-  assert(source.includes('_official_profile.set_item_metadata(2, "'+CAPABILITY+'")'));
-  assert(source.includes('新版完整 c050（含输入、音频和网络修正）'));
-  assert(source.includes('_official_usage_box.visible = _official_profile.get_selected_metadata() == "'+TRIM+'"'));
-  assert(!source.includes('_official_profile.select(2)'));assert(!source.includes('conservative-official-c050-capability-dev'));
+test('the only panel picks templates through the quick flow and never names an engine profile itself',()=>{
+  const dir=new URL('./addons/wxslim_readonly/',import.meta.url);
+  assert.deepEqual(fs.readdirSync(dir).filter(name=>name.endsWith('.gd')).sort(),['plugin.gd','preview_panel.gd']);
+  const source=fs.readFileSync(new URL('preview_panel.gd',dir),'utf8');
+  assert(source.includes('[["full", "完整"], ["conservative", "保守"], ["2d", "2D"]]'));
+  for(const mode of ['"requirements"','"receiver"','"status"','"runs"','"cancel"'])assert(source.includes(mode),mode);
+  for(const profile of [FULL,TRIM,CAPABILITY,'custom-official-c050-dev'])assert(!source.includes(profile),profile);
+  assert(!fs.readFileSync(new URL('plugin.gd',dir),'utf8').includes('preload("panel.gd")'));
 });

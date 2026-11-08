@@ -4,7 +4,7 @@
 
 | 改动 | 源码入口 |
 |---|---|
-| Godot 停靠栏、按钮、表单和状态文案 | editor/workbench/addons/wxslim_readonly/plugin.gd、panel.gd、resource_config_form.gd |
+| Godot 停靠栏、按钮、表单和状态文案 | editor/workbench/addons/wxslim_readonly/plugin.gd、preview_panel.gd |
 | 表单字段、执行确认、进度及打开工具 | editor/workbench/adapter.mjs、action-confirmation.mjs 及同目录各表单 |
 | 导出、组包、资源、存档、取消 | wxslim.mjs、lib/、convert/ |
 | 自建引擎、GLX、补丁、裁剪 | engine/，涉及固定来源时需重建及独立验证 |

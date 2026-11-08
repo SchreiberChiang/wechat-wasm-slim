@@ -5,18 +5,23 @@
 // 放行、计划、执行、预算与路径检查全部在快速流程和共用任务核心里，这里不做任何放宽。
 //
 // 用法：node quick-adapter.mjs LOCAL_CONFIG MODE TOKEN
-//   MODE = plan | run | open | cancel | runs
+//   MODE = plan | run | open | cancel | runs | status | requirements | receiver
 //   cancel 的请求是 {runToken}（按该次运行的进度事件找运行目录）或 {run}（「最近运行」里未结束的运行目录）；
-//   runs 的请求是 {output}，只读列出该目录下的运行。
+//   runs 的请求是 {output}，只读列出该目录下的运行；status 的请求是 {run}，等同 quick status；
+//   open 的请求是 {run, settings}，等同 quick open：只打开已完成转换的运行，需要时用面板的 AppID 来源；
+//   requirements 的请求是 {template}，等同 quick requirements；
+//   receiver 的请求是 {project, settings, write}，等同 quick receiver（按场景分包前往游戏里装分包加载脚本）。
 //   请求内容读自 logs/TOKEN.quick-request.private.json
 import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {loadConfig} from './adapter.mjs';
-import {quickPlan, quickRun, cancelQuickRun, listQuickRuns, quickRunStatus, QUICK_SETTINGS_SCHEMA} from '../../lib/quick-flow.mjs';
+import {quickPlan, quickRun, cancelQuickRun, listQuickRuns, quickRunStatus, templateRequirements, installReceiver, QUICK_SETTINGS_SCHEMA} from '../../lib/quick-flow.mjs';
 import {openWeChatProject} from './open-project.mjs';
 
-const PANEL_KEYS = ['template', 'orientation', 'glx', 'skipPrewarm', 'subpackages', 'scenes', 'appid', 'appidFrom', 'gameName', 'output', 'confirmNo3d'];
+const PANEL_KEYS = ['template', 'orientation', 'glx', 'skipPrewarm', 'subpackages', 'scenes', 'appid', 'appidFrom', 'gameName', 'output', 'confirmNo3d',
+  'confirmRemovedModules', 'locale', 'largePck', 'loginCode', 'devtoolsPreview'];
+const MODES = ['plan', 'run', 'open', 'cancel', 'runs', 'status', 'requirements', 'receiver'];
 const TOKEN = /^[0-9]{1,12}-[0-9]{1,24}$/;
 
 function reject(code, message) {
@@ -44,8 +49,8 @@ function writeResult(file, value) {
   fs.renameSync(temporary, file);
 }
 
-export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan, run = quickRun, open = openWeChatProject, cancel = cancelQuickRun, load = loadConfig, runs = listQuickRuns} = {}) {
-  if (!['plan', 'run', 'open', 'cancel', 'runs'].includes(mode) || !TOKEN.test(token)) reject('QUICK_ADAPTER_ARGUMENT', '参数无效');
+export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan, run = quickRun, open = openWeChatProject, cancel = cancelQuickRun, load = loadConfig, runs = listQuickRuns, receiver = installReceiver} = {}) {
+  if (!MODES.includes(mode) || !TOKEN.test(token)) reject('QUICK_ADAPTER_ARGUMENT', '参数无效');
   const config = load(configFile);
   const logs = path.join(path.dirname(path.resolve(configFile)), 'logs');
   fs.mkdirSync(logs, {recursive: true});
@@ -73,9 +78,25 @@ export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan
       const start = fs.existsSync(runEvents) ? fs.readFileSync(runEvents, 'utf8').split('\n').filter(Boolean).map(line => JSON.parse(line)).find(e => e.phase === 'start') : null;
       if (typeof start?.run !== 'string' || !path.isAbsolute(start.run)) reject('QUICK_ADAPTER_CANCEL_NOT_STARTED', '运行目录尚未建立；请稍后再取消');
       result = await cancel(start.run);
+    } else if (mode === 'status') {
+      const status = typeof request.run === 'string' && path.isAbsolute(request.run) ? quickRunStatus(request.run) : null;
+      if (!status) reject('QUICK_RUN_NOT_FOUND', '未找到此运行的记录');
+      result = {schema: 'wxslim-quick-status-v1', ...status};
+    } else if (mode === 'requirements') {
+      result = templateRequirements(String(request.template ?? ''));
     } else if (mode === 'open') {
-      if (typeof request.projectConfig !== 'string' || !path.isAbsolute(request.projectConfig)) reject('QUICK_ADAPTER_OPEN', '没有可打开的转换结果');
-      result = {schema: 'wxslim-quick-open-v1', status: 'SUCCESS', open: open(request.projectConfig, '')};
+      // 与 quick open 相同：只打开已完成转换、有小游戏工程的运行。电脑预览包已写入 AppID；其余结果用面板的 AppID 来源替换占位 AppID。
+      const status = typeof request.run === 'string' && path.isAbsolute(request.run) ? quickRunStatus(request.run) : null;
+      if (status?.status !== 'SUCCESS' || status.steps.convert !== 'SUCCESS' || !status.openTarget)
+        reject('QUICK_OPEN_RUN_INVALID', '这次运行没有可打开的小游戏工程，请选一次已完成的运行');
+      const preview = status.openTarget.includes(path.sep + 'devtools' + path.sep);
+      const source = preview ? '' : quickSettingsFromPanel(request.settings ?? {}, logs, token).appidFrom || '';
+      result = {schema: 'wxslim-quick-open-v1', status: 'SUCCESS', run: status.run, packageId: status.packageId, open: open(status.openTarget, source)};
+    } else if (mode === 'receiver') {
+      if (typeof request.project !== 'string' || !path.isAbsolute(request.project)) reject('QUICK_ADAPTER_PROJECT', '没有游戏工程目录');
+      const settingsFile = stem + '.quick-settings.private.json';
+      fs.writeFileSync(settingsFile, JSON.stringify(quickSettingsFromPanel(request.settings ?? {}, logs, token), null, 2) + '\n', {flag: 'wx'});
+      result = await receiver({project: request.project, settingsFile, write: request.write === true});
     } else {
       if (typeof request.project !== 'string' || !path.isAbsolute(request.project)) reject('QUICK_ADAPTER_PROJECT', '没有游戏工程目录');
       const settingsFile = stem + '.quick-settings.private.json';
@@ -88,7 +109,7 @@ export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan
     writeResult(resultFile, result);
     return result;
   } catch (error) {
-    const result = {schema: 'wxslim-quick-adapter-error-v1', status: 'FAILED', code: error.code || 'QUICK_ADAPTER_FAILED', message: error.message};
+    const result = {schema: 'wxslim-quick-adapter-error-v1', status: 'FAILED', code: error.code || 'QUICK_ADAPTER_FAILED', message: error.message, ...(error.field ? {field: error.field} : {})};
     writeResult(resultFile, result);
     return result;
   }
