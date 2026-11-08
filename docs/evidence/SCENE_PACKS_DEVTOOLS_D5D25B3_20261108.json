@@ -2,7 +2,12 @@
   "schema": "wxslim-scene-packs-devtools-acceptance-v1",
   "at": "2026-11-08T07:15:00Z",
   "sourceCommit": "d5d25b3",
-  "release": {"directory": "../release-d5d25b3", "files": 343, "bytes": 327339643, "manifestIdentity": "655b560b8ab9c46d386fe3c74ceca20cef1fd2927b7e24274bc9fc237396ca43"},
+  "release": {
+    "directory": "../release-d5d25b3",
+    "files": 343,
+    "bytes": 327339643,
+    "manifestIdentity": "655b560b8ab9c46d386fe3c74ceca20cef1fd2927b7e24274bc9fc237396ca43"
+  },
   "game": {
     "directory": "verify/分包试用游戏",
     "layout": "main.tscn (boot, two buttons calling WxResource.load_pack) + levels/level1.tscn and level2.tscn, each with its own 512x512 PNG; shared script levels/level.gd stays in boot",
@@ -11,8 +16,17 @@
   "commandLine": {
     "receiverInstalled": "4 scripts + autoload WxResource",
     "fullExportSeconds": 52,
-    "packBytes": {"boot.pck": 72348, "level1.pck": 223680, "level2.pck": 223680},
-    "previewGameJsonSubpackages": ["wasmcode", "data-package", "level1 -> scenepacks/level1/", "level2 -> scenepacks/level2/"]
+    "packBytes": {
+      "boot.pck": 72348,
+      "level1.pck": 223680,
+      "level2.pck": 223680
+    },
+    "previewGameJsonSubpackages": [
+      "wasmcode",
+      "data-package",
+      "level1 -> scenepacks/level1/",
+      "level2 -> scenepacks/level2/"
+    ]
   },
   "userGui": {
     "run": "verify/分包试用输出/分包试用游戏-20261108-151103",
@@ -21,5 +35,14 @@
     "result": "PASS in WeChat DevTools (WebGL2 path of the preview package)",
     "userReply": "都能进"
   },
-  "notVerified": ["phone (GLX path) download, mount and scene switch", "WebGL run without preview package (final/ assembled result)", "login code together with scene packs (still refused)"]
+  "notVerified": [
+    "WebGL run without preview package (final/ assembled result)",
+    "login code together with scene packs (still refused)"
+  ],
+  "userPhone": {
+    "result": "PASS",
+    "at": "2026-11-08",
+    "userReply": "真机我验过了",
+    "scope": "user reported the scene-pack game works on a phone (GLX path); device model and OS not recorded"
+  }
 }
