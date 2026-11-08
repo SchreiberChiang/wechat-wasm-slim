@@ -279,6 +279,7 @@
   "lib/pck-inventory.mjs",
   "lib/pck-partition.mjs",
   "lib/pck-refresh.mjs",
+  "lib/package-size.mjs",
   "lib/project-pck-export.mjs",
   "lib/quick-cli.mjs",
   "lib/quick-flow.mjs",

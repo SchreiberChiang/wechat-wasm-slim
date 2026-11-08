@@ -110,6 +110,7 @@ var _engine_line: Label
 var _input_line: Label
 var _output_line: Label
 var _task_line: Label
+var _size_line: Label
 var _missing_box: HFlowContainer
 var _export_button: Button
 var _open_button: Button
@@ -775,6 +776,9 @@ func _build_footer() -> void:
 	_output_line = _wrapped(body)
 	_task_line = _wrapped(body)
 	_task_line.text = "任务：空闲"
+	# 最近一次导出或更新后的包体大小（主包 / 合计对照微信限制），悬停看各部分。
+	_size_line = _wrapped(body)
+	_size_line.visible = false
 	_missing_box = HFlowContainer.new()
 	body.add_child(_missing_box)
 	var row := HFlowContainer.new()
@@ -944,6 +948,27 @@ func _focus_pending() -> void:
 		target.grab_focus()
 
 # ---------- 快速流程任务 ----------
+
+# 包体大小报告由快速流程算好（lib/package-size.mjs）：这里只显示摘要、在日志里列各部分，超限时弹窗提醒。
+# 超限不影响在开发者工具里预览，但上传时会被微信拒绝。
+func _show_package_size(size: Dictionary) -> void:
+	if size.is_empty():
+		return
+	var lines: Array = size.get("lines", [])
+	_size_line.text = str(size.get("summary", ""))
+	_size_line.tooltip_text = "\n".join(PackedStringArray(lines.map(func(x): return str(x)))) + "\n\n微信限制：主包不超过 4 MB，主包加全部分包不超过 30 MB（这里的分包都跟代码包一起上传，不是 CDN）。"
+	_size_line.visible = true
+	if size.get("ok", true):
+		_size_line.remove_theme_color_override("font_color")
+	else:
+		_size_line.add_theme_color_override("font_color", get_theme_color("error_color", "Editor"))
+	_log_line(_size_line.text)
+	for line in lines:
+		_log_line("  " + str(line))
+	var problems: Array = size.get("problems", [])
+	if not problems.is_empty():
+		var messages := PackedStringArray(problems.map(func(p): return "· " + str(p.get("message", ""))))
+		_show_notice("包体超过微信限制", "\n".join(messages) + "\n\n开发者工具里还能预览，但上传会被拒绝。可以换更小的模板（保守或 2D），或者把用不到的资源从游戏里去掉。\n\n" + "\n".join(PackedStringArray(lines.map(func(x): return str(x)))))
 
 func _show_notice(title: String, text: String) -> void:
 	_notice.title = title
@@ -1355,6 +1380,7 @@ func _on_quick_result(job: Dictionary, result: Dictionary) -> void:
 				_log_line("导出并转换完成：" + str(result.get("run", "")))
 				for pack in packs:
 					_log_line("分包 %s ← %s（%d 字节）" % [str(pack.get("id", "")), str(pack.get("scene", "")), int(pack.get("bytes", 0))])
+				_show_package_size(result.get("packageSize", {}))
 			elif result.get("status") == "CANCELLED":
 				_task_line.text = "任务：已取消（%d 秒）" % seconds
 				_log_line("已取消：%s。没有回滚，已写入的内容保留在 %s" % [str(result.get("error", {}).get("message", "")), str(result.get("run", ""))])
@@ -1373,6 +1399,7 @@ func _on_quick_result(job: Dictionary, result: Dictionary) -> void:
 				else:
 					_task_line.text = "任务：游戏资源没有变化（%d 秒）" % seconds
 				_log_line("已替换开发者工具里打开的工程：" + str(result.get("projectConfig", "")).get_base_dir())
+				_show_package_size(result.get("packageSize", {}))
 			elif result.get("status") == "CANCELLED":
 				_task_line.text = "任务：已取消（%d 秒）" % seconds
 			elif result.get("status") == "BLOCKED":
