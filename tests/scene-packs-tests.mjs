@@ -207,6 +207,10 @@ test('scene run: split and interfaces run as shared tasks, conversion gets the f
   assert.equal(convert.interfaces, path.join(result.run, 'interfaces', 'interfaces.js'));
   const packs = JSON.parse(fs.readFileSync(path.join(result.run, 'requests', 'scene-packs.json'), 'utf8'));
   assert.deepEqual(packs.packs.map(p => [p.id, p.entryScene, p.root]), [['boot', 'res://main.tscn', undefined], ['level1', 'res://levels/level1.tscn', 'scenepacks/level1'], ['level2', 'res://levels/level2.tscn', 'scenepacks/level2']]);
+  const assemble = JSON.parse(fs.readFileSync(path.join(result.run, 'requests', 'assemble-config.json'), 'utf8'));
+  assert.equal(assemble.convertedOutput, path.join(result.run, 'wechat', 'converted'), '组包读取转换任务里的 converted 目录');
+  assert.equal(assemble.officialConfigFile, path.join(result.run, 'requests', 'convert-config.json'));
+  assert.equal(assemble.output, path.join(result.run, 'final'));
   const interfaces = fs.readFileSync(convert.interfaces, 'utf8');
   for (const p of packs.packs.slice(1)) assert.ok(interfaces.includes(p.sha256) && interfaces.includes(p.root + '/content.bin'));
   assert.deepEqual(result.scenePacks.map(p => p.id), ['level1', 'level2']);

@@ -1352,6 +1352,8 @@ func _missing_for_export() -> Array:
 		missing.append(["未装分包加载脚本", "receiver"])
 	if _saved.loginCode and _saved.template != "full":
 		missing.append(["登录 code 只支持完整模板", "runtime"])
+	if _saved.loginCode and _saved.subpackages == "scenes":
+		missing.append(["登录 code 不能和分包同时用", "runtime"])
 	if not _appid_valid(_saved.appid):
 		missing.append(["AppID 未保存", "publish"])
 	if _saved.output.is_empty():
@@ -1499,7 +1501,7 @@ func _refresh() -> void:
 		_login_code.button_pressed = false
 		_loading = false
 	_login_code.disabled = _draft.template != "full"
-	_login_note.text = "只在完整模板可用。" if _draft.template != "full" else "默认关闭；开启后游戏要主动请求 code，不会自动登录。"
+	_login_note.text = "只在完整模板可用。" if _draft.template != "full" else ("暂时不能和按场景分包同时用。" if _draft.subpackages == "scenes" else "默认关闭；开启后游戏要主动请求 code，不会自动登录。")
 	# 安装版里的引擎启动时都固定预热：保持不勾选，而不是留下一个勾着但不会生效的选项。
 	if _draft.skipPrewarm:
 		_draft.skipPrewarm = false
