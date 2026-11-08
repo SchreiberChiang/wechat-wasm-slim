@@ -1,0 +1,39 @@
+{
+  "schema": "wxslim-panel-release-regression-v1",
+  "at": "2026-11-08T01:05:00Z",
+  "sourceCommit": "6ace653",
+  "merged": "Codex c48c182 (slim export, without 18 large binaries and 36 unconfirmed fixtures) merged into claude/panel-simplify on top of f21d930; pushed 8029e66 to origin",
+  "release": {
+    "directory": "../release-6ace653",
+    "command": "node packaging/build-release.mjs ../release-6ace653 --write",
+    "pluginVersion": "0.2-development",
+    "files": 338,
+    "bytes": 234644837,
+    "manifestIdentity": "a0513326bdfbfe512f794d13ea6be197434929352cefe8dfa6902ed2f94ac89d",
+    "versusCodexRelease": "same 338 paths; only addons/wxslim_readonly/plugin.gd, preview_panel.gd (f21d930) and install.mjs (EXDEV fix) differ; no proof or historical reviewer"
+  },
+  "tests": {"total": 515, "pass": 515, "fail": 0, "skipped": 0, "note": "run-offline.mjs with local Python 3.14.0, Git, Node 24.18.0"},
+  "installFix": {
+    "bug": "install.mjs staged in LOCALAPPDATA and renamed into the game: EXDEV when the game is on another drive (since e682ce2; release-0d69352 reproduces)",
+    "fix": "stage and swap in dot-prefixed folders under the game's addons; backup copied to the state folder",
+    "checked": ["fresh install, game on F:, state on C:", "repeat install reports alreadyInstalled", "edited addon without --update is refused", "--update from release-0d69352 (state on F:) keeps a verified backup"],
+    "notChecked": ["--update with state on a different drive from the game"]
+  },
+  "blankGame": {
+    "project": "verify/blank-8029e66, Node2D, Web preset from examples/simple",
+    "settings": {"template": "full", "glx": true, "orientation": "portrait", "appidFrom": "existing local project.config.json"},
+    "plan": "ready",
+    "run1": {"status": "SUCCESS", "seconds": 47, "convertPackageId": "wxslim-3c635ef9e0a6794aaa8f", "devtoolsPackageId": "wxslim-0a18b45c3e36803a558a"},
+    "run2Open": {"status": "SUCCESS", "seconds": 53, "convertPackageId": "wxslim-3c635ef9e0a6794aaa8f", "devtoolsPackageId": "wxslim-2f5f6b13d4ea0448aea8", "open": "devtools launched"},
+    "pckIdenticalAcrossRuns": "a6ddfcacb80d90deeda52c528ea33f4b1c8e01dff73c25f41968e2e92df50443",
+    "rejectExisting": {"code": "TASK_REJECTED", "convertOutputUnchanged": true},
+    "cancel": {"during": "convert", "runStatus": "CANCELLED", "exitCode": 3, "devtoolsStepSkipped": true},
+    "runsList": "2 SUCCESS (openable) + 1 CANCELLED",
+    "headlessEditor": "plugin enabled, no script errors"
+  },
+  "finding": {
+    "issue": "when the plugin is not enabled, the export filter is not registered and addons/wxslim_readonly scripts go into the game PCK (157,896 bytes vs 1,872 bytes with the plugin enabled); no local paths found in it",
+    "status": "pre-existing, not fixed in this round"
+  },
+  "notVerified": ["panel GUI clicks on this release (editor opened for the user)", "devtools picture", "real device", "conservative and 2D templates on this release"]
+}
