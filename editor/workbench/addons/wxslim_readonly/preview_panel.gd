@@ -1133,12 +1133,14 @@ func _last_run_usable() -> bool:
 	return not run.is_empty() and DirAccess.dir_exists_absolute(run)
 
 # 跳过预热只是游戏资源里的一条设置：改了它，上次的转换结果仍可用「只更新游戏资源」更新。
+# 开发者工具位置、WASM 分包密钥和 iPhone 余包秒数是本机操作用的，也不影响导出结果。
 func _without_prewarm(settings_json: String) -> String:
 	var parsed: Variant = JSON.parse_string(settings_json)
 	if not parsed is Dictionary:
 		return settings_json
 	var copy: Dictionary = parsed.duplicate()
-	copy.erase("skipPrewarm")
+	for key in ["skipPrewarm", "devtools", "wasmsplitKey", "wasmsplitIosDelay"]:
+		copy.erase(key)
 	return JSON.stringify(copy, "", true)
 
 func _package_id(result: Dictionary) -> String:
