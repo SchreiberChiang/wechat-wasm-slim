@@ -3,15 +3,66 @@
   "date": "2026-11-08",
   "release": "../release-5237644",
   "run": "verify/分包试用输出/分包试用游戏-20261108-212013",
-  "engine": {"pair": "pure-2d", "wasmCodeMd5": "0804821ba8a10d1"},
+  "engine": {
+    "pair": "pure-2d",
+    "wasmCodeMd5": "0804821ba8a10d1"
+  },
   "rounds": [
-    {"profileAt": "21:56", "subVersion": 4, "device": "Huawei nova 4", "path": "login, level1, level2", "splitAt": "21:58:37 (about 70 s after the QR)", "increment": 0,
-     "note": "split before it was clear whether data had arrived; led to 5237644 asking before a zero-increment supplement split"},
-    {"profileAt": "22:09", "subVersion": 6, "device": "Huawei nova 4", "path": "login, level1, level2, dragging on screen; mini game deleted right after", "checkedAt": "22:12", "increment": 0, "logs": "not exported"},
-    {"control": "main menu button Extra test using RegEx, AStar2D and Curve2D (never used before), PCK refreshed into the same collecting copy, previewed from DevTools, app sent to background for 2 minutes",
-     "device": "Huawei nova 4", "screen": "Extra: regex=alpha path=5 curve=113.4", "checkedAt": "22:20", "increment": 120, "collected": 12176, "total": 66145}
+    {
+      "profileAt": "21:56",
+      "subVersion": 4,
+      "device": "Huawei nova 4",
+      "path": "login, level1, level2",
+      "splitAt": "21:58:37 (about 70 s after the QR)",
+      "increment": 0,
+      "note": "split before it was clear whether data had arrived; led to 5237644 asking before a zero-increment supplement split"
+    },
+    {
+      "profileAt": "22:09",
+      "subVersion": 6,
+      "device": "Huawei nova 4",
+      "path": "login, level1, level2, dragging on screen; mini game deleted right after",
+      "checkedAt": "22:12",
+      "increment": 0,
+      "logs": "not exported"
+    },
+    {
+      "control": "main menu button Extra test using RegEx, AStar2D and Curve2D (never used before), PCK refreshed into the same collecting copy, previewed from DevTools, app sent to background for 2 minutes",
+      "device": "Huawei nova 4",
+      "screen": "Extra: regex=alpha path=5 curve=113.4",
+      "checkedAt": "22:20",
+      "increment": 120,
+      "collected": 12176,
+      "total": 66145
+    }
   ],
   "conclusion": "Profile packages report newly used functions to the backend within minutes of backgrounding. The zero increments of the earlier rounds mean the Android route of this simple game used no engine functions beyond the iOS collection; round 2's upload cannot be fully ruled out because the app was deleted at once.",
   "symbols": "the pure-2d engine map has names for only 724 of 66145 functions (release build), so increments cannot be identified by name",
-  "notVerified": ["release split after this round", "a game that really uses touch-drag velocity on Android"]
+  "releaseAfterControl": {
+    "subVersion": 7,
+    "primaryWasmBytes": 3361771,
+    "collected": 12176,
+    "iphone16Pro": {
+      "coldDataPackage": true,
+      "downloadWasmMs": 1594,
+      "compileMs": 448,
+      "callMainMs": 1316,
+      "gameStartMs": 3753,
+      "wasmcode2": "downloaded 30 s after start, 7373742 bytes in 1.96 s, init 40 ms, before any missing function"
+    },
+    "huaweiNova4": {
+      "android": "10",
+      "wechat": "8.0.79",
+      "cachedWasm": true,
+      "compileMs": 425,
+      "callMainMs": 2586,
+      "gameStartMs": 3545
+    },
+    "user": "手机预览都看起来没什么问题；Extra test 显示 regex=alpha path=5 curve=113.4",
+    "result": "PASS_REPORTED_BY_USER"
+  },
+  "notVerified": [
+    "a game that really uses touch-drag velocity on Android",
+    "iPhone missing function inside the 30 s window"
+  ]
 }
