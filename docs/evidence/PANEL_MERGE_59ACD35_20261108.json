@@ -1,0 +1,51 @@
+{
+  "schema": "wxslim-local-regression-record-v1",
+  "date": "2026-11-08",
+  "change": "旧停靠栏「微信导出·旧版（待并入）」并入「微信导出」面板并删除；面板改走 quick requirements/plan/run/status/runs/cancel/open/receiver；接入保守模板、大 PCK、登录 code、语言；quick flow 接通按场景分包",
+  "commits": {
+    "2ee5c86": "面板合并、按场景分包、quick receiver",
+    "dee3ccb": "修复：开启登录 code 时转换审核把追加了登录适配的接口当成不一致（此前每次登录 code 转换都失败）",
+    "0a02684": "修复：组包任务读 converted 目录；登录 code 与按场景分包暂不能同时用；意外错误用大白话",
+    "59acd35": "修复：组包后的分包工程可以写入本机 AppID 并打开"
+  },
+  "tests": {"command": "node tests/run-offline.mjs <prepared cache>", "total": 527, "pass": 527, "fail": 0, "baselineBefore": "520/520"},
+  "panelSmoke": "godot --headless --script res://panel-smoke-check.gd：7 项检查通过（模板三选一、空闲状态、状态卡四行自动换行、语言两项、保守确认、登录 code 只限完整模板、错误按 field 落到对应设置组）",
+  "release": {
+    "directory": "../release-59acd35",
+    "files": 338,
+    "bytes": 234604659,
+    "manifestIdentity": "c4ab6091de8f9bd60005376622da4e23d445a05dd92b6ee8cf575517b62b9e38",
+    "fingerprintCheck": "338 个文件与 RELEASE.json 一致；安装进两个测试游戏的插件文件与安装版一致；旧面板文件 0 个"
+  },
+  "commandLineChecks": {
+    "installer": "install.ps1 -Quiet -Game 新空白游戏 verify/blank-59acd35 与分包游戏 verify/scenes-59acd35：自动找到 Steam Godot 4.7.2 并启用插件",
+    "blank-59acd35": {
+      "firstRun": "SUCCESS，完整模板 GLX + 电脑预览包，包号 wxslim-2c052a650a0337c7d7de",
+      "repeatRun": "SUCCESS，新运行目录；PCK 与转换包号相同，预览包号不同（官方转换器在 wx-game-kit/config.json 写入分钟级 convertPluginVersion，旧有行为）",
+      "open": "quick open 第一次运行：开发者工具命令行退出码 0",
+      "existingRunDirectory": "预先占住运行目录名：FAILED QUICK_RUN_EXISTS field output，占位目录保持为空",
+      "outputInsideGame": "BLOCKED QUICK_OUTPUT_INSIDE_PROJECT field output，什么都没写",
+      "cancelDuringExport": "CANCELLED，导出任务收据 CANCELLED，退出码 3",
+      "cancelDuringConvert": "CANCELLED，导出 SUCCESS、转换 CANCELLED",
+      "loginCodeWebgl": "SUCCESS",
+      "conservativeEnglish": "未确认时 QUICK_CONSERVATIVE_NEEDS_CONFIRMATION；确认后 SUCCESS",
+      "pck": "1760 字节，不含插件条目"
+    },
+    "scenes-59acd35": {
+      "game": "主场景 + level1（独占背景图）+ level2，两关共用敌人场景",
+      "receiverMissing": "plan 拦下 QUICK_RECEIVER_MISSING field receiver",
+      "receiver": "quick receiver --write：INSTALLED，新建 4 个脚本并插入 WxResource 自动加载；再装一次 ALREADY_INSTALLED（dee3ccb 上测）",
+      "sharedSceneRefused": "只选共用的敌人场景：QUICK_SCENES_USED_BY_BOOT（dee3ccb 上测）",
+      "glxPreview": "SUCCESS；level1 包 4 个条目 18104 字节、level2 包 2 个条目 1208 字节；敌人场景留在首包；预览包 game.json 登记 scenepacks/level1、scenepacks/level2",
+      "webglAssemble": "SUCCESS；组包结果 final/converted/minigame 的 game.json 登记两个分包；quick open 写入 AppID（2 个字段）并打开，退出码 0",
+      "pure2d": "2D + GLX 预览 + 分包 SUCCESS",
+      "loginCodeWithScenes": "QUICK_LOGIN_CODE_SCENES，事先拦下（0a02684 上测）"
+    }
+  },
+  "notVerified": [
+    "面板由人亲手点击（待用户在 Godot 里确认）",
+    "分包在开发者工具画面和真机上的下载、挂载、切场景",
+    "设备与 GLX 画面",
+    "登录 code 与按场景分包同时使用（组包核对要求接口逐字节一致，暂时拦下）"
+  ]
+}
