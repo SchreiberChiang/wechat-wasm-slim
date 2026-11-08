@@ -165,7 +165,7 @@ func _workbench_directory() -> String:
 func _default_settings() -> Dictionary:
 	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "confirmNo3d": false, "confirmRemovedModules": false,
 		"subpackages": "none", "scenes": [], "appid": "", "appidFrom": "", "gameName": "", "output": "", "project": "",
-		"locale": "zh_CN", "largePck": false, "loginCode": false, "devtools": "", "wasmsplitKey": "", "wasmsplitIosDelay": 30}
+		"locale": "zh_CN", "largePck": false, "loginCode": false, "devtools": "", "wasmsplitKey": "", "wasmsplitIosDelay": 5}
 
 func _installed() -> bool:
 	return FileAccess.file_exists(INSTALL_LOCATOR)
@@ -676,7 +676,7 @@ func _build_publish(parent: Control) -> void:
 			_refresh()
 	)
 	wasm_delay.add_child(_wasmsplit_delay)
-	_note("官方默认 30 秒：iPhone 启动 30 秒后才在后台下载余包 wasmcode2，这之前走到首包没有的函数会出错。调小能更早下载，但会和启动抢网络。改完点「预览二维码」就生效，不用重新拆分。", wasm_delay)
+	_note("插件默认 5 秒（官方 30 秒）：iPhone 启动完成后过这么久才在后台下载余包 wasmcode2，这之前走到首包没有的函数会出错。设成 30 就是官方原样。改完点「预览二维码」就生效，不用重新拆分。", wasm_delay)
 
 	var game_name := _field("游戏名", body)
 	_game_name = _line_edit(game_name, "显示在开发者工具中的名称", "gameName")
@@ -876,7 +876,7 @@ func _build_footer() -> void:
 	# WASM 分包前必看的五条（docs/WASM分包注意事项.md 开头），每次生成采集包前都提醒。
 	_wasm_notes_dialog = ConfirmationDialog.new()
 	_wasm_notes_dialog.title = "WASM 分包前请先确认"
-	_wasm_notes_dialog.dialog_text = "1. 采集时把「启动后 30 秒内」会出现的东西都走一遍，尤其是 iPhone：iPhone 不能停下来等余包，30 秒内走到首包没有的函数会出错。\n   例：登录后马上进第一关，开场 5 秒弹出一个采集时没触发过的特效 → iPhone 上可能报错。\n2. iPhone 和安卓都要测，一个平台采集通过不代表另一个平台。\n3. 玩完把小游戏切到后台，等 1～2 分钟再「生成正式分包」，不然这一轮的采集可能还没传上去。\n4. 换了模板或插件版本要重新采集；新玩法用到新的引擎功能时要「继续补采」。\n5. 不要把采集包当正式包发布。"
+	_wasm_notes_dialog.dialog_text = "1. 采集时把「启动后最初几秒」会出现的东西都走一遍，尤其是 iPhone：iPhone 不能停下来等余包，余包下完之前（默认约启动后 5～8 秒）走到首包没有的函数会出错。\n   例：登录后马上进第一关，开场 3 秒弹出一个采集时没触发过的特效 → iPhone 上可能报错。\n2. iPhone 和安卓都要测，一个平台采集通过不代表另一个平台。\n3. 玩完把小游戏切到后台，等 1～2 分钟再「生成正式分包」，不然这一轮的采集可能还没传上去。\n4. 换了模板或插件版本要重新采集；新玩法用到新的引擎功能时要「继续补采」。\n5. 不要把采集包当正式包发布。"
 	_wasm_notes_dialog.ok_button_text = "我知道了，继续"
 	_wasm_notes_dialog.add_button("查看完整说明", false, "notes")
 	_wasm_notes_dialog.custom_action.connect(_on_wasm_notes_action)
@@ -971,7 +971,7 @@ func _apply_draft_to_controls() -> void:
 	_output.text = _draft.output
 	_devtools.text = _draft.devtools
 	_wasmsplit_key.text = _draft.wasmsplitKey
-	_wasmsplit_delay.value = float(_draft.get("wasmsplitIosDelay", 30))
+	_wasmsplit_delay.value = float(_draft.get("wasmsplitIosDelay", 5))
 	for index in _storage.item_count:
 		if _storage.get_item_metadata(index) == _draft.storage:
 			_storage.select(index)
