@@ -59,14 +59,27 @@ try {
   if(old && !sameFiles) {
     assert(update && fs.existsSync(receipt) && matches(old,readJson(receipt).files),'Existing addon differs. Only a verified managed installation can be updated.');
   }
-  const token=randomUUID(),staged=path.join(state,'staged-'+token),backup=path.join(state,'previous-addon-'+token);
+  // Stage and swap inside the game's addons folder so the renames never cross
+  // drives (the state folder is usually on C: while games may live on D: or F:).
+  // Dot-prefixed folders are skipped by Godot's scanner and export.
+  const token=randomUUID(),staged=path.join(addons,'.wxslim-staged-'+token),aside=path.join(addons,'.wxslim-previous-'+token);
+  const backup=path.join(state,'previous-addon-'+token);
   let moved=false;
   if(!sameFiles) {
-    fs.mkdirSync(staged);
-    for(const [k,b] of files) fs.writeFileSync(path.join(staged,k),b,{flag:'wx'});
-    assert(matches(inventory(staged),installed));
-    if(old) {fs.renameSync(target,backup);moved=true;}
-    try {fs.renameSync(staged,target);} catch(error) {if(moved)fs.renameSync(backup,target);throw error;}
+    try {
+      fs.mkdirSync(staged);
+      for(const [k,b] of files) fs.writeFileSync(path.join(staged,k),b,{flag:'wx'});
+      assert(matches(inventory(staged),installed));
+      if(old) {
+        fs.cpSync(target,backup,{recursive:true,errorOnExist:true,force:false});
+        assert(matches(inventory(backup),old),'Backup of the previous addon differs');
+        fs.renameSync(target,aside);moved=true;
+      }
+      try {fs.renameSync(staged,target);} catch(error) {if(moved)fs.renameSync(aside,target);throw error;}
+      if(moved) fs.rmSync(aside,{recursive:true,force:true});
+    } finally {
+      fs.rmSync(staged,{recursive:true,force:true});
+    }
   }
   function publish(file,data){const temp=file+'.'+token+'.tmp';fs.writeFileSync(temp,JSON.stringify(data,null,2)+'\n',{flag:'wx'});fs.renameSync(temp,file);}
   publish(path.join(state,'project.json'),{project});
