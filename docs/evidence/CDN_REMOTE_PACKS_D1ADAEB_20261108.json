@@ -1,0 +1,25 @@
+{
+  "schema": "wxslim-evidence-v1",
+  "topic": "CDN 远程分包（场景分包放 CDN，本机临时服务代替服务器）",
+  "date": "2026-11-08",
+  "sourceCommit": "d1adaeb",
+  "release": "release-d1adaeb（本机文件夹，装进 verify/分包试用游戏）",
+  "game": "verify/分包试用游戏：2D 模板、GLX、跳过预热、登录 code、按场景分包 level1 / level2、zh_CN 竖屏",
+  "assistantChecks": {
+    "regression": "node tests/run-offline.mjs：554/554（新增 tests/remote-packs-tests.mjs 6 项：地址校验、挪包与 game.json、只更新时换新文件、本机服务只给 cdn 目录、读取器下载/缓存/失败不留缓存、没有 wxslim-remote.json 时照旧走微信分包）",
+    "cliRun": "分包试用游戏-20261108-232539：quick run 成功；cdn/scenepacks/level1.dc8998dd8fdd46b8.bin、level2.d85991593eef00dd.bin 各 223680 字节；game.json 只剩 wasmcode、data-package，networkTimeout.downloadFile 600000；预览工程 setting.urlCheck 为 false；包体主包 1.86 MB、合计 8.50 MB，CDN 另列 0.43 MB",
+    "lanFetch": "cdn-serve.mjs 用 http://192.168.10.100 取 level1 文件：HTTP 200，字节数和 SHA-256 一致"
+  },
+  "userAcceptance": {
+    "result": "用户回复「ok没什么问题」",
+    "panelRun": "分包试用游戏-20261108-234023：用户在面板导出，wxslim-remote.json 指向 http://192.168.10.100:8686/，工程里没有 scenepacks/",
+    "refresh": "2026-11-08T15:45:18Z 只更新游戏资源一次：首包和分包接口变了，两个分包内容没变（changedPacks 为空，cdn 文件夹没有新文件）",
+    "notRecorded": "用户按验收步骤操作（开发者工具、手机预览进两关）；具体机型、微信版本、是否改动了关卡内容没有记录"
+  },
+  "notVerified": [
+    "正式 HTTPS CDN 和小游戏后台 downloadFile 合法域名（需要用户自己的服务器）",
+    "非调试模式下的手机下载（局域网 http 只能在「开发调试」里用）",
+    "WASM 分包和 CDN 一起用",
+    "分包内容变化后的「只更新游戏资源」真机下载新版本（单元测试覆盖）"
+  ]
+}
