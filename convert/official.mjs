@@ -176,7 +176,8 @@ export function auditOfficialOutput(cfg, before) {
   assert.equal(report.pckPath, before.pckMount, 'PCK mount path');
   assert.deepEqual(report.engineContract,before.engineContract, 'conversion report engine contract');
   for (const name of ['render-runtime.js','custom-package.js','single-entry.js','wx-compat.js']) assert(read(path.join(mini,'godot-data',name)).equals(read(path.join(home,'assets',name))), 'direct asset differs: '+name);
-  assert(read(path.join(mini,'godot-data/local-interfaces.js')).equals(read(cfg.interfaces)), 'actual interfaces differ');
+  // 开启登录 code 时，转换器收到的是追加了登录适配的接口文件（与预检相同的组合），按同样方式比对。
+  assert(read(path.join(mini,'godot-data/local-interfaces.js')).equals(prepareLoginCodeInterfaces(read(cfg.interfaces),cfg.options.loginCode===true).source), 'actual interfaces differ');
   const entry = read(path.join(mini,'game.js')).toString();
   const imports = [...entry.matchAll(/import\s+['"]\.\/godot-data\/([^'";]+)['"]/g)].map(m => m[1].replace(/\.js$/, ''));
   for (const name of ['render-config','render-runtime','package-info','custom-package','single-entry','wx-compat','local-interfaces']) assert.equal(imports.filter(x => x === name).length, 1, 'exactly one active import: '+name);
