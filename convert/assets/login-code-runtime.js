@@ -32,10 +32,11 @@ module.exports = function createLoginCode(options) {
   }
   function reply(ok, reason) { return JSON.stringify({ok:ok, reason:reason, state:snapshot()}); }
   function pending(id) { expire(); return !closed && current && current.id === id && current.status === 'PENDING'; }
+  // wx.login's result may carry `code` as an inherited or accessor property (seen on iPhone through the
+  // WXGameKit isolated context), so read it the ordinary way; callers still check the type.
   function field(object, key) {
     if (!object || typeof object !== 'object') return undefined;
-    var d = Object.getOwnPropertyDescriptor(object,key);
-    return d && Object.prototype.hasOwnProperty.call(d,'value') ? d.value : undefined;
+    return object[key];
   }
   function request() {
     expire();

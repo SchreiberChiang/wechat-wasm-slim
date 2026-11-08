@@ -1,0 +1,21 @@
+{
+  "schema": "wxslim-wasm-split-trial-v1",
+  "at": "2026-11-08T12:40:00Z",
+  "device": "iPhone 16 Pro, iOS 18.3.1, WeChat 8.0.75, base library 3.17.6, Wi-Fi",
+  "game": "verify/分包试用游戏 with a login first screen (login.tscn), English UI",
+  "export": {"run": "分包试用游戏-20261108-192234", "release": "../release-6cbc5c4", "template": "2d", "skipPrewarm": true, "glx": true, "loginCode": true, "scenePacks": ["level1", "level2"], "wasmMd5": "0804821ba8a10d1"},
+  "tool": {"name": "wasmsplit-v2-ci", "version": "2.1.5", "auth": "own RSA key pair; public key uploaded to 开发管理 → 研发工具箱 → 密钥管理 → Wasm 分包 CI 鉴权配置 (not the code upload key)"},
+  "steps": [
+    "symbols: engine godot.js.symbols (index:name) converted to game.symbols.json {id:name}, ignored in packOptions",
+    "gameJs set to start-device.js (the preview package's game.js is a router); after init and dosplit the tool wrote the injected entry into game.js, so the router was restored and the two injected lines added to start-device.js and start-devtools.js",
+    "collection package needed the old collectionPreload patch (async load code1 before main when canAwaitLoad is false); without it iPhone hung before vConsole appeared",
+    "collection: login → menu → level1 → level2 on the phone; getinfo 12056 of 66145 functions",
+    "dosplit --release: primary 3.32 MB, wasmcode1 4.20 MB, wasmcode2 7.42 MB (downloaded 30 s after start); package 16.9 MB"
+  ],
+  "coldStartMs": {
+    "unsplit": {"downloadWasm": 3133, "compileWasm": 877, "callMain": 1557, "gameStart": 6005},
+    "split": {"downloadWasm": 1829, "compileWasm": 391, "callMain": 1636, "gameStart": 4255}
+  },
+  "found": "login-code-runtime.js read wx.login's code only as an own data property; on iPhone the result came through as INVALID_CODE_RESULT. Fixed to read it normally.",
+  "notVerified": ["release split walking login → levels without missing functions (only start was logged)", "Android", "panel integration (all steps were run by hand)"]
+}
