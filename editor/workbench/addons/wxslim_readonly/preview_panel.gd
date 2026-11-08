@@ -1440,10 +1440,6 @@ func _missing_for_export() -> Array:
 		missing.append(["未选分包场景", "packing"])
 	if _saved.subpackages == "scenes" and not _receiver_installed():
 		missing.append(["未装分包加载脚本", "receiver"])
-	if _saved.loginCode and _saved.template != "full":
-		missing.append(["登录 code 只支持完整模板", "runtime"])
-	if _saved.loginCode and _saved.subpackages == "scenes":
-		missing.append(["登录 code 不能和分包同时用", "runtime"])
 	if not _appid_valid(_saved.appid):
 		missing.append(["AppID 未保存", "publish"])
 	if _saved.output.is_empty():
@@ -1584,14 +1580,9 @@ func _refresh() -> void:
 	var glx_status := _capability_status("render-glx" if _draft.glx else "render-webgl")
 	_glx_status.text = ("GLX 渲染" if _draft.glx else "WebGL 对照") + "：" + STATUS_TEXT.get(glx_status, glx_status)
 	_locale_note.text = "游戏宿主的语言设置，不翻译游戏内容。" + ("" if _draft.locale == "zh_CN" else "选英文时不生成电脑预览包：GLX 包只能在手机上看，WebGL 包可以直接在开发者工具里打开。")
-	# 登录 code 目前只在完整模板上接通；换成别的模板时清掉。
-	if _draft.template != "full" and _draft.loginCode:
-		_draft.loginCode = false
-		_loading = true
-		_login_code.button_pressed = false
-		_loading = false
-	_login_code.disabled = _draft.template != "full"
-	_login_note.text = "只在完整模板可用。" if _draft.template != "full" else "默认关闭；开启后游戏要主动请求 code，不会自动登录。可以和按场景分包一起用。"
+	# 登录 code 三个模板都可用，也可以和按场景分包一起用。
+	_login_code.disabled = false
+	_login_note.text = "默认关闭；开启后游戏要主动请求 code，不会自动登录。三个模板都能用，也可以和按场景分包一起用。"
 	# 跳过默认 3D 预热只在保守和 2D 模板可用（这两个引擎带开关）；完整模板保留预热，切到完整时清掉勾选。
 	var prewarm_ok: bool = _draft.template in ["conservative", "2d"]
 	if _draft.skipPrewarm and not prewarm_ok:
