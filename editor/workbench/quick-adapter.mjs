@@ -23,7 +23,7 @@ import {openWeChatProject} from './open-project.mjs';
 import {quickWasmSplitCollect, quickWasmSplitRelease, quickPreview} from '../../lib/quick-wasm-split.mjs';
 
 const PANEL_KEYS = ['template', 'orientation', 'glx', 'skipPrewarm', 'subpackages', 'scenes', 'appid', 'appidFrom', 'gameName', 'output', 'confirmNo3d',
-  'confirmRemovedModules', 'locale', 'largePck', 'loginCode', 'devtoolsPreview', 'devtools', 'wasmsplitKey', 'wasmsplitIosDelay'];
+  'confirmRemovedModules', 'locale', 'largePck', 'loginCode', 'devtoolsPreview', 'devtools', 'wasmsplitKey', 'wasmsplitIosDelay', 'cdnBase'];
 const MODES = ['plan', 'run', 'refresh', 'open', 'cancel', 'runs', 'status', 'requirements', 'receiver', 'wasmsplit-collect', 'wasmsplit-release', 'preview'];
 const RUN_MODES = ['refresh', 'wasmsplit-collect', 'wasmsplit-release', 'preview'];
 const TOKEN = /^[0-9]{1,12}-[0-9]{1,24}$/;

@@ -2,6 +2,7 @@
 (function (root) {
   'use strict';
   var HARD_LIMIT = 32 * 1024 * 1024; // Single-pack input limit, not platform quota or total retained memory.
+  var REMOTE_CONFIG = 'wxslim-remote.json', CACHE_DIR = 'wxslim-packs';
   function ownData(value, key) {
     try { var d = value && Object.getOwnPropertyDescriptor(value, key); return d && Object.prototype.hasOwnProperty.call(d, 'value') ? d.value : undefined; }
     catch (_) { return undefined; }
@@ -89,23 +90,87 @@
         if (value) throw error('RESOURCE_READER_CANCELLED', null);
       }, function (cause) { throw error('RESOURCE_READER_CANCEL_CHECK_FAILED', cause); });
     }
+    // CDN 远程分包：小游戏包根目录有 wxslim-remote.json 时，里面列出的分包从 CDN 下载，
+    // 存进本地用户目录（按指纹命名，下次直接读缓存），不再走 loadSubpackage。大小和 SHA-256 照旧由后面核对。
+    var remoteState, pruned = false;
+    function remoteEntry(fsApi, item) {
+      if (remoteState === undefined) {
+        var text = null;
+        try { text = fsApi.readFileSync(REMOTE_CONFIG, 'utf8'); } catch (_) { text = null; }
+        if (typeof text !== 'string') remoteState = null;
+        else {
+          try {
+            var value = JSON.parse(text);
+            requireValue(value && value.schema === 'wxslim-remote-packs-v1' && typeof value.baseUrl === 'string' &&
+              /^https?:\/\/[^\s?#]+\/$/.test(value.baseUrl) && value.packs && typeof value.packs === 'object' && !Array.isArray(value.packs), 'invalid remote pack config');
+            remoteState = value;
+          } catch (cause) { throw error('RESOURCE_READER_REMOTE_CONFIG', cause); }
+        }
+      }
+      if (!remoteState || !Object.prototype.hasOwnProperty.call(remoteState.packs, item.id)) return null;
+      var entry = remoteState.packs[item.id];
+      if (!(entry && typeof entry.path === 'string' && /^[A-Za-z0-9_.\/-]+$/.test(entry.path) && entry.path.indexOf('..') < 0 &&
+          entry.bytes === item.bytes && entry.sha256 === item.sha256)) throw error('RESOURCE_READER_REMOTE_PIN', {id:item.id});
+      return {url:remoteState.baseUrl + entry.path};
+    }
+    function fileSize(fsApi, file) {
+      try { var s = fsApi.statSync(file, false); return s && typeof s.size === 'number' ? s.size : -1; } catch (_) { return -1; }
+    }
+    function quietly(fn) { try { fn(); } catch (_) {} }
+    function pruneCache(fsApi, dir) {
+      // 只保留这一版用到的缓存，旧版本的分包删掉，免得占满用户目录。
+      if (pruned) return; pruned = true;
+      var keep = Object.create(null);
+      Object.keys(remoteState.packs).forEach(function (id) { keep[remoteState.packs[id].sha256 + '.bin'] = true; });
+      var names; try { names = fsApi.readdirSync(dir); } catch (_) { return; }
+      (names || []).forEach(function (name) { if (!keep[name]) quietly(function () { fsApi.unlinkSync(dir + '/' + name); }); });
+    }
+    function fetchRemote(fsApi, remote, item) {
+      var env = wxApi.env, base = env && env.USER_DATA_PATH;
+      if (typeof base !== 'string' || !base) return Promise.reject(error('RESOURCE_READER_API_UNAVAILABLE', new Error('USER_DATA_PATH unavailable')));
+      var dir = base + '/' + CACHE_DIR, done = dir + '/' + item.sha256 + '.bin', part = done + '.part';
+      quietly(function () { fsApi.mkdirSync(dir, true); });
+      pruneCache(fsApi, dir);
+      if (fileSize(fsApi, done) === item.bytes) return Promise.resolve(done);
+      quietly(function () { fsApi.unlinkSync(done); }); quietly(function () { fsApi.unlinkSync(part); });
+      return invoke(method(wxApi, 'downloadFile'), wxApi, {url:remote.url, filePath:part}, 'RESOURCE_READER_REMOTE_DOWNLOAD').then(function (res) {
+        var status = ownData(res, 'statusCode'), size = status === 200 ? fileSize(fsApi, part) : -1;
+        if (status !== 200 || size !== item.bytes) {
+          quietly(function () { fsApi.unlinkSync(part); });
+          if (typeof console !== 'undefined') console.error('[wxslim] CDN 分包下载结果不对', item.id, remote.url, 'HTTP', status, '大小', size, '应为', item.bytes);
+          throw error(status !== 200 ? 'RESOURCE_READER_REMOTE_HTTP' : 'RESOURCE_READER_REMOTE_SIZE', {statusCode:status, expected:item.bytes, actual:size});
+        }
+        try { fsApi.renameSync(part, done); } catch (cause) { throw error('RESOURCE_READER_REMOTE_CACHE', cause); }
+        return done;
+      }, function (cause) {
+        quietly(function () { fsApi.unlinkSync(part); });
+        var text = ownData(cause && cause.cause, 'errMsg');
+        if (typeof console !== 'undefined') console.error('[wxslim] CDN 分包下载失败', item.id, remote.url, typeof text === 'string' ? text.slice(0, 300) : '');
+        // 最常见的原因：CDN 域名没加进小游戏后台的 downloadFile 合法域名，或手机预览没打开「开发调试」。
+        if (typeof text === 'string' && /domain|域名/i.test(text)) throw error('RESOURCE_READER_REMOTE_DOMAIN', cause.cause);
+        throw cause;
+      });
+    }
     return Object.freeze({read:function (id) {
       if (busy) return Promise.reject(error('RESOURCE_READER_BUSY', new Error('reader already has an in-flight read')));
       busy = true;
-      var item, fsApi, read, response, owned, length;
+      var item, fsApi, read, response, owned, length, filePath;
       // No platform calls during script/factory creation, or before this microtask.
       return Promise.resolve().then(function () {
         if (typeof id !== 'string' || !Object.prototype.hasOwnProperty.call(allow, id)) throw error('RESOURCE_READER_UNKNOWN_PACK', new TypeError('pack is not allowlisted'));
         item = allow[id]; return checkCancelled();
       }).then(function () { return observe('LOAD_REQUESTED', item); }).then(checkCancelled).then(function () {
-        return invoke(method(wxApi, 'loadSubpackage'), wxApi, {name:item.id}, 'RESOURCE_READER_LOAD_FAILED');
-      }).then(function () { return observe('LOAD_SUCCEEDED', item); }).then(checkCancelled).then(function () {
         var getFs = method(wxApi, 'getFileSystemManager');
         try { fsApi = getFs.call(wxApi); }
         catch (cause) { throw error('RESOURCE_READER_API_UNAVAILABLE', cause); }
+        var remote = remoteEntry(fsApi, item);
+        if (remote) return fetchRemote(fsApi, remote, item).then(function (file) { filePath = file; });
+        filePath = item.file;
+        return invoke(method(wxApi, 'loadSubpackage'), wxApi, {name:item.id}, 'RESOURCE_READER_LOAD_FAILED');
+      }).then(function () { return observe('LOAD_SUCCEEDED', item); }).then(checkCancelled).then(function () {
         read = method(fsApi, 'readFile'); return observe('READ_REQUESTED', item);
       }).then(checkCancelled).then(function () {
-        return invoke(read, fsApi, {filePath:item.file}, 'RESOURCE_READER_READ_FAILED'); // No encoding: ArrayBuffer.
+        return invoke(read, fsApi, {filePath:filePath}, 'RESOURCE_READER_READ_FAILED'); // No encoding: ArrayBuffer.
       }).then(function (value) { response = value; return checkCancelled(); }).then(function () {
         var data;
         try { data = response.data; length = Object.getOwnPropertyDescriptor(ArrayBuffer.prototype, 'byteLength').get.call(data); }

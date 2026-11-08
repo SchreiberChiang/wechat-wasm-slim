@@ -34,13 +34,13 @@ const CATEGORIES := [
 ]
 # 每个设置组包含的字段，用于判断该组是否有未保存改动。
 const GROUP_KEYS := {
-	"packing": ["template", "confirmNo3d", "confirmRemovedModules", "subpackages", "scenes"],
+	"packing": ["template", "confirmNo3d", "confirmRemovedModules", "subpackages", "scenes", "cdnBase"],
 	"runtime": ["orientation", "glx", "skipPrewarm", "locale", "largePck", "loginCode"],
 	"publish": ["appid", "appidFrom", "gameName", "output", "devtools", "wasmsplitKey", "wasmsplitIosDelay", "storage"],
 }
 # 快速流程返回的错误 field → 面板里的设置组。不在面板里的项目（导出预设、主场景等）只在提示里说明怎么改。
 const FIELD_GROUP := {
-	"template": "packing", "confirmNo3d": "packing", "confirmRemovedModules": "packing", "subpackages": "packing", "scenes": "packing", "receiver": "packing",
+	"template": "packing", "confirmNo3d": "packing", "confirmRemovedModules": "packing", "subpackages": "packing", "scenes": "packing", "receiver": "packing", "cdnBase": "packing",
 	"orientation": "runtime", "glx": "runtime", "skipPrewarm": "runtime", "locale": "runtime", "largePck": "runtime", "loginCode": "runtime",
 	"appid": "publish", "appidFrom": "publish", "output": "publish", "gameName": "publish", "devtools": "publish", "wasmsplitKey": "publish", "wasmsplitIosDelay": "publish", "project": "advanced",
 }
@@ -104,6 +104,10 @@ var _output: LineEdit
 var _devtools: LineEdit
 var _wasmsplit_key: LineEdit
 var _wasmsplit_delay: SpinBox
+var _cdn_base: LineEdit
+var _cdn_button: Button
+var _cdn_line: Label
+var _cdn_pid := 0
 var _wasm_notes_dialog: ConfirmationDialog
 var _wasm_notes_mode := ""
 var _wasm_collect_button: Button
@@ -165,7 +169,7 @@ func _workbench_directory() -> String:
 func _default_settings() -> Dictionary:
 	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "confirmNo3d": false, "confirmRemovedModules": false,
 		"subpackages": "none", "scenes": [], "appid": "", "appidFrom": "", "gameName": "", "output": "", "project": "",
-		"locale": "zh_CN", "largePck": false, "loginCode": false, "devtools": "", "wasmsplitKey": "", "wasmsplitIosDelay": 5}
+		"locale": "zh_CN", "largePck": false, "loginCode": false, "devtools": "", "wasmsplitKey": "", "wasmsplitIosDelay": 5, "cdnBase": ""}
 
 func _installed() -> bool:
 	return FileAccess.file_exists(INSTALL_LOCATOR)
@@ -545,6 +549,20 @@ func _build_packing(parent: Control) -> void:
 	_receiver_button.tooltip_text = "往游戏里新建 4 个脚本，并在项目设置里加自动加载 WxResource。\n不覆盖已有文件；写之前会列出要写的内容让你确认。"
 	_receiver_button.pressed.connect(func(): _receiver_start(false))
 	receiver_row.add_child(_receiver_button)
+
+	# CDN 远程分包：分包不放进小游戏包，导出后放在 输出目录/cdn/，由游戏运行时下载（lib/remote-packs.mjs）。
+	var cdn := _field("CDN 远程分包（可选）", _scene_box, "cdnBase")
+	_cdn_base = _line_edit(cdn, "留空：分包放在小游戏包里。填地址：分包放 CDN，例如 https://cdn.example.com/game/", "cdnBase")
+	var cdn_row := HBoxContainer.new()
+	cdn.add_child(cdn_row)
+	_cdn_line = _wrapped(cdn_row)
+	_cdn_button = Button.new()
+	_cdn_button.text = "启动本机临时服务"
+	_cdn_button.tooltip_text = "在这台电脑上开一个 http 服务，把 输出目录/cdn 放到局域网上，并把地址填进上面。\n只用于开发者工具和手机预览调试：手机要和电脑连同一个 Wi-Fi，预览时在小游戏右上角菜单里打开「开发调试」。\n第一次启动时 Windows 可能弹防火墙提示，选允许「专用网络」。"
+	_cdn_button.pressed.connect(_cdn_toggle)
+	cdn_row.add_child(_cdn_button)
+	var cdn_how := _note("分包不占小游戏 30 MB 的空间，进入场景前从 CDN 下载，下载过的存在手机上，下次直接用。导出后把 输出目录/cdn 里的文件原样上传到这个地址下。引擎和 WASM 分包不能放 CDN（微信只允许运行包里的代码）。", cdn)
+	cdn_how.tooltip_text = "正式上线：地址要用 https，域名加进小游戏后台「开发管理 → 开发设置 → 服务器域名 → downloadFile 合法域名」。\n文件名带指纹，新版本不会覆盖旧文件，可以整个文件夹增量上传。\n改了地址可以直接「只更新游戏资源」；从不用 CDN 改成用 CDN（或反过来）要重新「导出并转换」。"
 
 func _build_runtime(parent: Control) -> void:
 	var parts := _foldable("运行效果", parent, false)
@@ -972,6 +990,7 @@ func _apply_draft_to_controls() -> void:
 	_devtools.text = _draft.devtools
 	_wasmsplit_key.text = _draft.wasmsplitKey
 	_wasmsplit_delay.value = float(_draft.get("wasmsplitIosDelay", 5))
+	_cdn_base.text = str(_draft.get("cdnBase", ""))
 	for index in _storage.item_count:
 		if _storage.get_item_metadata(index) == _draft.storage:
 			_storage.select(index)
@@ -1077,7 +1096,7 @@ func _focus_pending() -> void:
 		return
 	_groups[group].folded = false
 	var target: Control = {
-		"appid": _appid, "appidFrom": _appid, "output": _output, "devtools": _devtools, "wasmsplitKey": _wasmsplit_key, "wasmsplitIosDelay": _wasmsplit_delay, "gameName": _game_name,
+		"appid": _appid, "appidFrom": _appid, "output": _output, "devtools": _devtools, "wasmsplitKey": _wasmsplit_key, "wasmsplitIosDelay": _wasmsplit_delay, "gameName": _game_name, "cdnBase": _cdn_base,
 		"orientation": _orientation_buttons.get("portrait"), "glx": _glx, "skipPrewarm": _prewarm, "locale": _locale,
 		"largePck": _large_pck, "loginCode": _login_code, "confirmNo3d": _confirm_check, "confirmRemovedModules": _confirm_check,
 		"subpackages": _subpackage_buttons.get("scenes"), "scenes": _subpackage_buttons.get("scenes"), "receiver": _receiver_button,
@@ -1139,7 +1158,8 @@ func _without_prewarm(settings_json: String) -> String:
 	if not parsed is Dictionary:
 		return settings_json
 	var copy: Dictionary = parsed.duplicate()
-	for key in ["skipPrewarm", "devtools", "wasmsplitKey", "wasmsplitIosDelay"]:
+	# CDN 地址改了也能直接更新（只改 wxslim-remote.json）；用不用 CDN 变了时由快速流程拦下并说明。
+	for key in ["skipPrewarm", "devtools", "wasmsplitKey", "wasmsplitIosDelay", "cdnBase"]:
 		copy.erase(key)
 	return JSON.stringify(copy, "", true)
 
@@ -1773,6 +1793,7 @@ func _refresh() -> void:
 
 	_scene_box.visible = _draft.subpackages == "scenes"
 	_render_scene_list()
+	_cdn_update()
 	var receiver_ok := _receiver_installed()
 	_receiver_line.text = ("分包加载脚本：已装好（WxResource）" if receiver_ok else "分包加载脚本：还没装，按场景分包前要先装") if _installed() else "分包加载脚本：导出前由检查确认"
 	_receiver_line.add_theme_color_override("font_color", STATUS_COLOR.verified if receiver_ok and _installed() else STATUS_COLOR.implemented)
@@ -1934,6 +1955,87 @@ func _render_scene_list() -> void:
 			_refresh()
 		)
 		row.add_child(remove)
+
+# ---------- 本机临时 CDN ----------
+# editor/workbench/cdn-serve.mjs 把 输出目录/cdn 放到局域网上；面板关掉时一起结束。
+const CDN_PORT := 8686
+
+func _cdn_running() -> bool:
+	return _cdn_pid > 0 and OS.is_process_running(_cdn_pid)
+
+func _cdn_update() -> void:
+	if _cdn_button == null:
+		return
+	var running := _cdn_running()
+	_cdn_button.text = "停止本机临时服务" if running else "启动本机临时服务"
+	_cdn_button.disabled = not running and _saved.output.is_empty()
+	var base := str(_draft.get("cdnBase", ""))
+	if running:
+		_cdn_line.text = "本机临时服务运行中：%s → %s" % [_saved.output.path_join("cdn"), "http://%s:%d/" % [_lan_ip(), CDN_PORT]]
+	elif base.is_empty():
+		_cdn_line.text = "现在：分包放在小游戏包里。"
+	else:
+		_cdn_line.text = "现在：分包放 CDN（%s）。导出后把 输出目录/cdn 上传到这个地址。" % base
+	_cdn_line.add_theme_color_override("font_color", STATUS_COLOR.verified if running else STATUS_COLOR.pending)
+
+func _lan_ip() -> String:
+	var best := ""
+	var best_rank := 9
+	for ip in IP.get_local_addresses():
+		var rank := 9
+		if ip.begins_with("192.168."):
+			rank = 0
+		elif ip.begins_with("10."):
+			rank = 1
+		elif ip.begins_with("172.") and ip.count(".") == 3:
+			rank = 2
+		if rank < best_rank:
+			best = ip
+			best_rank = rank
+	return best
+
+func _cdn_toggle() -> void:
+	if _cdn_running():
+		OS.kill(_cdn_pid)
+		_cdn_pid = 0
+		_log_line("已停止本机临时 CDN。")
+		_cdn_update()
+		return
+	var node := _node_executable()
+	if node.is_empty():
+		_show_notice("无法开始", "插件还没准备好，或者没有找到 Node.js。")
+		return
+	if _saved.output.is_empty():
+		_show_notice("先设置输出目录", "本机临时服务放的是 输出目录/cdn，请先填好输出目录并保存设置。")
+		return
+	var ip := _lan_ip()
+	if ip.is_empty():
+		_show_notice("找不到局域网地址", "这台电脑好像没连 Wi-Fi 或局域网。手机要和电脑在同一个网络里才能下载分包。")
+		return
+	_cdn_pid = OS.create_process(node, PackedStringArray([_workbench_directory().path_join("cdn-serve.mjs"), _saved.output, str(CDN_PORT)]), false)
+	if _cdn_pid <= 0:
+		_cdn_pid = 0
+		_show_notice("无法开始", "没能启动 Node 进程。")
+		return
+	var url := "http://%s:%d/" % [ip, CDN_PORT]
+	_log_line("本机临时 CDN 已启动：%s（放的是 %s）。第一次启动时 Windows 防火墙可能弹窗，选允许「专用网络」。" % [url, _saved.output.path_join("cdn")])
+	if str(_draft.get("cdnBase", "")) != url:
+		_cdn_base.text = url
+		_cdn_base.text_changed.emit(url)
+		_log_line("已把 CDN 地址填成 %s，保存设置后导出生效。地址不对（比如选到了虚拟网卡）可以手动改。" % url)
+	_cdn_update()
+	# 端口被别的程序占用时进程会马上退出：过一会儿再看一眼。
+	get_tree().create_timer(1.5).timeout.connect(func():
+		if _cdn_pid > 0 and not OS.is_process_running(_cdn_pid):
+			_cdn_pid = 0
+			_log_line("本机临时 CDN 没能启动：端口 %d 可能被别的程序占用（之前开的服务没关也会这样，那种情况下它仍在工作）。" % CDN_PORT)
+		_cdn_update()
+	)
+
+func _exit_tree() -> void:
+	if _cdn_running():
+		OS.kill(_cdn_pid)
+		_cdn_pid = 0
 
 func _log_line(text: String) -> void:
 	if _log != null:
