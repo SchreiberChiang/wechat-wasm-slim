@@ -171,6 +171,27 @@ test('presets, project name and run name', () => {
   assert.equal(runName('', NOW), 'game-20261107-090503');
 });
 
+test('inputs: an output folder overlapping the game, editor or release is named in plain words before any export plan', async () => {
+  const f = fixture();
+  const settingsFile = path.join(f.project, 'wxslim-export.json');
+  const withOutput = output => fs.writeFileSync(settingsFile, JSON.stringify({...JSON.parse(fs.readFileSync(settingsFile, 'utf8')), output}));
+  const inside = path.join(f.project, '临时输出');
+  fs.mkdirSync(inside);
+  withOutput(inside);
+  const blockers = resolveQuickInputs(f.options).blockers;
+  assert.deepEqual(blockers.map(b => [b.code, b.field]), [['QUICK_OUTPUT_INSIDE_PROJECT', 'output']]);
+  assert.match(blockers[0].message, /游戏工程之外/);
+  const service = {plan: async () => { throw new Error('export plan must not run'); }};
+  const plan = await quickPlan(f.options, {service});
+  assert.equal(plan.ready, false);
+  assert.equal(plan.exportPlan, null);
+  withOutput(f.root);
+  assert.deepEqual(resolveQuickInputs(f.options).blockers.map(b => b.code).sort(),
+    ['QUICK_OUTPUT_CONTAINS_EDITOR', 'QUICK_OUTPUT_CONTAINS_PROJECT', 'QUICK_OUTPUT_OVERLAPS_RELEASE']);
+  withOutput(f.output);
+  assert.deepEqual(resolveQuickInputs(f.options).blockers, []);
+});
+
 test('inputs: fixed files come from the release, editor and preset are resolved, nothing is written', () => {
   const f = fixture();
   const before = fs.readdirSync(f.output);
