@@ -55,7 +55,7 @@ for(const [file,hash] of Object.entries(lock.files)) {
   include(kitDir+file,input,hash);
 }
 for(const [to,from] of Object.entries({[kitDir+'install.mjs']:'packaging/install.mjs',[kitDir+'profiles.json']:'packaging/vendor-lock.json',
-  '使用说明.md':'docs/安装版使用.md','给AI的安装说明.md':'docs/给AI的安装说明.md'})) include(to,path.join(source,from));
+  '使用说明.md':'docs/安装版使用.md','给AI的安装说明.md':'docs/给AI的安装说明.md','WASM分包注意事项.md':'docs/WASM分包注意事项.md'})) include(to,path.join(source,from));
 const bytes = [...files.values()].reduce((total,entry)=>total+entry.record.bytes,0);
 // Three engines, the WeChat converter and the bundled Node.js runtime (about 89 MiB).
 assert(bytes+1048576<=384*1048576,'Release budget exceeded');

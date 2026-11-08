@@ -58,6 +58,7 @@
   "convert/official-recipe.json",
   "convert/official-upstream-read-recipe.json",
   "convert/official.mjs",
+  "docs/WASM分包注意事项.md",
   "docs/evidence/CAPABILITY_DEMO_DESKTOP_20261104.json",
   "docs/evidence/OFFICIAL_BASIC_CAPABILITY_COMBINATION_20261105.json",
   "docs/evidence/OFFICIAL_SECURE_RANDOM_BRIDGE_20261105.json",

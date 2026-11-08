@@ -36,13 +36,13 @@ const CATEGORIES := [
 const GROUP_KEYS := {
 	"packing": ["template", "confirmNo3d", "confirmRemovedModules", "subpackages", "scenes"],
 	"runtime": ["orientation", "glx", "skipPrewarm", "locale", "largePck", "loginCode"],
-	"publish": ["appid", "appidFrom", "gameName", "output", "devtools", "wasmsplitKey", "storage"],
+	"publish": ["appid", "appidFrom", "gameName", "output", "devtools", "wasmsplitKey", "wasmsplitIosDelay", "storage"],
 }
 # 快速流程返回的错误 field → 面板里的设置组。不在面板里的项目（导出预设、主场景等）只在提示里说明怎么改。
 const FIELD_GROUP := {
 	"template": "packing", "confirmNo3d": "packing", "confirmRemovedModules": "packing", "subpackages": "packing", "scenes": "packing", "receiver": "packing",
 	"orientation": "runtime", "glx": "runtime", "skipPrewarm": "runtime", "locale": "runtime", "largePck": "runtime", "loginCode": "runtime",
-	"appid": "publish", "appidFrom": "publish", "output": "publish", "gameName": "publish", "devtools": "publish", "wasmsplitKey": "publish", "project": "advanced",
+	"appid": "publish", "appidFrom": "publish", "output": "publish", "gameName": "publish", "devtools": "publish", "wasmsplitKey": "publish", "wasmsplitIosDelay": "publish", "project": "advanced",
 }
 const FIELD_HINT := {
 	"exportPreset": "在 Godot「项目 → 导出」里保留恰好一个 Web 预设。",
@@ -103,6 +103,9 @@ var _game_name: LineEdit
 var _output: LineEdit
 var _devtools: LineEdit
 var _wasmsplit_key: LineEdit
+var _wasmsplit_delay: SpinBox
+var _wasm_notes_dialog: ConfirmationDialog
+var _wasm_notes_mode := ""
 var _wasm_collect_button: Button
 var _wasm_release_button: Button
 var _wasm_fresh_button: Button
@@ -162,7 +165,7 @@ func _workbench_directory() -> String:
 func _default_settings() -> Dictionary:
 	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "confirmNo3d": false, "confirmRemovedModules": false,
 		"subpackages": "none", "scenes": [], "appid": "", "appidFrom": "", "gameName": "", "output": "", "project": "",
-		"locale": "zh_CN", "largePck": false, "loginCode": false, "devtools": "", "wasmsplitKey": ""}
+		"locale": "zh_CN", "largePck": false, "loginCode": false, "devtools": "", "wasmsplitKey": "", "wasmsplitIosDelay": 30}
 
 func _installed() -> bool:
 	return FileAccess.file_exists(INSTALL_LOCATOR)
@@ -662,6 +665,18 @@ func _build_publish(parent: Control) -> void:
 	wasm_key_choose.pressed.connect(func(): wasm_key_picker.popup_centered_ratio(0.7))
 	wasm_key_row.add_child(wasm_key_choose)
 	_note("微信官方 WASM 分包要用的私钥。它对应的公钥上传到小游戏管理后台「开发管理 → 研发工具箱 → 密钥管理 → Wasm 分包 CI 鉴权配置」（不是「小程序代码上传密钥」）。不要放进游戏目录。", wasm_key)
+	var wasm_delay := _field("iPhone 余包提前下载（秒）", body, "wasmsplitIosDelay")
+	_wasmsplit_delay = SpinBox.new()
+	_wasmsplit_delay.min_value = 0
+	_wasmsplit_delay.max_value = 120
+	_wasmsplit_delay.step = 1
+	_wasmsplit_delay.value_changed.connect(func(value: float):
+		if not _loading:
+			_draft.wasmsplitIosDelay = int(value)
+			_refresh()
+	)
+	wasm_delay.add_child(_wasmsplit_delay)
+	_note("官方默认 30 秒：iPhone 启动 30 秒后才在后台下载余包 wasmcode2，这之前走到首包没有的函数会出错。调小能更早下载，但会和启动抢网络。改完点「预览二维码」就生效，不用重新拆分。", wasm_delay)
 
 	var game_name := _field("游戏名", body)
 	_game_name = _line_edit(game_name, "显示在开发者工具中的名称", "gameName")
@@ -842,7 +857,7 @@ func _build_footer() -> void:
 	# WASM 分包（微信官方工具）：先生成采集包，用手机把游戏玩一遍，再生成正式分包；预览二维码给手机扫。
 	var wasm_row := HFlowContainer.new()
 	footer.add_child(wasm_row)
-	_wasm_collect_button = _footer_button(wasm_row, "生成采集包", "WASM 分包第 1 步：上传引擎、云端预处理（几分钟），生成采集包。之后扫预览二维码，在手机上把游戏主要流程玩一遍。", "wasmsplit-collect")
+	_wasm_collect_button = _footer_button(wasm_row, "生成采集包", "WASM 分包第 1 步：上传引擎、云端预处理（几分钟），生成采集包。之后扫预览二维码，在手机上把游戏主要流程玩一遍。", "wasmsplit-notes-collect")
 	_wasm_release_button = _footer_button(wasm_row, "生成正式分包", "WASM 分包第 2 步：按手机上采集到的函数拆分引擎，首包只放用到的函数，启动更快。", "wasmsplit-release")
 	# 完整重采：换引擎编号让微信后台当成新包，之前的采集结果都不用。要先确认。
 	_wasm_fresh_button = Button.new()
@@ -856,6 +871,17 @@ func _build_footer() -> void:
 	_wasm_fresh_confirm.dialog_text = "从零开始重新采集？\n\n会换一个引擎编号并重新上传引擎，微信后台当成全新的包，之前采到的函数都不再使用。当前的分包副本会另存，不删除。\n之后要用手机（iPhone 和安卓都建议）把游戏主要流程重新玩一遍。"
 	_wasm_fresh_confirm.confirmed.connect(func(): _quick_start("wasmsplit-fresh"))
 	add_child(_wasm_fresh_confirm)
+	_wasm_fresh_confirm.add_button("查看完整说明", false, "notes")
+	_wasm_fresh_confirm.custom_action.connect(_on_wasm_notes_action)
+	# WASM 分包前必看的五条（docs/WASM分包注意事项.md 开头），每次生成采集包前都提醒。
+	_wasm_notes_dialog = ConfirmationDialog.new()
+	_wasm_notes_dialog.title = "WASM 分包前请先确认"
+	_wasm_notes_dialog.dialog_text = "1. 采集时把「启动后 30 秒内」会出现的东西都走一遍，尤其是 iPhone：iPhone 不能停下来等余包，30 秒内走到首包没有的函数会出错。\n   例：登录后马上进第一关，开场 5 秒弹出一个采集时没触发过的特效 → iPhone 上可能报错。\n2. iPhone 和安卓都要测，一个平台采集通过不代表另一个平台。\n3. 玩完把小游戏切到后台，等 1～2 分钟再「生成正式分包」，不然这一轮的采集可能还没传上去。\n4. 换了模板或插件版本要重新采集；新玩法用到新的引擎功能时要「继续补采」。\n5. 不要把采集包当正式包发布。"
+	_wasm_notes_dialog.ok_button_text = "我知道了，继续"
+	_wasm_notes_dialog.add_button("查看完整说明", false, "notes")
+	_wasm_notes_dialog.custom_action.connect(_on_wasm_notes_action)
+	_wasm_notes_dialog.confirmed.connect(func(): _quick_start(_wasm_notes_mode))
+	add_child(_wasm_notes_dialog)
 	_wasm_force_confirm = ConfirmationDialog.new()
 	_wasm_force_confirm.title = "还没收到新的采集数据"
 	_wasm_force_confirm.ok_button_text = "仍然生成"
@@ -882,6 +908,16 @@ func _footer_button(parent: Control, text: String, tip: String, mode: String) ->
 	button.pressed.connect(func(): _quick_start(mode))
 	parent.add_child(button)
 	return button
+
+# 打开随插件分发的 WASM 分包踩坑说明。
+func _on_wasm_notes_action(action: StringName) -> void:
+	if action != &"notes":
+		return
+	var file := ProjectSettings.globalize_path("res://addons/wxslim_readonly/kit/runtime/docs/WASM分包注意事项.md")
+	if FileAccess.file_exists(file):
+		OS.shell_open(file)
+	else:
+		_show_notice("WASM 分包注意事项", "插件里没有找到说明文件：" + file)
 
 func _show_qr(file: String) -> void:
 	# 按文件内容识别格式（开发者工具写出的二维码是 JPEG，旧版插件存成了 .png 扩展名）。
@@ -935,6 +971,7 @@ func _apply_draft_to_controls() -> void:
 	_output.text = _draft.output
 	_devtools.text = _draft.devtools
 	_wasmsplit_key.text = _draft.wasmsplitKey
+	_wasmsplit_delay.value = float(_draft.get("wasmsplitIosDelay", 30))
 	for index in _storage.item_count:
 		if _storage.get_item_metadata(index) == _draft.storage:
 			_storage.select(index)
@@ -1040,7 +1077,7 @@ func _focus_pending() -> void:
 		return
 	_groups[group].folded = false
 	var target: Control = {
-		"appid": _appid, "appidFrom": _appid, "output": _output, "devtools": _devtools, "wasmsplitKey": _wasmsplit_key, "gameName": _game_name,
+		"appid": _appid, "appidFrom": _appid, "output": _output, "devtools": _devtools, "wasmsplitKey": _wasmsplit_key, "wasmsplitIosDelay": _wasmsplit_delay, "gameName": _game_name,
 		"orientation": _orientation_buttons.get("portrait"), "glx": _glx, "skipPrewarm": _prewarm, "locale": _locale,
 		"largePck": _large_pck, "loginCode": _login_code, "confirmNo3d": _confirm_check, "confirmRemovedModules": _confirm_check,
 		"subpackages": _subpackage_buttons.get("scenes"), "scenes": _subpackage_buttons.get("scenes"), "receiver": _receiver_button,
@@ -1339,6 +1376,11 @@ func _on_cancel_result(result: Dictionary) -> void:
 
 func _quick_start(mode: String, open_run := "") -> void:
 	if not _job.is_empty():
+		return
+	# 生成采集包 / 继续补采前先弹出 WASM 分包的五条提醒（docs/WASM分包注意事项.md）。
+	if mode.begins_with("wasmsplit-notes-"):
+		_wasm_notes_mode = mode.trim_prefix("wasmsplit-notes-")
+		_wasm_notes_dialog.popup_centered(Vector2i(640, 0))
 		return
 	var node := _node_executable()
 	if node.is_empty():

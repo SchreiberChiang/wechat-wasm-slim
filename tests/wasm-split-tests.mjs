@@ -80,3 +80,12 @@ test('official tool failures are explained', () => {
   assert.equal(explainCliFailure('✗ init 失败: [4004] game.js 中缺少注入标记或锚点').code, 'WASM_SPLIT_ENTRY_ANCHOR');
   assert.match(explainCliFailure('line\n✗ dosplit 失败: 网络超时').message, /网络超时/);
 });
+
+test('iPhone code2 delay: the one official constant is rewritten in milliseconds; a changed runtime is refused', async () => {
+  const {setIosCode2Delay} = await import('../lib/wasm-split.mjs');
+  const runtime = 'var c={canAwaitLoad:!1,ARCHIVE_URL:void 0,kDelayLoadWasmcode2Time:3e4,kDelayFuncInitTime:0}';
+  assert.match(setIosCode2Delay(runtime, 5), /kDelayLoadWasmcode2Time:5000,/);
+  assert.match(setIosCode2Delay(setIosCode2Delay(runtime, 0), 30), /kDelayLoadWasmcode2Time:30000,/);
+  assert.throws(() => setIosCode2Delay(runtime, -1), e => e.code === 'WASM_SPLIT_DELAY');
+  assert.throws(() => setIosCode2Delay('no constant', 5), e => e.code === 'WASM_SPLIT_RUNTIME_CHANGED');
+});
