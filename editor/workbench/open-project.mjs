@@ -147,5 +147,10 @@ export function previewWeChatProject(project, qrFile, devtools = '') {
   }
   const sizes = {};
   for (const m of String(result.stdout || '').matchAll(/│\s*(\S+)\s*│\s*'([^']+)'\s*│\s*(\d+)\s*│/g)) sizes[m[1]] = Number(m[3]);
-  return {project, qrFile, sizes};
+  // 开发者工具不管 --qr-output 写什么扩展名，实际写出的是 JPEG；按文件头改成真实扩展名，图片查看器和 Godot 才读得出来。
+  const head = fs.readFileSync(qrFile).subarray(0, 4);
+  const real = head[0] === 0xff && head[1] === 0xd8 ? '.jpg' : head[0] === 0x89 && head[1] === 0x50 ? '.png' : path.extname(qrFile);
+  let file = qrFile;
+  if (real !== path.extname(qrFile)) { file = qrFile.slice(0, -path.extname(qrFile).length) + real; fs.renameSync(qrFile, file); }
+  return {project, qrFile: file, sizes};
 }

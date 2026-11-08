@@ -863,8 +863,15 @@ func _footer_button(parent: Control, text: String, tip: String, mode: String) ->
 	return button
 
 func _show_qr(file: String) -> void:
-	var image := Image.load_from_file(file)
-	if image == null or image.is_empty():
+	# 按文件内容识别格式（开发者工具写出的二维码是 JPEG，旧版插件存成了 .png 扩展名）。
+	var bytes := FileAccess.get_file_as_bytes(file)
+	var image := Image.new()
+	var loaded := ERR_FILE_UNRECOGNIZED
+	if bytes.size() > 4 and bytes[0] == 0xFF and bytes[1] == 0xD8:
+		loaded = image.load_jpg_from_buffer(bytes)
+	elif bytes.size() > 4 and bytes[0] == 0x89 and bytes[1] == 0x50:
+		loaded = image.load_png_from_buffer(bytes)
+	if loaded != OK or image.is_empty():
 		_show_notice("预览二维码", "二维码图片读不出来：" + file)
 		return
 	_qr_image.texture = ImageTexture.create_from_image(image)
