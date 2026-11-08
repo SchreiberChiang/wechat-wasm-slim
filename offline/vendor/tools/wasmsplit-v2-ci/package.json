@@ -1,0 +1,30 @@
+{
+  "name": "wasmsplit-v2-ci",
+  "version": "2.1.5",
+  "description": "微信小游戏通用适配Wasm代码分包工具V2 - CLI",
+  "bin": {
+    "wasmsplit-v2-ci": "./bin/cli.js"
+  },
+  "main": "./bin/cli.js",
+  "files": [
+    "bin/**/*",
+    "package.json",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wechat-miniprogram/wasmsplit-v2-ci"
+  },
+  "keywords": [
+    "微信小游戏",
+    "wasm",
+    "代码分包",
+    "minigame",
+    "wechat",
+    "wasmsplit"
+  ]
+}

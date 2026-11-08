@@ -36,3 +36,6 @@ __pycache__/
 
 # Bundled Node.js runtime (license file is tracked)
 /offline/vendor/tools/node/node.exe
+/offline/vendor/tools/wasmsplit-v2-ci/bin/cli.js
+/offline/vendor/engines/conservative/godot.symbols
+/offline/vendor/engines/pure-2d/godot.symbols

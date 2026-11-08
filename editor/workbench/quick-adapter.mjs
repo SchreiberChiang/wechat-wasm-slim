@@ -5,7 +5,8 @@
 // 放行、计划、执行、预算与路径检查全部在快速流程和共用任务核心里，这里不做任何放宽。
 //
 // 用法：node quick-adapter.mjs LOCAL_CONFIG MODE TOKEN
-//   MODE = plan | run | open | cancel | runs | status | requirements | receiver
+//   MODE = plan | run | open | cancel | runs | status | requirements | receiver | wasmsplit-collect | wasmsplit-release | preview
+//   wasmsplit-collect / wasmsplit-release / preview 的请求是 {project, settings, run}：WASM 分包采集包、正式分包、手机预览二维码（lib/quick-wasm-split.mjs）；
 //   cancel 的请求是 {runToken}（按该次运行的进度事件找运行目录）或 {run}（「最近运行」里未结束的运行目录）；
 //   runs 的请求是 {output}，只读列出该目录下的运行；status 的请求是 {run}，等同 quick status；
 //   open 的请求是 {run, settings}，等同 quick open：只打开已完成转换的运行，需要时用面板的 AppID 来源；
@@ -19,10 +20,12 @@ import {fileURLToPath} from 'node:url';
 import {loadConfig} from './adapter.mjs';
 import {quickPlan, quickRun, quickRefresh, cancelQuickRun, listQuickRuns, quickRunStatus, templateRequirements, installReceiver, QUICK_SETTINGS_SCHEMA} from '../../lib/quick-flow.mjs';
 import {openWeChatProject} from './open-project.mjs';
+import {quickWasmSplitCollect, quickWasmSplitRelease, quickPreview} from '../../lib/quick-wasm-split.mjs';
 
 const PANEL_KEYS = ['template', 'orientation', 'glx', 'skipPrewarm', 'subpackages', 'scenes', 'appid', 'appidFrom', 'gameName', 'output', 'confirmNo3d',
-  'confirmRemovedModules', 'locale', 'largePck', 'loginCode', 'devtoolsPreview', 'devtools'];
-const MODES = ['plan', 'run', 'refresh', 'open', 'cancel', 'runs', 'status', 'requirements', 'receiver'];
+  'confirmRemovedModules', 'locale', 'largePck', 'loginCode', 'devtoolsPreview', 'devtools', 'wasmsplitKey'];
+const MODES = ['plan', 'run', 'refresh', 'open', 'cancel', 'runs', 'status', 'requirements', 'receiver', 'wasmsplit-collect', 'wasmsplit-release', 'preview'];
+const RUN_MODES = ['refresh', 'wasmsplit-collect', 'wasmsplit-release', 'preview'];
 const TOKEN = /^[0-9]{1,12}-[0-9]{1,24}$/;
 
 function reject(code, message) {
@@ -104,8 +107,9 @@ export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan
       const settingsFile = stem + '.quick-settings.private.json';
       fs.writeFileSync(settingsFile, JSON.stringify(quickSettingsFromPanel(request.settings ?? {}, logs, token), null, 2) + '\n', {flag: 'wx'});
       const options = {project: request.project, settingsFile, editor: config.editorExecutable};
-      if (mode === 'refresh' && (typeof request.run !== 'string' || !path.isAbsolute(request.run))) reject('QUICK_ADAPTER_RUN', '没有要更新的运行');
-      result = mode === 'plan' ? await plan(options) : mode === 'refresh' ? await refresh({...options, run: request.run}, {report, openProject: request.open === true ? open : null})
+      if (RUN_MODES.includes(mode) && (typeof request.run !== 'string' || !path.isAbsolute(request.run))) reject('QUICK_ADAPTER_RUN', '没有要处理的运行');
+      const wasmsplit = {'wasmsplit-collect': quickWasmSplitCollect, 'wasmsplit-release': quickWasmSplitRelease, preview: quickPreview}[mode];
+      result = wasmsplit ? await wasmsplit({...options, run: request.run, devtools: request.settings?.devtools || ''}, {report}) : mode === 'plan' ? await plan(options) : mode === 'refresh' ? await refresh({...options, run: request.run}, {report, openProject: request.open === true ? open : null})
         : await run(options, {report, openProject: request.open === true ? open : null});
       // 计划详情体积大且面板不直接展示，只保留摘要；完整计划仍可由 quick plan 命令行重现。
       if (result.exportPlanDetail) delete result.exportPlanDetail;

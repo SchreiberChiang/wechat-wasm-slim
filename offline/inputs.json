@@ -1275,6 +1275,31 @@
       "bytes": 160552,
       "sha256": "d9c4eeda951d6d08f4aa1316b61aafcf67e6da5f79b18f8edeb56fa6abdc038c",
       "origin": "node-v24.18.0-win-x64.zip (https://nodejs.org/dist/v24.18.0/, sha256 0ae68406b42d7725661da979b1403ec9926da205c6770827f33aac9d8f26e821): node-v24.18.0-win-x64/LICENSE"
+    },
+    "vendor/tools/wasmsplit-v2-ci/bin/cli.js": {
+      "bytes": 1318496,
+      "sha256": "bd5f3eaf78d00b2b2edca071a3e0676fe170bc3af8323e3a71e3af0411419d8a",
+      "origin": "npm wasmsplit-v2-ci@2.1.5 (README: MIT)"
+    },
+    "vendor/tools/wasmsplit-v2-ci/package.json": {
+      "bytes": 576,
+      "sha256": "3e487a8e814afdd0a5e27556876de91ddeb6c2df10f68be0f09dfdbc4345c984",
+      "origin": "npm wasmsplit-v2-ci@2.1.5 (README: MIT)"
+    },
+    "vendor/tools/wasmsplit-v2-ci/README.md": {
+      "bytes": 6965,
+      "sha256": "977d29ae13906d62caa4e16ae7bae2997729e1cfd1e5b002305dfcf2fe0e188b",
+      "origin": "npm wasmsplit-v2-ci@2.1.5 (README: MIT)"
+    },
+    "vendor/engines/conservative/godot.symbols": {
+      "bytes": 1000863,
+      "sha256": "775dd185185df83c1e2f72dfa1c383f4f409d4939ab51d1aa1b10ea8659fb185",
+      "origin": "engine build godot.js.symbols (offline/rebuild.mjs, 2026-11-08)"
+    },
+    "vendor/engines/pure-2d/godot.symbols": {
+      "bytes": 841899,
+      "sha256": "412440b4321c9e9b1a241fefa0ae71ecda74cffeb0fefcbb3ecc4923c1245203",
+      "origin": "engine build godot.js.symbols (offline/rebuild.mjs, 2026-11-08)"
     }
   }
 }

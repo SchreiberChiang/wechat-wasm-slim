@@ -13,7 +13,7 @@ extends VBoxContainer
 const INSTALL_LOCATOR := "res://addons/wxslim_readonly/workbench.path"
 const SETTINGS_FILE := "panel-preview-settings.private.json"
 const LAST_RUN_FILE := "panel-preview-last-run.private.json"
-const STEP_TEXT := {"start": "准备运行目录", "export": "导出 PCK", "check": "检查用到的功能", "replace": "替换游戏资源", "split": "按场景拆包", "interfaces": "生成分包接口", "convert": "官方转换", "assemble": "组装分包", "devtools": "生成电脑预览包", "open": "打开开发者工具"}
+const STEP_TEXT := {"start": "准备运行目录", "export": "导出 PCK", "check": "检查用到的功能", "replace": "替换游戏资源", "split": "按场景拆包", "interfaces": "生成分包接口", "convert": "官方转换", "assemble": "组装分包", "devtools": "生成电脑预览包", "open": "打开开发者工具", "wasmsplit": "WASM 分包"}
 const APPID_PATTERN := "^wx[0-9a-f]{16}$"
 const TEMPLATES := {"full": "完整模板", "conservative": "保守模板", "2d": "2D 模板"}
 const LOCALES := [["zh_CN", "简体中文（zh_CN）"], ["en", "英文（en）"]]
@@ -36,13 +36,13 @@ const CATEGORIES := [
 const GROUP_KEYS := {
 	"packing": ["template", "confirmNo3d", "confirmRemovedModules", "subpackages", "scenes"],
 	"runtime": ["orientation", "glx", "skipPrewarm", "locale", "largePck", "loginCode"],
-	"publish": ["appid", "appidFrom", "gameName", "output", "devtools", "storage"],
+	"publish": ["appid", "appidFrom", "gameName", "output", "devtools", "wasmsplitKey", "storage"],
 }
 # 快速流程返回的错误 field → 面板里的设置组。不在面板里的项目（导出预设、主场景等）只在提示里说明怎么改。
 const FIELD_GROUP := {
 	"template": "packing", "confirmNo3d": "packing", "confirmRemovedModules": "packing", "subpackages": "packing", "scenes": "packing", "receiver": "packing",
 	"orientation": "runtime", "glx": "runtime", "skipPrewarm": "runtime", "locale": "runtime", "largePck": "runtime", "loginCode": "runtime",
-	"appid": "publish", "appidFrom": "publish", "output": "publish", "gameName": "publish", "devtools": "publish", "project": "advanced",
+	"appid": "publish", "appidFrom": "publish", "output": "publish", "gameName": "publish", "devtools": "publish", "wasmsplitKey": "publish", "project": "advanced",
 }
 const FIELD_HINT := {
 	"exportPreset": "在 Godot「项目 → 导出」里保留恰好一个 Web 预设。",
@@ -102,6 +102,13 @@ var _appid_note: Label
 var _game_name: LineEdit
 var _output: LineEdit
 var _devtools: LineEdit
+var _wasmsplit_key: LineEdit
+var _wasm_collect_button: Button
+var _wasm_release_button: Button
+var _preview_button: Button
+var _wasm_line: Label
+var _qr_dialog: AcceptDialog
+var _qr_image: TextureRect
 var _storage: OptionButton
 var _storage_note: Label
 var _lock_note: Label
@@ -152,7 +159,7 @@ func _workbench_directory() -> String:
 func _default_settings() -> Dictionary:
 	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "confirmNo3d": false, "confirmRemovedModules": false,
 		"subpackages": "none", "scenes": [], "appid": "", "appidFrom": "", "gameName": "", "output": "", "project": "",
-		"locale": "zh_CN", "largePck": false, "loginCode": false, "devtools": ""}
+		"locale": "zh_CN", "largePck": false, "loginCode": false, "devtools": "", "wasmsplitKey": ""}
 
 func _installed() -> bool:
 	return FileAccess.file_exists(INSTALL_LOCATOR)
@@ -633,6 +640,26 @@ func _build_publish(parent: Control) -> void:
 	devtools_row.add_child(devtools_choose)
 	_note("「在开发者工具中打开」时用。一般装在 C:/Program Files (x86)/Tencent/微信web开发者工具。", devtools)
 
+	# WASM 分包的私钥只存本机（不进项目设置、不进游戏）。公钥要上传到小游戏后台「Wasm 分包 CI 鉴权配置」。
+	var wasm_key := _field("WASM 分包密钥", body, "wasmsplitKey")
+	var wasm_key_row := HBoxContainer.new()
+	wasm_key.add_child(wasm_key_row)
+	_wasmsplit_key = _line_edit(wasm_key_row, "私钥文件（.pem），只在做 WASM 分包时用", "wasmsplitKey")
+	var wasm_key_picker := FileDialog.new()
+	wasm_key_picker.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	wasm_key_picker.access = FileDialog.ACCESS_FILESYSTEM
+	wasm_key_picker.filters = PackedStringArray(["*.pem, *.key ; 私钥"])
+	wasm_key_picker.file_selected.connect(func(value: String):
+		_wasmsplit_key.text = value
+		_wasmsplit_key.text_changed.emit(value)
+	)
+	add_child(wasm_key_picker)
+	var wasm_key_choose := Button.new()
+	wasm_key_choose.text = "选择…"
+	wasm_key_choose.pressed.connect(func(): wasm_key_picker.popup_centered_ratio(0.7))
+	wasm_key_row.add_child(wasm_key_choose)
+	_note("微信官方 WASM 分包要用的私钥。它对应的公钥上传到小游戏管理后台「开发管理 → 研发工具箱 → 密钥管理 → Wasm 分包 CI 鉴权配置」（不是「小程序代码上传密钥」）。不要放进游戏目录。", wasm_key)
+
 	var game_name := _field("游戏名", body)
 	_game_name = _line_edit(game_name, "显示在开发者工具中的名称", "gameName")
 
@@ -809,6 +836,51 @@ func _build_footer() -> void:
 	_cancel_button.pressed.connect(func(): _cancel_confirm.popup_centered())
 	row.add_child(_cancel_button)
 	_open_hint = _note("", footer)
+	# WASM 分包（微信官方工具）：先生成采集包，用手机把游戏玩一遍，再生成正式分包；预览二维码给手机扫。
+	var wasm_row := HFlowContainer.new()
+	footer.add_child(wasm_row)
+	_wasm_collect_button = _footer_button(wasm_row, "生成采集包", "WASM 分包第 1 步：上传引擎、云端预处理（几分钟），生成采集包。之后扫预览二维码，在手机上把游戏主要流程玩一遍。", "wasmsplit-collect")
+	_wasm_release_button = _footer_button(wasm_row, "生成正式分包", "WASM 分包第 2 步：按手机上采集到的函数拆分引擎，首包只放用到的函数，启动更快。", "wasmsplit-release")
+	_preview_button = _footer_button(wasm_row, "预览二维码", "用开发者工具生成手机预览二维码（上传到微信，扫码即可在手机上打开）。", "preview")
+	_wasm_line = _wrapped(footer)
+	_qr_dialog = AcceptDialog.new()
+	_qr_dialog.title = "用手机微信扫码"
+	_qr_image = TextureRect.new()
+	_qr_image.custom_minimum_size = Vector2(300, 300)
+	_qr_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_qr_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_qr_dialog.add_child(_qr_image)
+	add_child(_qr_dialog)
+
+func _footer_button(parent: Control, text: String, tip: String, mode: String) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.tooltip_text = tip
+	button.custom_minimum_size = Vector2(110, 30)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.pressed.connect(func(): _quick_start(mode))
+	parent.add_child(button)
+	return button
+
+func _show_qr(file: String) -> void:
+	var image := Image.load_from_file(file)
+	if image == null or image.is_empty():
+		_show_notice("预览二维码", "二维码图片读不出来：" + file)
+		return
+	_qr_image.texture = ImageTexture.create_from_image(image)
+	_qr_dialog.dialog_text = ""
+	_qr_dialog.popup_centered(Vector2i(360, 400))
+
+# 这次运行的 WASM 分包状态（RUN/wasmsplit/STATE.json，由 lib/quick-wasm-split.mjs 写）。
+func _wasm_state() -> Dictionary:
+	var run: String = _last_run.get("run", "")
+	if run.is_empty():
+		return {}
+	var file := run.path_join("wasmsplit").path_join("STATE.json")
+	if not FileAccess.file_exists(file):
+		return {}
+	var parsed = JSON.parse_string(FileAccess.get_file_as_string(file))
+	return parsed if parsed is Dictionary else {}
 
 # ---------- 行为 ----------
 
@@ -834,6 +906,7 @@ func _apply_draft_to_controls() -> void:
 	_game_name.text = _draft.gameName
 	_output.text = _draft.output
 	_devtools.text = _draft.devtools
+	_wasmsplit_key.text = _draft.wasmsplitKey
 	for index in _storage.item_count:
 		if _storage.get_item_metadata(index) == _draft.storage:
 			_storage.select(index)
@@ -939,7 +1012,7 @@ func _focus_pending() -> void:
 		return
 	_groups[group].folded = false
 	var target: Control = {
-		"appid": _appid, "appidFrom": _appid, "output": _output, "devtools": _devtools, "gameName": _game_name,
+		"appid": _appid, "appidFrom": _appid, "output": _output, "devtools": _devtools, "wasmsplitKey": _wasmsplit_key, "gameName": _game_name,
 		"orientation": _orientation_buttons.get("portrait"), "glx": _glx, "skipPrewarm": _prewarm, "locale": _locale,
 		"largePck": _large_pck, "loginCode": _login_code, "confirmNo3d": _confirm_check, "confirmRemovedModules": _confirm_check,
 		"subpackages": _subpackage_buttons.get("scenes"), "scenes": _subpackage_buttons.get("scenes"), "receiver": _receiver_button,
@@ -1256,6 +1329,11 @@ func _quick_start(mode: String, open_run := "") -> void:
 			return
 		_clear_field_errors()
 		request = {"project": _game_project(), "settings": _quick_settings(), "run": _last_run.get("run", ""), "open": true}
+	elif mode in ["wasmsplit-collect", "wasmsplit-release", "preview"]:
+		if not _last_run_usable():
+			return
+		_clear_field_errors()
+		request = {"project": _game_project(), "settings": _quick_settings(), "run": _last_run.get("run", "")}
 	else:
 		_clear_field_errors()
 		request = {"project": _game_project(), "settings": _quick_settings()}
@@ -1265,9 +1343,11 @@ func _quick_start(mode: String, open_run := "") -> void:
 	# 记下发起时的设置：运行期间若又保存了新设置，结果只算在发起时那份设置名下。
 	_job = spawned
 	_job.merge({"started": Time.get_ticks_msec(), "settings": JSON.stringify(_saved), "run": ""})
-	_task_line.text = {"plan": "任务：正在检查…", "run": "任务：开始导出…", "open": "任务：正在打开开发者工具…", "refresh": "任务：开始更新游戏资源…"}[mode]
+	_task_line.text = {"plan": "任务：正在检查…", "run": "任务：开始导出…", "open": "任务：正在打开开发者工具…", "refresh": "任务：开始更新游戏资源…",
+		"wasmsplit-collect": "任务：开始生成采集包…", "wasmsplit-release": "任务：开始生成正式分包…", "preview": "任务：正在生成预览二维码…"}[mode]
 	_task_line.tooltip_text = ""
-	_log_line({"plan": "开始检查设置和游戏工程。", "run": "开始导出并转换，运行目录在输出目录下。", "open": "打开 " + str(request.get("run", "")), "refresh": "只重新导出游戏资源，放进 " + str(request.get("run", ""))}[mode])
+	_log_line({"plan": "开始检查设置和游戏工程。", "run": "开始导出并转换，运行目录在输出目录下。", "open": "打开 " + str(request.get("run", "")), "refresh": "只重新导出游戏资源，放进 " + str(request.get("run", "")),
+		"wasmsplit-collect": "WASM 分包：生成采集包（会上传引擎到微信后台）。", "wasmsplit-release": "WASM 分包：按采集结果生成正式分包。", "preview": "用开发者工具生成手机预览二维码。"}[mode])
 	_poll_elapsed = 0.0
 	_status_elapsed = 0.0
 	set_process(true)
@@ -1318,6 +1398,11 @@ func _process(delta: float) -> void:
 	if _job.is_empty():
 		return
 	var seconds := int((Time.get_ticks_msec() - int(_job.started)) / 1000)
+	if _job.mode in ["wasmsplit-collect", "wasmsplit-release"] and FileAccess.file_exists(_job.events):
+		var wasm_lines := FileAccess.get_file_as_string(_job.events).strip_edges().split("\n")
+		var wasm_last = JSON.parse_string(wasm_lines[wasm_lines.size() - 1]) if wasm_lines.size() > 0 and not wasm_lines[0].is_empty() else null
+		if wasm_last is Dictionary:
+			_task_line.text = "任务：WASM 分包 · %s（%d 秒）" % [str(wasm_last.get("message", "")), seconds]
 	if _job.mode in ["run", "refresh"] and FileAccess.file_exists(_job.events):
 		var lines := FileAccess.get_file_as_string(_job.events).strip_edges().split("\n")
 		var last = JSON.parse_string(lines[lines.size() - 1]) if lines.size() > 0 and not lines[0].is_empty() else null
@@ -1426,6 +1511,43 @@ func _on_quick_result(job: Dictionary, result: Dictionary) -> void:
 			else:
 				_task_line.text = "任务：打开失败"
 				_show_problems("打开失败", [result])
+		"wasmsplit-collect", "wasmsplit-release":
+			var collect: bool = job.mode == "wasmsplit-collect"
+			if result.get("status") == "SUCCESS":
+				var parts := PackedStringArray()
+				for part in result.get("parts", []):
+					parts.append("%s %.2f MB" % [str(part.get("part", "")), float(part.get("bytes", 0)) / 1048576.0])
+				if collect:
+					_task_line.text = "任务：采集包已就绪（%d 秒）%s" % [seconds, "，沿用上次的" if result.get("reused", false) else ""]
+					_log_line("采集包：" + str(result.get("minigame", "")) + "（" + " · ".join(parts) + "）")
+					if str(result.get("symbols", "")) == "placeholder":
+						_log_line("这个引擎没有随附符号表，用了按编号生成的占位名；分包照常，只是官方工具的日志里看不到函数名。")
+					_log_line("下一步：扫预览二维码，在手机上把游戏主要流程玩一遍，然后点「生成正式分包」。")
+				else:
+					_task_line.text = "任务：正式分包已生成（%d 秒）· 采集到 %d / %d 个函数" % [seconds, int(result.get("collectedFunctions", 0)), int(result.get("totalFunctions", 0))]
+					_log_line("正式分包：" + " · ".join(parts) + "。wasmcode 是首包；wasmcode1 用到没采集到的函数时才下载；wasmcode2 在启动 30 秒后才下载。")
+				# 做完直接给手机扫码用的二维码。
+				_job = {}
+				_quick_start("preview")
+				return
+			elif result.get("status") == "BLOCKED":
+				_task_line.text = "任务：没有开始，见提示"
+				_show_problems("还不能做 WASM 分包", result.get("blockers", []))
+			else:
+				_task_line.text = "任务：WASM 分包失败（%d 秒），见提示" % seconds
+				var error: Dictionary = result.get("error", result)
+				_show_problems("WASM 分包失败", [error], "官方工具的完整输出在：" + str(error.get("log", "运行目录的 wasmsplit/logs")))
+		"preview":
+			if result.get("status") == "SUCCESS":
+				_task_line.text = "任务：预览二维码已生成（%d 秒）%s" % [seconds, {"collecting": " · 采集包", "released": " · 正式分包"}.get(str(result.get("wasmSplit", "")), "")]
+				_log_line("预览二维码：" + str(result.get("qrFile", "")))
+				_show_qr(str(result.get("qrFile", "")))
+			elif result.get("status") == "BLOCKED":
+				_task_line.text = "任务：没有开始，见提示"
+				_show_problems("还不能预览", result.get("blockers", []))
+			else:
+				_task_line.text = "任务：预览失败，见提示"
+				_show_problems("预览失败", [result.get("error", result)])
 	if job.mode == "run":
 		_refresh_runs()
 	_refresh()
@@ -1632,6 +1754,25 @@ func _refresh() -> void:
 	_refresh_button.disabled = busy or not refresh_missing.is_empty()
 	_refresh_button.text = "更新中…" if busy and _job.mode == "refresh" else "只更新游戏资源"
 	_refresh_button.tooltip_text = "改了游戏后用：只重新导出游戏资源（PCK），几秒内替换进上次的转换结果并在开发者工具里打开。\n引擎和模板等设置要和上次一样；会先检查游戏有没有用到模板去掉的功能。" + ("" if refresh_missing.is_empty() else "\n还差：" + "、".join(refresh_missing))
+	# WASM 分包：基于上次导出（同一套设置）。采集包要有密钥；正式分包要先有采集包。
+	var wasm := _wasm_state()
+	var wasm_state: String = str(wasm.get("state", ""))
+	var no_run := not open_missing.is_empty()
+	_preview_button.disabled = busy or no_run
+	_wasm_collect_button.disabled = busy or no_run or _saved.wasmsplitKey.is_empty()
+	_wasm_release_button.disabled = busy or no_run or _saved.wasmsplitKey.is_empty() or wasm_state.is_empty()
+	_wasm_collect_button.text = "生成中…" if busy and _job.mode == "wasmsplit-collect" else ("重新生成采集包" if wasm_state == "released" else "生成采集包")
+	_wasm_release_button.text = "生成中…" if busy and _job.mode == "wasmsplit-release" else "生成正式分包"
+	if no_run:
+		_wasm_line.text = "WASM 分包：先「导出并转换」一次"
+	elif _saved.wasmsplitKey.is_empty():
+		_wasm_line.text = "WASM 分包：在「发布信息 → WASM 分包密钥」选好私钥后可用"
+	elif wasm_state == "collecting":
+		_wasm_line.text = "WASM 分包：采集包已就绪 → 扫码在手机上玩一遍 → 生成正式分包"
+	elif wasm_state == "released":
+		_wasm_line.text = "WASM 分包：已拆分（采集到 %d / %d 个函数）。开发者工具打开、只更新游戏资源都针对分包后的工程" % [int(wasm.get("collectedFunctions", 0)), int(wasm.get("totalFunctions", 0))]
+	else:
+		_wasm_line.text = "WASM 分包：未开始。先生成采集包（会上传引擎到微信后台）"
 
 	_render_runs()
 	for child in _missing_box.get_children():

@@ -127,3 +127,25 @@ export function openWeChatProject(configFile, appidFrom = '', devtools = '') {
   if (result.error || result.status !== 0) throw Error('微信开发者工具未确认打开，检查本机工具的服务端口和项目设置');
   return {project, cliExitCode: result.status, appIdFieldsChanged};
 }
+
+/**
+ * 用开发者工具命令行「预览」：上传到微信并生成手机扫码用的二维码图片（qrFile，PNG）。
+ * 工程里已有真实 AppID（电脑预览包、WASM 分包副本都已写入）。
+ */
+export function previewWeChatProject(project, qrFile, devtools = '') {
+  if (!path.isAbsolute(project) || !fs.existsSync(path.join(project, 'project.config.json'))) throw Error('没有可预览的小游戏工程');
+  const install = resolveDevtools(devtools);
+  const bootstrap = "const entry=process.argv[1];process.argv=[process.execPath,'--ms-enable-electron-run-as-node',entry,'--electron',...process.argv.slice(2)];require(entry)";
+  const result = spawnSync(path.join(install, '微信开发者工具.exe'), ['-e', bootstrap, path.join(install, DEVTOOLS_CLI), 'preview', '--project', project,
+    '--qr-format', 'image', '--qr-output', qrFile], {
+    cwd: install, env: {...process.env, cwd: project, ELECTRON_RUN_AS_NODE: '1'}, shell: false, windowsHide: true,
+    encoding: 'utf8', timeout: 300000, maxBuffer: 1024 * 1024
+  });
+  if (result.error || result.status !== 0 || !fs.existsSync(qrFile)) {
+    const text = String((result.stdout || '') + (result.stderr || '')).split('\n').filter(l => /error|✖|失败/i.test(l)).slice(-3).join(' ');
+    throw Object.assign(Error('开发者工具没能生成预览二维码' + (text ? '：' + text.slice(0, 300) : '，请确认开发者工具已登录并开启服务端口')), {code: 'QUICK_PREVIEW_FAILED'});
+  }
+  const sizes = {};
+  for (const m of String(result.stdout || '').matchAll(/│\s*(\S+)\s*│\s*'([^']+)'\s*│\s*(\d+)\s*│/g)) sizes[m[1]] = Number(m[3]);
+  return {project, qrFile, sizes};
+}
