@@ -68,7 +68,7 @@
   },
   "finding": {
     "issue": "when the plugin is not enabled, the export filter is not registered and addons/wxslim_readonly scripts go into the game PCK (157,896 bytes vs 1,872 bytes with the plugin enabled); no local paths found in it",
-    "status": "pre-existing, not fixed in this round"
+    "status": "fixed in e573883: install enables the plugin; quick export refuses a disabled plugin"
   },
   "followUp2762228": {
     "userGuiReport": "panel output set to 临时输出 inside the game showed only '共用导出计划未通过：PCK_EXPORT_OUTPUT_OVERLAP'",
@@ -91,5 +91,30 @@
     "devtools picture",
     "real device",
     "conservative and 2D templates on this release"
-  ]
+  ],
+  "followUpE573883": {
+    "change": "双击安装.cmd + install.ps1 in the release; install.mjs enables the plugin in project.godot; quick plan blocks an installed but disabled plugin (QUICK_PLUGIN_NOT_ENABLED)",
+    "tests": {
+      "total": 520,
+      "pass": 520,
+      "fail": 0
+    },
+    "release": {
+      "directory": "../release-e573883",
+      "files": 341,
+      "bytes": 234656055,
+      "manifestIdentity": "c15f4f17b916e4d46eb8fc4039f537d246ec61453d48f6c469e6d3c81a3587c8"
+    },
+    "checked": [
+      "install.ps1 -Quiet on a new blank game on F: found Steam Godot 4.7.2 by itself and enabled the plugin",
+      "repeat install: already this version",
+      "update of blank-8029e66 from release-2762228 with backup, plugin listed once",
+      "export after scripted install: PCK 1,872 bytes (panel excluded)",
+      "plugin section removed: quick plan not ready, QUICK_PLUGIN_NOT_ENABLED"
+    ],
+    "notChecked": [
+      "double-click with folder and file dialogs (needs a person)",
+      "machines without Node or without Steam Godot"
+    ]
+  }
 }
