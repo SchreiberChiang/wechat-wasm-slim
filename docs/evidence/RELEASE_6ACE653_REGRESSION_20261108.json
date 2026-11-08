@@ -12,22 +12,57 @@
     "manifestIdentity": "a0513326bdfbfe512f794d13ea6be197434929352cefe8dfa6902ed2f94ac89d",
     "versusCodexRelease": "same 338 paths; only addons/wxslim_readonly/plugin.gd, preview_panel.gd (f21d930) and install.mjs (EXDEV fix) differ; no proof or historical reviewer"
   },
-  "tests": {"total": 515, "pass": 515, "fail": 0, "skipped": 0, "note": "run-offline.mjs with local Python 3.14.0, Git, Node 24.18.0"},
+  "tests": {
+    "total": 515,
+    "pass": 515,
+    "fail": 0,
+    "skipped": 0,
+    "note": "run-offline.mjs with local Python 3.14.0, Git, Node 24.18.0"
+  },
   "installFix": {
     "bug": "install.mjs staged in LOCALAPPDATA and renamed into the game: EXDEV when the game is on another drive (since e682ce2; release-0d69352 reproduces)",
     "fix": "stage and swap in dot-prefixed folders under the game's addons; backup copied to the state folder",
-    "checked": ["fresh install, game on F:, state on C:", "repeat install reports alreadyInstalled", "edited addon without --update is refused", "--update from release-0d69352 (state on F:) keeps a verified backup"],
+    "checked": [
+      "fresh install, game on F:, state on C:",
+      "repeat install reports alreadyInstalled",
+      "edited addon without --update is refused",
+      "--update from release-0d69352 (state on F:) keeps a verified backup"
+    ],
     "notChecked": []
   },
   "blankGame": {
     "project": "verify/blank-8029e66, Node2D, Web preset from examples/simple",
-    "settings": {"template": "full", "glx": true, "orientation": "portrait", "appidFrom": "existing local project.config.json"},
+    "settings": {
+      "template": "full",
+      "glx": true,
+      "orientation": "portrait",
+      "appidFrom": "existing local project.config.json"
+    },
     "plan": "ready",
-    "run1": {"status": "SUCCESS", "seconds": 47, "convertPackageId": "wxslim-3c635ef9e0a6794aaa8f", "devtoolsPackageId": "wxslim-0a18b45c3e36803a558a"},
-    "run2Open": {"status": "SUCCESS", "seconds": 53, "convertPackageId": "wxslim-3c635ef9e0a6794aaa8f", "devtoolsPackageId": "wxslim-2f5f6b13d4ea0448aea8", "open": "devtools launched"},
+    "run1": {
+      "status": "SUCCESS",
+      "seconds": 47,
+      "convertPackageId": "wxslim-3c635ef9e0a6794aaa8f",
+      "devtoolsPackageId": "wxslim-0a18b45c3e36803a558a"
+    },
+    "run2Open": {
+      "status": "SUCCESS",
+      "seconds": 53,
+      "convertPackageId": "wxslim-3c635ef9e0a6794aaa8f",
+      "devtoolsPackageId": "wxslim-2f5f6b13d4ea0448aea8",
+      "open": "devtools launched"
+    },
     "pckIdenticalAcrossRuns": "a6ddfcacb80d90deeda52c528ea33f4b1c8e01dff73c25f41968e2e92df50443",
-    "rejectExisting": {"code": "TASK_REJECTED", "convertOutputUnchanged": true},
-    "cancel": {"during": "convert", "runStatus": "CANCELLED", "exitCode": 3, "devtoolsStepSkipped": true},
+    "rejectExisting": {
+      "code": "TASK_REJECTED",
+      "convertOutputUnchanged": true
+    },
+    "cancel": {
+      "during": "convert",
+      "runStatus": "CANCELLED",
+      "exitCode": 3,
+      "devtoolsStepSkipped": true
+    },
     "runsList": "2 SUCCESS (openable) + 1 CANCELLED",
     "headlessEditor": "plugin enabled, no script errors"
   },
@@ -38,9 +73,23 @@
   "followUp2762228": {
     "userGuiReport": "panel output set to 临时输出 inside the game showed only '共用导出计划未通过：PCK_EXPORT_OUTPUT_OVERLAP'",
     "fix": "quick-flow names output/game/editor/release overlaps in plain words with field output before the export plan",
-    "tests": {"total": 516, "pass": 516, "fail": 0},
-    "release": {"directory": "../release-2762228", "files": 338, "bytes": 234646622, "manifestIdentity": "fc8d4856709489952ea27870de1ed711636ced33b84a94e4a0a7bdb6659ea13f"},
-    "crossDriveUpdate": "install.mjs --update from release-6ace653 to release-2762228, game on F:, state on C: — SUCCESS"
+    "tests": {
+      "total": 516,
+      "pass": 516,
+      "fail": 0
+    },
+    "release": {
+      "directory": "../release-2762228",
+      "files": 338,
+      "bytes": 234646622,
+      "manifestIdentity": "fc8d4856709489952ea27870de1ed711636ced33b84a94e4a0a7bdb6659ea13f"
+    },
+    "crossDriveUpdate": "install.mjs --update from release-6ace653 to release-2762228, game on F:, state on C: — SUCCESS",
+    "userGuiCheck": "2026-11-08: user re-ran the panel on release-2762228 with an output folder outside the game and reported the panel works"
   },
-  "notVerified": ["panel GUI clicks on this release (editor opened for the user)", "devtools picture", "real device", "conservative and 2D templates on this release"]
+  "notVerified": [
+    "devtools picture",
+    "real device",
+    "conservative and 2D templates on this release"
+  ]
 }
