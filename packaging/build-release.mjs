@@ -48,8 +48,10 @@ for(const f of fs.readdirSync(path.join(source,'editor/workbench',addon))) {
 includeBytes(kitDir+'.gdignore',Buffer.alloc(0));
 for(const [file,hash] of Object.entries(lock.files)) {
   // Older releases and explicit vendor maps contain the engine binaries only.
-  // Files a previous release does not have yet (fingerprints, the bundled Node.js) come from offline/vendor.
-  const input = file.endsWith('/fingerprint.json') || (mode !== '--inputs' && !fs.existsSync(vendor[file])) ? path.join(source,'offline/vendor',file) : vendor[file];
+  // Files a previous release does not have yet (fingerprints, the bundled Node.js) or has in an older
+  // version (a rebuilt engine) come from offline/vendor.
+  const stale = mode !== '--inputs' && fs.existsSync(vendor[file]) && fs.statSync(vendor[file]).size !== hash.bytes;
+  const input = file.endsWith('/fingerprint.json') || stale || (mode !== '--inputs' && !fs.existsSync(vendor[file])) ? path.join(source,'offline/vendor',file) : vendor[file];
   include(kitDir+file,input,hash);
 }
 for(const [to,from] of Object.entries({[kitDir+'install.mjs']:'packaging/install.mjs',[kitDir+'profiles.json']:'packaging/vendor-lock.json',
