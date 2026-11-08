@@ -82,7 +82,32 @@ export function configureLocalAppId(configFile, sourceFile) {
 
 // Use argv directly with the same Electron CLI entry as the installed cli.bat.
 // The selected project path is always a separate argument.
-export function openWeChatProject(configFile, appidFrom = '') {
+const DEVTOOLS_CLI = 'resources/app.asar.unpacked/js/common/cli/index.js';
+const isDevtoolsDir = dir => ['cli.bat', '微信开发者工具.exe', DEVTOOLS_CLI].every(name => fs.existsSync(path.join(dir, name)));
+
+/**
+ * 微信开发者工具的安装目录。顺序：面板或设置里指定的位置（安装目录或其中的 .exe/cli.bat）、
+ * 环境变量 WXSLIM_WECHAT_DEVTOOLS、PATH、常见安装位置。找不到时说明怎么在面板里指定。
+ */
+export function resolveDevtools(explicit = '', env = process.env) {
+  const asDir = value => {
+    const p = path.resolve(String(value).replace(/^"|"$/g, ''));
+    return fs.existsSync(p) && fs.statSync(p).isFile() ? path.dirname(p) : p;
+  };
+  if (explicit) {
+    const dir = asDir(explicit);
+    if (isDevtoolsDir(dir)) return dir;
+    throw Object.assign(Error(`设置的微信开发者工具位置不对：${explicit}。请选择安装目录里的「微信开发者工具.exe」。`), {code: 'QUICK_DEVTOOLS_INVALID', field: 'devtools'});
+  }
+  const pathDirs = (env.PATH || '').split(path.delimiter).map(s => s.replace(/^"|"$/g, '')).filter(path.isAbsolute);
+  const defaults = [env['ProgramFiles(x86)'], env.ProgramFiles, env.LOCALAPPDATA && path.join(env.LOCALAPPDATA, 'Programs')]
+    .filter(Boolean).flatMap(root => [path.join(root, 'Tencent', '微信web开发者工具'), path.join(root, '微信web开发者工具')]);
+  const found = [...(env.WXSLIM_WECHAT_DEVTOOLS ? [asDir(env.WXSLIM_WECHAT_DEVTOOLS)] : []), ...pathDirs, ...defaults].find(isDevtoolsDir);
+  if (found) return found;
+  throw Object.assign(Error('没有找到微信开发者工具。请在面板「发布信息 → 微信开发者工具」里选择安装目录中的「微信开发者工具.exe」。'), {code: 'QUICK_DEVTOOLS_NOT_FOUND', field: 'devtools'});
+}
+
+export function openWeChatProject(configFile, appidFrom = '', devtools = '') {
   if (typeof configFile !== 'string' || !path.isAbsolute(configFile) || path.basename(configFile) !== 'project.config.json') {
     throw Error('请选择小游戏根目录中的 project.config.json');
   }
@@ -91,10 +116,8 @@ export function openWeChatProject(configFile, appidFrom = '') {
   if (config.compileType !== 'game' || !['game.js', 'game.json'].every(name => fs.statSync(path.join(project, name)).isFile())) {
     throw Error('所选工程缺少小游戏入口或配置');
   }
-  const dirs = (process.env.PATH || '').split(path.delimiter).map(s => s.replace(/^"|"$/g, '')).filter(path.isAbsolute);
-  const cli = 'resources/app.asar.unpacked/js/common/cli/index.js';
-  const install = dirs.find(dir => ['cli.bat', '微信开发者工具.exe', cli].every(name => fs.existsSync(path.join(dir, name))));
-  if (!install) throw Error('请将已安装的微信开发者工具目录加入本地 PATH，然后重开 Godot 编辑器');
+  const cli = DEVTOOLS_CLI;
+  const install = resolveDevtools(devtools);
   const appIdFieldsChanged = configureLocalAppId(configFile, appidFrom);
   const bootstrap = "const entry=process.argv[1];process.argv=[process.execPath,'--ms-enable-electron-run-as-node',entry,'--electron',...process.argv.slice(2)];require(entry)";
   const result = spawnSync(path.join(install, '微信开发者工具.exe'), ['-e', bootstrap, path.join(install, cli), 'open', '--project', project], {

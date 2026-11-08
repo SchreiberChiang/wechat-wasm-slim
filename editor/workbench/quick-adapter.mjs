@@ -20,7 +20,7 @@ import {quickPlan, quickRun, cancelQuickRun, listQuickRuns, quickRunStatus, temp
 import {openWeChatProject} from './open-project.mjs';
 
 const PANEL_KEYS = ['template', 'orientation', 'glx', 'skipPrewarm', 'subpackages', 'scenes', 'appid', 'appidFrom', 'gameName', 'output', 'confirmNo3d',
-  'confirmRemovedModules', 'locale', 'largePck', 'loginCode', 'devtoolsPreview'];
+  'confirmRemovedModules', 'locale', 'largePck', 'loginCode', 'devtoolsPreview', 'devtools'];
 const MODES = ['plan', 'run', 'open', 'cancel', 'runs', 'status', 'requirements', 'receiver'];
 const TOKEN = /^[0-9]{1,12}-[0-9]{1,24}$/;
 
@@ -90,8 +90,9 @@ export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan
       if (status?.status !== 'SUCCESS' || status.steps.convert !== 'SUCCESS' || !status.openTarget)
         reject('QUICK_OPEN_RUN_INVALID', '这次运行没有可打开的小游戏工程，请选一次已完成的运行');
       const preview = status.openTarget.includes(path.sep + 'devtools' + path.sep);
-      const source = preview ? '' : quickSettingsFromPanel(request.settings ?? {}, logs, token).appidFrom || '';
-      result = {schema: 'wxslim-quick-open-v1', status: 'SUCCESS', run: status.run, packageId: status.packageId, open: open(status.openTarget, source)};
+      const panelSettings = quickSettingsFromPanel(request.settings ?? {}, logs, token);
+      const source = preview ? '' : panelSettings.appidFrom || '';
+      result = {schema: 'wxslim-quick-open-v1', status: 'SUCCESS', run: status.run, packageId: status.packageId, open: open(status.openTarget, source, panelSettings.devtools || '')};
     } else if (mode === 'receiver') {
       if (typeof request.project !== 'string' || !path.isAbsolute(request.project)) reject('QUICK_ADAPTER_PROJECT', '没有游戏工程目录');
       const settingsFile = stem + '.quick-settings.private.json';

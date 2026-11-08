@@ -36,13 +36,13 @@ const CATEGORIES := [
 const GROUP_KEYS := {
 	"packing": ["template", "confirmNo3d", "confirmRemovedModules", "subpackages", "scenes"],
 	"runtime": ["orientation", "glx", "skipPrewarm", "locale", "largePck", "loginCode"],
-	"publish": ["appid", "appidFrom", "gameName", "output", "storage"],
+	"publish": ["appid", "appidFrom", "gameName", "output", "devtools", "storage"],
 }
 # 快速流程返回的错误 field → 面板里的设置组。不在面板里的项目（导出预设、主场景等）只在提示里说明怎么改。
 const FIELD_GROUP := {
 	"template": "packing", "confirmNo3d": "packing", "confirmRemovedModules": "packing", "subpackages": "packing", "scenes": "packing", "receiver": "packing",
 	"orientation": "runtime", "glx": "runtime", "skipPrewarm": "runtime", "locale": "runtime", "largePck": "runtime", "loginCode": "runtime",
-	"appid": "publish", "appidFrom": "publish", "output": "publish", "gameName": "publish", "project": "advanced",
+	"appid": "publish", "appidFrom": "publish", "output": "publish", "gameName": "publish", "devtools": "publish", "project": "advanced",
 }
 const FIELD_HINT := {
 	"exportPreset": "在 Godot「项目 → 导出」里保留恰好一个 Web 预设。",
@@ -101,6 +101,7 @@ var _appid: LineEdit
 var _appid_note: Label
 var _game_name: LineEdit
 var _output: LineEdit
+var _devtools: LineEdit
 var _storage: OptionButton
 var _storage_note: Label
 var _lock_note: Label
@@ -149,7 +150,7 @@ func _workbench_directory() -> String:
 func _default_settings() -> Dictionary:
 	return {"storage": "project", "template": "", "orientation": "portrait", "glx": true, "skipPrewarm": false, "confirmNo3d": false, "confirmRemovedModules": false,
 		"subpackages": "none", "scenes": [], "appid": "", "appidFrom": "", "gameName": "", "output": "", "project": "",
-		"locale": "zh_CN", "largePck": false, "loginCode": false}
+		"locale": "zh_CN", "largePck": false, "loginCode": false, "devtools": ""}
 
 func _installed() -> bool:
 	return FileAccess.file_exists(INSTALL_LOCATOR)
@@ -610,6 +611,26 @@ func _build_publish(parent: Control) -> void:
 	choose.pressed.connect(func(): dir_picker.popup_centered_ratio(0.7))
 	output_row.add_child(choose)
 
+	# 微信开发者工具的位置只存本机。留空时从系统 PATH 和常见安装目录里找。
+	var devtools := _field("微信开发者工具", body, "devtools")
+	var devtools_row := HBoxContainer.new()
+	devtools.add_child(devtools_row)
+	_devtools = _line_edit(devtools_row, "留空自动查找；找不到时选「微信开发者工具.exe」", "devtools")
+	var devtools_picker := FileDialog.new()
+	devtools_picker.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	devtools_picker.access = FileDialog.ACCESS_FILESYSTEM
+	devtools_picker.filters = PackedStringArray(["微信开发者工具.exe ; 微信开发者工具"])
+	devtools_picker.file_selected.connect(func(value: String):
+		_devtools.text = value
+		_devtools.text_changed.emit(value)
+	)
+	add_child(devtools_picker)
+	var devtools_choose := Button.new()
+	devtools_choose.text = "选择…"
+	devtools_choose.pressed.connect(func(): devtools_picker.popup_centered_ratio(0.7))
+	devtools_row.add_child(devtools_choose)
+	_note("「在开发者工具中打开」时用。一般装在 C:/Program Files (x86)/Tencent/微信web开发者工具。", devtools)
+
 	var game_name := _field("游戏名", body)
 	_game_name = _line_edit(game_name, "显示在开发者工具中的名称", "gameName")
 
@@ -625,7 +646,7 @@ func _build_publish(parent: Control) -> void:
 			_draft.storage = str(_storage.get_item_metadata(index))
 			_refresh()
 	)
-	_storage.tooltip_text = "跟随项目：模板、方向、GLX、语言、分包场景和游戏名写入 res://wxslim.json，可随项目提交，导出游戏时自动排除。\n仅本工程本机：写入 .godot/wxslim/，不进版本库。\n仅本电脑：只存在插件状态目录。\n输出目录、AppID 和来源文件始终只存本机，不会写进项目。"
+	_storage.tooltip_text = "跟随项目：模板、方向、GLX、语言、分包场景和游戏名写入 res://wxslim.json，可随项目提交，导出游戏时自动排除。\n仅本工程本机：写入 .godot/wxslim/，不进版本库。\n仅本电脑：只存在插件状态目录。\n输出目录、AppID、来源文件和开发者工具位置始终只存本机，不会写进项目。"
 	_storage_note = _note("", storage)
 	storage.add_child(_storage)
 
@@ -800,6 +821,7 @@ func _apply_draft_to_controls() -> void:
 		_project.text = _draft.project
 	_game_name.text = _draft.gameName
 	_output.text = _draft.output
+	_devtools.text = _draft.devtools
 	for index in _storage.item_count:
 		if _storage.get_item_metadata(index) == _draft.storage:
 			_storage.select(index)
@@ -905,7 +927,7 @@ func _focus_pending() -> void:
 		return
 	_groups[group].folded = false
 	var target: Control = {
-		"appid": _appid, "appidFrom": _appid, "output": _output, "gameName": _game_name,
+		"appid": _appid, "appidFrom": _appid, "output": _output, "devtools": _devtools, "gameName": _game_name,
 		"orientation": _orientation_buttons.get("portrait"), "glx": _glx, "skipPrewarm": _prewarm, "locale": _locale,
 		"largePck": _large_pck, "loginCode": _login_code, "confirmNo3d": _confirm_check, "confirmRemovedModules": _confirm_check,
 		"subpackages": _subpackage_buttons.get("scenes"), "scenes": _subpackage_buttons.get("scenes"), "receiver": _receiver_button,

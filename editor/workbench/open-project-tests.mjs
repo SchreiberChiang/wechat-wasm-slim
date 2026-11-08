@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {configureLocalAppId, assembledCopy} from './open-project.mjs';
+import {configureLocalAppId, assembledCopy, resolveDevtools} from './open-project.mjs';
 import {PLACEHOLDER_APPID} from '../../convert/lib/verify.mjs';
 
 const temporary = [];
@@ -51,4 +51,25 @@ test('an official output and a completed assembly copy of it get the local AppID
   fs.writeFileSync(path.join(other, 'TASK.json'), JSON.stringify({taskId: 't2', recipeId: 'official-convert:abc'}));
   fs.writeFileSync(path.join(other, 'terminal.json'), JSON.stringify({taskId: 't2', status: 'SUCCESS', details: {kind: 'RESOURCE_RUNTIME_ASSEMBLE'}}));
   assert.throws(() => configureLocalAppId(stray, f.source), /目标与官方转换回执不匹配/, '别的任务目录不算组包副本');
+});
+
+test('devtools: an explicit exe or folder wins; otherwise PATH, then common install folders; plain words when missing', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'wxslim-devtools-'));
+  temporary.push(root);
+  const make = dir => {
+    for (const name of ['cli.bat', '微信开发者工具.exe', 'resources/app.asar.unpacked/js/common/cli/index.js']) {
+      fs.mkdirSync(path.dirname(path.join(dir, name)), {recursive: true});
+      fs.writeFileSync(path.join(dir, name), 'x');
+    }
+    return dir;
+  };
+  const chosen = make(path.join(root, 'chosen')), onPath = make(path.join(root, 'onpath'));
+  const programs = path.join(root, 'pf86'), installed = make(path.join(programs, 'Tencent', '微信web开发者工具'));
+  const env = {PATH: onPath, 'ProgramFiles(x86)': programs};
+  assert.equal(resolveDevtools(path.join(chosen, '微信开发者工具.exe'), env), chosen);
+  assert.equal(resolveDevtools(chosen, env), chosen);
+  assert.equal(resolveDevtools('', env), onPath);
+  assert.equal(resolveDevtools('', {'ProgramFiles(x86)': programs}), installed);
+  assert.throws(() => resolveDevtools(path.join(root, 'missing.exe'), env), e => e.code === 'QUICK_DEVTOOLS_INVALID' && e.field === 'devtools');
+  assert.throws(() => resolveDevtools('', {}), e => e.code === 'QUICK_DEVTOOLS_NOT_FOUND' && /面板/.test(e.message));
 });

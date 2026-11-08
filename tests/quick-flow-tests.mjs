@@ -202,6 +202,11 @@ test('inputs: an output folder overlapping the game, editor or release is named 
   assert.deepEqual(resolveQuickInputs(f.options).blockers, []);
 });
 
+test('inputs: a wrong WeChat DevTools location is named and points at the devtools setting', () => {
+  const f = fixture({devtools: 'C:/nowhere/微信开发者工具.exe'});
+  assert.deepEqual(resolveQuickInputs(f.options).blockers.map(b => [b.code, b.field]), [['QUICK_DEVTOOLS_INVALID', 'devtools']]);
+});
+
 test('inputs: an installed but disabled panel plugin blocks export so its scripts stay out of the PCK', () => {
   const f = fixture();
   fs.mkdirSync(path.join(f.project, 'addons', 'wxslim_readonly'), {recursive: true});
