@@ -1408,6 +1408,9 @@ func _on_quick_result(job: Dictionary, result: Dictionary) -> void:
 				else:
 					_task_line.text = "任务：游戏资源没有变化（%d 秒）" % seconds
 				_log_line("已替换开发者工具里打开的工程：" + str(result.get("projectConfig", "")).get_base_dir())
+				var changed_packs: Array = replace.get("changedPacks", [])
+				if not changed_packs.is_empty():
+					_log_line("更新了分包：" + "、".join(PackedStringArray(changed_packs.map(func(x): return str(x)))))
 				_show_package_size(result.get("packageSize", {}))
 			elif result.get("status") == "CANCELLED":
 				_task_line.text = "任务：已取消（%d 秒）" % seconds
@@ -1635,8 +1638,6 @@ func _refresh() -> void:
 	_open_hint.text = "打开还差：" + "、".join(PackedStringArray(open_missing))
 	_open_hint.visible = export_missing.is_empty() and not open_missing.is_empty()
 	var refresh_missing := PackedStringArray(open_missing)
-	if _saved.subpackages == "scenes":
-		refresh_missing.append("按场景分包时请完整导出")
 	_refresh_button.disabled = busy or not refresh_missing.is_empty()
 	_refresh_button.text = "更新中…" if busy and _job.mode == "refresh" else "只更新游戏资源"
 	_refresh_button.tooltip_text = "改了游戏后用：只重新导出游戏资源（PCK），几秒内替换进上次的转换结果并在开发者工具里打开。\n引擎和模板等设置要和上次一样；会先检查游戏有没有用到模板去掉的功能。" + ("" if refresh_missing.is_empty() else "\n还差：" + "、".join(refresh_missing))
