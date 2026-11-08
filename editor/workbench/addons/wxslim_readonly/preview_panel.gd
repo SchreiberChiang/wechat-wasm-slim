@@ -48,8 +48,8 @@ const FIELD_HINT := {
 	"exportPreset": "在 Godot「项目 → 导出」里保留恰好一个 Web 预设。",
 	"mainScene": "在「项目 → 项目设置 → 应用 → 运行 → 主场景」里选好主场景。",
 	"plugin": "在「项目 → 项目设置 → 插件」里启用微信导出插件。",
-	"editor": "重新运行安装程序，让插件记住 Godot 编辑器的位置。",
-	"release": "插件安装版的文件不全，请重新运行安装程序。",
+	"editor": "在「项目 → 项目设置 → 插件」里把微信导出插件关掉再打开，让它重新记录 Godot 编辑器的位置。",
+	"release": "插件文件不全，请重新复制整个 addons/wxslim_readonly 文件夹。",
 	"exportBudgetMiB": "游戏导出太大，超出了导出预算。",
 	"importCacheBudgetMiB": "Godot 导入缓存增长太多。",
 	"rebuiltPreparation": "自建引擎的设置不对，请用命令行检查（见离线开发说明）。",
@@ -1005,7 +1005,7 @@ func _receiver_start(write: bool) -> void:
 		return
 	var node := _node_executable()
 	if node.is_empty():
-		_show_notice("无法开始", "没有找到插件本机配置或 Node：%s\n请重新运行安装程序。" % _config_file())
+		_show_notice("无法开始", "插件还没准备好，或者没有找到 Node.js：%s\n请确认装了 Node.js 24，然后在「项目 → 项目设置 → 插件」里把微信导出插件关掉再打开。" % _config_file())
 		return
 	if _settings_dirty():
 		_show_notice("先保存设置", "装加载脚本会用到已保存的输出目录，请先点「保存设置」。")
@@ -1177,7 +1177,7 @@ func _quick_start(mode: String, open_run := "") -> void:
 		return
 	var node := _node_executable()
 	if node.is_empty():
-		_show_notice("无法开始", "没有找到插件本机配置或 Node：%s\n请重新运行安装程序。" % _config_file())
+		_show_notice("无法开始", "插件还没准备好，或者没有找到 Node.js：%s\n请确认装了 Node.js 24，然后在「项目 → 项目设置 → 插件」里把微信导出插件关掉再打开。" % _config_file())
 		return
 	var request := {}
 	if mode == "open":

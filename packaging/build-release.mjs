@@ -22,8 +22,17 @@ const read = file => fs.readFileSync(file);
 const json = file => JSON.parse(read(file));
 const pin = b => ({bytes:b.length,sha256:createHash('sha256').update(b).digest('hex')});
 const lock = json(path.join(source,'packaging/vendor-lock.json'));
-const vendor = mode === '--inputs' ? json(previous) : Object.fromEntries(Object.keys(lock.files).map(k => [k,path.join(previous,k)]));
+// A previous release may use the old flat layout or the addons/wxslim_readonly/kit layout.
+const previousKit = fs.existsSync(path.join(previous,'addons/wxslim_readonly/kit/RELEASE.json')) ? path.join(previous,'addons/wxslim_readonly/kit') : previous;
+const vendor = mode === '--inputs' ? json(previous) : Object.fromEntries(Object.keys(lock.files).map(k => [k,path.join(previousKit,k)]));
+// Release layout: OUTPUT/addons/wxslim_readonly/ is what people copy into a game.
+// Its kit/ folder holds the tools and a .gdignore so Godot never scans or exports it.
+const addon = 'addons/wxslim_readonly', kitDir = addon + '/kit/';
 const files = new Map();
+function includeBytes(out, bytes) {
+  assert(!files.has(out) && within(output,path.join(output,out)));
+  files.set(out,{bytes,record:pin(bytes)});
+}
 function include(out, file, fixed) {
   assert(!files.has(out) && within(output,path.join(output,out)));
   const real=fs.realpathSync(file);
@@ -32,28 +41,33 @@ function include(out, file, fixed) {
   if (fixed) assert.deepEqual(record,fixed, out);
   files.set(out,{file:real,record});
 }
-for (const file of json(path.join(source,'packaging/runtime-files.json'))) include('runtime/'+file,path.join(source,file));
-const addon = 'addons/wxslim_readonly';
+for (const file of json(path.join(source,'packaging/runtime-files.json'))) include(kitDir+'runtime/'+file,path.join(source,file));
 for(const f of fs.readdirSync(path.join(source,'editor/workbench',addon))) {
   if (/\.(gd|gd\.uid|cfg)$/.test(f)) include(addon+'/'+f,path.join(source,'editor/workbench',addon,f));
 }
+includeBytes(kitDir+'.gdignore',Buffer.alloc(0));
 for(const [file,hash] of Object.entries(lock.files)) {
   // Older releases and explicit vendor maps contain the engine binaries only.
   const input = file.endsWith('/fingerprint.json') ? path.join(source,'offline/vendor',file) : vendor[file];
-  include(file,input,hash);
+  include(kitDir+file,input,hash);
 }
-for(const [to,from] of Object.entries({'install.mjs':'packaging/install.mjs','双击安装.cmd':'packaging/install.cmd','install.ps1':'packaging/install.ps1','profiles.json':'packaging/vendor-lock.json','使用说明.md':'docs/安装版使用.md'})) include(to,path.join(source,from));
+for(const [to,from] of Object.entries({[kitDir+'install.mjs']:'packaging/install.mjs',[kitDir+'profiles.json']:'packaging/vendor-lock.json',
+  '使用说明.md':'docs/安装版使用.md','给AI的安装说明.md':'docs/给AI的安装说明.md'})) include(to,path.join(source,from));
 const bytes = [...files.values()].reduce((total,entry)=>total+entry.record.bytes,0);
 assert(bytes+1048576<=256*1048576,'Release budget exceeded');
-const manifest = {schema:'wxslim-local-release-v1', pluginVersion:'0.2-development',files:Object.fromEntries([...files].map(([key,v])=>[key,v.record]).sort(([a],[b])=>a<b?-1:a>b?1:0))};
+// The kit manifest lists every kit file relative to kit/; install.mjs checks them before setup.
+const byKey = ([a],[b])=>a<b?-1:a>b?1:0;
+const manifest = {schema:'wxslim-plugin-kit-v1', pluginVersion:'0.3-development',
+  files:Object.fromEntries([...files].filter(([key])=>key.startsWith(kitDir)).map(([key,v])=>[key.slice(kitDir.length),v.record]).sort(byKey)),
+  addon:Object.fromEntries([...files].filter(([key])=>key.startsWith(addon+'/')&&!key.startsWith(kitDir)).map(([key,v])=>[key.slice(addon.length+1),v.record]).sort(byKey))};
 if (write) {
   if (!fs.existsSync(output)) fs.mkdirSync(output);
   assert.deepEqual(fs.readdirSync(output),[],'Output must be empty');
-  for(const [key,{file,record}] of files){
+  for(const [key,{file,bytes,record}] of files){
     const dest=path.join(output,key);fs.mkdirSync(path.dirname(dest),{recursive:true});
-    fs.copyFileSync(file,dest,fs.constants.COPYFILE_EXCL);
+    if (file) fs.copyFileSync(file,dest,fs.constants.COPYFILE_EXCL); else fs.writeFileSync(dest,bytes,{flag:'wx'});
     assert.deepEqual(pin(read(dest)),record,key);
   }
-  fs.writeFileSync(path.join(output,'RELEASE.json'),JSON.stringify(manifest,null,2)+'\n',{flag:'wx'});
+  fs.writeFileSync(path.join(output,kitDir,'RELEASE.json'),JSON.stringify(manifest,null,2)+'\n',{flag:'wx'});
 }
 console.log(JSON.stringify({written:write,files:files.size,bytes,manifestIdentity:pin(Buffer.from(JSON.stringify(manifest))).sha256}));
