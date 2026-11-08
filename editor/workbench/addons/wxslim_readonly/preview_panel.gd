@@ -3,7 +3,7 @@ extends VBoxContainer
 
 # 「微信导出」面板：设置、检查，并通过 quick-adapter.mjs 调用快速流程（wxslim.mjs quick 的同一套接口）。
 #   requirements：所选模板要确认的项目；plan：检查一次；run：导出并转换；status：单次运行的进度和结果；
-#   runs：最近运行；cancel：取消；open：打开一次已完成的运行；receiver：按场景分包前往游戏里装分包加载脚本。
+#   refresh：只重新导出游戏资源（PCK），替换进上次转换结果的实时副本；runs：最近运行；cancel：取消；open：打开一次已完成的运行；receiver：按场景分包前往游戏里装分包加载脚本。
 # 设置草稿保存在插件本机状态目录（*.private.* 已被 .gitignore 排除）。
 #
 # 布局：顶栏（标题 + 保存/放弃）固定；中间滚动区是三个可折叠设置组，组标题直接显示当前取值；
@@ -13,7 +13,7 @@ extends VBoxContainer
 const INSTALL_LOCATOR := "res://addons/wxslim_readonly/workbench.path"
 const SETTINGS_FILE := "panel-preview-settings.private.json"
 const LAST_RUN_FILE := "panel-preview-last-run.private.json"
-const STEP_TEXT := {"start": "准备运行目录", "export": "导出 PCK", "split": "按场景拆包", "interfaces": "生成分包接口", "convert": "官方转换", "assemble": "组装分包", "devtools": "生成电脑预览包", "open": "打开开发者工具"}
+const STEP_TEXT := {"start": "准备运行目录", "export": "导出 PCK", "check": "检查用到的功能", "replace": "替换游戏资源", "split": "按场景拆包", "interfaces": "生成分包接口", "convert": "官方转换", "assemble": "组装分包", "devtools": "生成电脑预览包", "open": "打开开发者工具"}
 const APPID_PATTERN := "^wx[0-9a-f]{16}$"
 const TEMPLATES := {"full": "完整模板", "conservative": "保守模板", "2d": "2D 模板"}
 const LOCALES := [["zh_CN", "简体中文（zh_CN）"], ["en", "英文（en）"]]
@@ -113,6 +113,7 @@ var _task_line: Label
 var _missing_box: HFlowContainer
 var _export_button: Button
 var _open_button: Button
+var _refresh_button: Button
 var _open_hint: Label
 var _log: TextEdit
 var _notice: AcceptDialog
@@ -790,6 +791,13 @@ func _build_footer() -> void:
 	_open_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_open_button.pressed.connect(func(): _quick_start("open"))
 	row.add_child(_open_button)
+	# 改了游戏、模板等设置没变时：只重新导出 PCK，几秒钟替换进上次的转换结果，开发者工具里直接看到新内容。
+	_refresh_button = Button.new()
+	_refresh_button.text = "只更新游戏资源"
+	_refresh_button.custom_minimum_size = Vector2(130, 32)
+	_refresh_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_refresh_button.pressed.connect(func(): _quick_start("refresh"))
+	row.add_child(_refresh_button)
 	_cancel_button = Button.new()
 	_cancel_button.text = "取消"
 	_cancel_button.custom_minimum_size = Vector2(80, 32)
@@ -1067,7 +1075,7 @@ func _on_receiver_result(job: Dictionary, result: Dictionary) -> void:
 func _quick_cancel(run := "") -> void:
 	if not _cancel_job.is_empty():
 		return
-	if run.is_empty() and (_job.is_empty() or _job.mode != "run" or _job.get("cancelling", false)):
+	if run.is_empty() and (_job.is_empty() or not _job.mode in ["run", "refresh"] or _job.get("cancelling", false)):
 		return
 	var node := _node_executable()
 	if node.is_empty():
@@ -1209,6 +1217,11 @@ func _quick_start(mode: String, open_run := "") -> void:
 				return
 			run = _last_run.get("run", "")
 		request = {"run": run, "settings": _saved}
+	elif mode == "refresh":
+		if not _last_run_usable():
+			return
+		_clear_field_errors()
+		request = {"project": _game_project(), "settings": _quick_settings(), "run": _last_run.get("run", ""), "open": true}
 	else:
 		_clear_field_errors()
 		request = {"project": _game_project(), "settings": _quick_settings()}
@@ -1218,9 +1231,9 @@ func _quick_start(mode: String, open_run := "") -> void:
 	# 记下发起时的设置：运行期间若又保存了新设置，结果只算在发起时那份设置名下。
 	_job = spawned
 	_job.merge({"started": Time.get_ticks_msec(), "settings": JSON.stringify(_saved), "run": ""})
-	_task_line.text = {"plan": "任务：正在检查…", "run": "任务：开始导出…", "open": "任务：正在打开开发者工具…"}[mode]
+	_task_line.text = {"plan": "任务：正在检查…", "run": "任务：开始导出…", "open": "任务：正在打开开发者工具…", "refresh": "任务：开始更新游戏资源…"}[mode]
 	_task_line.tooltip_text = ""
-	_log_line({"plan": "开始检查设置和游戏工程。", "run": "开始导出并转换，运行目录在输出目录下。", "open": "打开 " + str(request.get("run", ""))}[mode])
+	_log_line({"plan": "开始检查设置和游戏工程。", "run": "开始导出并转换，运行目录在输出目录下。", "open": "打开 " + str(request.get("run", "")), "refresh": "只重新导出游戏资源，放进 " + str(request.get("run", ""))}[mode])
 	_poll_elapsed = 0.0
 	_status_elapsed = 0.0
 	set_process(true)
@@ -1271,7 +1284,7 @@ func _process(delta: float) -> void:
 	if _job.is_empty():
 		return
 	var seconds := int((Time.get_ticks_msec() - int(_job.started)) / 1000)
-	if _job.mode == "run" and FileAccess.file_exists(_job.events):
+	if _job.mode in ["run", "refresh"] and FileAccess.file_exists(_job.events):
 		var lines := FileAccess.get_file_as_string(_job.events).strip_edges().split("\n")
 		var last = JSON.parse_string(lines[lines.size() - 1]) if lines.size() > 0 and not lines[0].is_empty() else null
 		if _job.run.is_empty():
@@ -1352,6 +1365,22 @@ func _on_quick_result(job: Dictionary, result: Dictionary) -> void:
 				var error: Dictionary = result.get("error", {})
 				_task_line.text = "任务：失败（%d 秒），见提示" % seconds
 				_show_problems("导出并转换失败", [error], "已写入的内容保留在：%s" % str(result.get("run", "插件 logs")))
+		"refresh":
+			if result.get("status") == "SUCCESS":
+				var replace: Dictionary = result.get("steps", {}).get("replace", {})
+				if replace.get("changed", true):
+					_task_line.text = "任务：游戏资源已更新（%d 秒）· 包号 %s" % [seconds, str(result.get("packageId", ""))]
+				else:
+					_task_line.text = "任务：游戏资源没有变化（%d 秒）" % seconds
+				_log_line("已更新实时预览副本：" + str(result.get("liveConfig", "")).get_base_dir())
+			elif result.get("status") == "CANCELLED":
+				_task_line.text = "任务：已取消（%d 秒）" % seconds
+			elif result.get("status") == "BLOCKED":
+				_task_line.text = "任务：没有开始，见提示"
+				_show_problems("还不能只更新游戏资源", result.get("blockers", []))
+			else:
+				_task_line.text = "任务：更新失败（%d 秒），见提示" % seconds
+				_show_problems("只更新游戏资源失败", [result.get("error", {})], "原来的转换结果没有改动。")
 		"open":
 			if result.get("status") == "SUCCESS":
 				_task_line.text = "任务：开发者工具已打开"
@@ -1555,13 +1584,19 @@ func _refresh() -> void:
 	_export_button.disabled = busy or not export_missing.is_empty() or not _receiver_job.is_empty()
 	_export_button.text = "导出中…" if busy and _job.mode == "run" else "导出并转换"
 	_export_button.tooltip_text = "" if export_missing.is_empty() else "还差：" + "、".join(PackedStringArray(export_missing.map(func(m): return m[0])))
-	_cancel_button.visible = busy and _job.mode == "run"
+	_cancel_button.visible = busy and _job.mode in ["run", "refresh"]
 	_cancel_button.disabled = _job.get("cancelling", false)
 	_cancel_button.text = "取消中…" if _job.get("cancelling", false) else "取消"
 	_open_button.disabled = busy or not open_missing.is_empty()
 	_open_button.tooltip_text = "还差：" + "、".join(PackedStringArray(open_missing))
 	_open_hint.text = "打开还差：" + "、".join(PackedStringArray(open_missing))
 	_open_hint.visible = export_missing.is_empty() and not open_missing.is_empty()
+	var refresh_missing := PackedStringArray(open_missing)
+	if _saved.subpackages == "scenes":
+		refresh_missing.append("按场景分包时请完整导出")
+	_refresh_button.disabled = busy or not refresh_missing.is_empty()
+	_refresh_button.text = "更新中…" if busy and _job.mode == "refresh" else "只更新游戏资源"
+	_refresh_button.tooltip_text = "改了游戏后用：只重新导出游戏资源（PCK），几秒内替换进上次的转换结果并在开发者工具里打开。\n引擎和模板等设置要和上次一样；会先检查游戏有没有用到模板去掉的功能。" + ("" if refresh_missing.is_empty() else "\n还差：" + "、".join(refresh_missing))
 
 	_render_runs()
 	for child in _missing_box.get_children():
