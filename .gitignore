@@ -33,3 +33,6 @@ __pycache__/
 /offline/fixtures/df3/emscripten-before-godot-process.js
 /offline/fixtures/game/boot.pck
 /offline/fixtures/stored/wx-game-kit/config.json
+
+# Bundled Node.js runtime (license file is tracked)
+/offline/vendor/tools/node/node.exe

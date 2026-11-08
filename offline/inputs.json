@@ -1265,6 +1265,16 @@
       "bytes": 2804,
       "sha256": "53f99c65f133629fcf1582addd22bd92aa092cb20a97dac56b2dd51561774df0",
       "origin": "packaging/vendor-lock.json"
+    },
+    "vendor/tools/node/node.exe": {
+      "bytes": 92534088,
+      "sha256": "9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de",
+      "origin": "node-v24.18.0-win-x64.zip (https://nodejs.org/dist/v24.18.0/, sha256 0ae68406b42d7725661da979b1403ec9926da205c6770827f33aac9d8f26e821): node-v24.18.0-win-x64/node.exe"
+    },
+    "vendor/tools/node/LICENSE": {
+      "bytes": 160552,
+      "sha256": "d9c4eeda951d6d08f4aa1316b61aafcf67e6da5f79b18f8edeb56fa6abdc038c",
+      "origin": "node-v24.18.0-win-x64.zip (https://nodejs.org/dist/v24.18.0/, sha256 0ae68406b42d7725661da979b1403ec9926da205c6770827f33aac9d8f26e821): node-v24.18.0-win-x64/LICENSE"
     }
   }
 }

@@ -36,6 +36,14 @@
     "engines/pure-2d/fingerprint.json": {
       "bytes": 2804,
       "sha256": "53f99c65f133629fcf1582addd22bd92aa092cb20a97dac56b2dd51561774df0"
+    },
+    "tools/node/node.exe": {
+      "bytes": 92534088,
+      "sha256": "9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de"
+    },
+    "tools/node/LICENSE": {
+      "bytes": 160552,
+      "sha256": "d9c4eeda951d6d08f4aa1316b61aafcf67e6da5f79b18f8edeb56fa6abdc038c"
     }
   },
   "pairs": {

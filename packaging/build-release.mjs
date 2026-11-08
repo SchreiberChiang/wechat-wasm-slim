@@ -48,13 +48,15 @@ for(const f of fs.readdirSync(path.join(source,'editor/workbench',addon))) {
 includeBytes(kitDir+'.gdignore',Buffer.alloc(0));
 for(const [file,hash] of Object.entries(lock.files)) {
   // Older releases and explicit vendor maps contain the engine binaries only.
-  const input = file.endsWith('/fingerprint.json') ? path.join(source,'offline/vendor',file) : vendor[file];
+  // Files a previous release does not have yet (fingerprints, the bundled Node.js) come from offline/vendor.
+  const input = file.endsWith('/fingerprint.json') || (mode !== '--inputs' && !fs.existsSync(vendor[file])) ? path.join(source,'offline/vendor',file) : vendor[file];
   include(kitDir+file,input,hash);
 }
 for(const [to,from] of Object.entries({[kitDir+'install.mjs']:'packaging/install.mjs',[kitDir+'profiles.json']:'packaging/vendor-lock.json',
   '使用说明.md':'docs/安装版使用.md','给AI的安装说明.md':'docs/给AI的安装说明.md'})) include(to,path.join(source,from));
 const bytes = [...files.values()].reduce((total,entry)=>total+entry.record.bytes,0);
-assert(bytes+1048576<=256*1048576,'Release budget exceeded');
+// Three engines, the WeChat converter and the bundled Node.js runtime (about 89 MiB).
+assert(bytes+1048576<=384*1048576,'Release budget exceeded');
 // The kit manifest lists every kit file relative to kit/; install.mjs checks them before setup.
 const byKey = ([a],[b])=>a<b?-1:a>b?1:0;
 const manifest = {schema:'wxslim-plugin-kit-v1', pluginVersion:'0.3-development',

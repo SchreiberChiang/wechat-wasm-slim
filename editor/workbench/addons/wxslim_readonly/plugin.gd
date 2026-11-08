@@ -75,6 +75,10 @@ func _needs_setup() -> bool:
 	return not FileAccess.file_exists(str(receipt.get("node", "")))
 
 func _find_node() -> String:
+	# 插件自带 Node.js（kit/tools/node/），用户不必另外安装；源码工作台等没有自带时再找本机安装的。
+	var bundled := ProjectSettings.globalize_path(KIT + "/tools/node/node.exe")
+	if OS.get_name() == "Windows" and FileAccess.file_exists(bundled):
+		return bundled
 	var out := []
 	if OS.get_name() == "Windows":
 		if OS.execute("where.exe", ["node"], out) == 0 and out.size() > 0:
@@ -98,7 +102,7 @@ func _find_node() -> String:
 func _start_setup() -> void:
 	var node := _find_node()
 	if node.is_empty():
-		_tell("微信导出插件还差一步", "没有找到 Node.js。请先安装 Node.js 24 或更新版本（%s），装好后重新打开 Godot，插件会自动完成准备。" % NODE_HELP)
+		_tell("微信导出插件还差一步", "插件自带的 Node.js（addons/wxslim_readonly/kit/tools/node/node.exe）不见了，本机也没有找到 Node.js。请重新复制整个插件文件夹，或安装 Node.js 24 或更新版本（%s），然后重新打开 Godot。" % NODE_HELP)
 		return
 	print("[微信导出] 正在准备插件（核对工具包、记录本机 Godot 和 Node）……")
 	_setup_thread = Thread.new()
