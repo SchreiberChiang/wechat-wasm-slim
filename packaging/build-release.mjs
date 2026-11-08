@@ -42,7 +42,7 @@ for(const [file,hash] of Object.entries(lock.files)) {
   const input = file.endsWith('/fingerprint.json') ? path.join(source,'offline/vendor',file) : vendor[file];
   include(file,input,hash);
 }
-for(const [to,from] of Object.entries({'install.mjs':'packaging/install.mjs','profiles.json':'packaging/vendor-lock.json','使用说明.md':'docs/安装版使用.md'})) include(to,path.join(source,from));
+for(const [to,from] of Object.entries({'install.mjs':'packaging/install.mjs','双击安装.cmd':'packaging/install.cmd','install.ps1':'packaging/install.ps1','profiles.json':'packaging/vendor-lock.json','使用说明.md':'docs/安装版使用.md'})) include(to,path.join(source,from));
 const bytes = [...files.values()].reduce((total,entry)=>total+entry.record.bytes,0);
 assert(bytes+1048576<=256*1048576,'Release budget exceeded');
 const manifest = {schema:'wxslim-local-release-v1', pluginVersion:'0.2-development',files:Object.fromEntries([...files].map(([key,v])=>[key,v.record]).sort(([a],[b])=>a<b?-1:a>b?1:0))};

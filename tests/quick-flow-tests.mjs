@@ -192,6 +192,14 @@ test('inputs: an output folder overlapping the game, editor or release is named 
   assert.deepEqual(resolveQuickInputs(f.options).blockers, []);
 });
 
+test('inputs: an installed but disabled panel plugin blocks export so its scripts stay out of the PCK', () => {
+  const f = fixture();
+  fs.mkdirSync(path.join(f.project, 'addons', 'wxslim_readonly'), {recursive: true});
+  assert.deepEqual(resolveQuickInputs(f.options).blockers.map(b => [b.code, b.field]), [['QUICK_PLUGIN_NOT_ENABLED', 'plugin']]);
+  fs.appendFileSync(path.join(f.project, 'project.godot'), '\n[editor_plugins]\n\nenabled=PackedStringArray("res://addons/wxslim_readonly/plugin.cfg")\n');
+  assert.deepEqual(resolveQuickInputs(f.options).blockers, []);
+});
+
 test('inputs: fixed files come from the release, editor and preset are resolved, nothing is written', () => {
   const f = fixture();
   const before = fs.readdirSync(f.output);

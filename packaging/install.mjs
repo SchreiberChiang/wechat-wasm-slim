@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash, randomUUID} from 'node:crypto';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath, pathToFileURL} from 'node:url';
 
 const release = path.dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
@@ -81,10 +81,16 @@ try {
       fs.rmSync(staged,{recursive:true,force:true});
     }
   }
+  // Enable the plugin so its export filter keeps the panel out of the game PCK,
+  // whether the game is exported from the panel or from the command line.
+  const {enablePlugin}=await import(pathToFileURL(path.join(release,'runtime','lib','godot-plugin-state.mjs')).href);
+  const projectFile=path.join(project,'project.godot'),projectText=fs.readFileSync(projectFile,'utf8');
+  const enabledText=enablePlugin(projectText),pluginEnabledNow=enabledText!==projectText;
+  if(pluginEnabledNow){const temp=projectFile+'.'+token+'.tmp';fs.writeFileSync(temp,enabledText,{flag:'wx'});fs.renameSync(temp,projectFile);}
   function publish(file,data){const temp=file+'.'+token+'.tmp';fs.writeFileSync(temp,JSON.stringify(data,null,2)+'\n',{flag:'wx'});fs.renameSync(temp,file);}
   publish(path.join(state,'project.json'),{project});
   const tmpPointer=pointer+'.'+token+'.tmp';fs.writeFileSync(tmpPointer,state.replaceAll('\\','/')+'\n',{flag:'wx'});fs.renameSync(tmpPointer,pointer);
   publish(config,cfg);
   publish(receipt,{schema:1,releaseManifest:hash(fs.readFileSync(path.join(release,'RELEASE.json'))),files:installed});
-  console.log(JSON.stringify({addon:target,state,alreadyInstalled:!!sameFiles,previousAddon:moved?backup:null,enable:'Project Settings > Plugins > 微信导出·本地开发任务面板'}));
+  console.log(JSON.stringify({addon:target,state,alreadyInstalled:!!sameFiles,previousAddon:old&&!sameFiles?backup:null,pluginEnabled:true,pluginEnabledNow}));
 } finally {fs.closeSync(fd);fs.unlinkSync(lease);}

@@ -7,7 +7,7 @@
 1. 使用 Node 24.18.0 和 Godot 4.7.2。运行 `node packaging/configure-workbench.mjs "本机 Godot 编辑器路径"`，再在编辑器导入 `editor/workbench/project.godot`。工程自带右侧插件面板。个人路径和执行收据由本机生成。
 2. 编辑器脚本和表单适配器在 `editor/workbench`。任务主入口为 `wxslim.mjs`，`lib/task-core.mjs` 负责计划、执行、取消、状态；`convert/` 负责微信官方转换和宿主；`engine/` 负责引擎、固定来源、补丁和配对审核。普通测试游戏使用 `examples/simple/project.godot`。两关资源夹具随离线配对证据保存。
 3. 打包前检查运行文件白名单 `packaging/runtime-files.json`。使用 `node packaging/build-release.mjs NEW_RELEASE --write` 从随源码的已锁定配对和官方转换器生成安装包。安装包内两张固定指纹单覆盖保守及纯 2D 配对。
-4. 在测试游戏运行新 release 自带的 `install.mjs`。更新旧受管安装时加 `--update`。安装、用户数据目录及日常流程见 [安装版使用](docs/安装版使用.md)。源码本身不需要相邻的 release 才能编辑或生成计划；真实组包需要固定引擎和转换器。
+4. 在测试游戏上双击新 release 的「双击安装.cmd」（或运行 `install.mjs ... --update`），安装或升级后插件自动启用。安装、用户数据目录及日常流程见 [安装版使用](docs/安装版使用.md)。源码本身不需要相邻的 release 才能编辑或生成计划；真实组包需要固定引擎和转换器。
 
 ## 自建与审核
 
