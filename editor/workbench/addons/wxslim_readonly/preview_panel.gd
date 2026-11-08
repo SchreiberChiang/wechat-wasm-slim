@@ -107,6 +107,7 @@ var _wasm_collect_button: Button
 var _wasm_release_button: Button
 var _wasm_fresh_button: Button
 var _wasm_fresh_confirm: ConfirmationDialog
+var _wasm_force_confirm: ConfirmationDialog
 var _preview_button: Button
 var _wasm_line: Label
 var _qr_dialog: AcceptDialog
@@ -855,6 +856,12 @@ func _build_footer() -> void:
 	_wasm_fresh_confirm.dialog_text = "从零开始重新采集？\n\n会换一个引擎编号并重新上传引擎，微信后台当成全新的包，之前采到的函数都不再使用。当前的分包副本会另存，不删除。\n之后要用手机（iPhone 和安卓都建议）把游戏主要流程重新玩一遍。"
 	_wasm_fresh_confirm.confirmed.connect(func(): _quick_start("wasmsplit-fresh"))
 	add_child(_wasm_fresh_confirm)
+	_wasm_force_confirm = ConfirmationDialog.new()
+	_wasm_force_confirm.title = "还没收到新的采集数据"
+	_wasm_force_confirm.ok_button_text = "仍然生成"
+	_wasm_force_confirm.cancel_button_text = "稍后再点"
+	_wasm_force_confirm.confirmed.connect(func(): _quick_start("wasmsplit-release-force"))
+	add_child(_wasm_force_confirm)
 	_preview_button = _footer_button(wasm_row, "预览二维码", "用开发者工具生成手机预览二维码（上传到微信，扫码即可在手机上打开）。", "preview")
 	_wasm_line = _wrapped(footer)
 	_qr_dialog = AcceptDialog.new()
@@ -1350,25 +1357,25 @@ func _quick_start(mode: String, open_run := "") -> void:
 			return
 		_clear_field_errors()
 		request = {"project": _game_project(), "settings": _quick_settings(), "run": _last_run.get("run", ""), "open": true}
-	elif mode in ["wasmsplit-collect", "wasmsplit-fresh", "wasmsplit-release", "preview"]:
+	elif mode in ["wasmsplit-collect", "wasmsplit-fresh", "wasmsplit-release", "wasmsplit-release-force", "preview"]:
 		if not _last_run_usable():
 			return
 		_clear_field_errors()
-		request = {"project": _game_project(), "settings": _quick_settings(), "run": _last_run.get("run", ""), "fresh": mode == "wasmsplit-fresh"}
+		request = {"project": _game_project(), "settings": _quick_settings(), "run": _last_run.get("run", ""), "fresh": mode == "wasmsplit-fresh", "force": mode == "wasmsplit-release-force"}
 	else:
 		_clear_field_errors()
 		request = {"project": _game_project(), "settings": _quick_settings()}
-	var spawned := _spawn_adapter(node, "wasmsplit-collect" if mode == "wasmsplit-fresh" else mode, request)
+	var spawned := _spawn_adapter(node, {"wasmsplit-fresh": "wasmsplit-collect", "wasmsplit-release-force": "wasmsplit-release"}.get(mode, mode), request)
 	if spawned.is_empty():
 		return
 	# 记下发起时的设置：运行期间若又保存了新设置，结果只算在发起时那份设置名下。
 	_job = spawned
 	_job.merge({"started": Time.get_ticks_msec(), "settings": JSON.stringify(_saved), "run": ""})
 	_task_line.text = {"plan": "任务：正在检查…", "run": "任务：开始导出…", "open": "任务：正在打开开发者工具…", "refresh": "任务：开始更新游戏资源…",
-		"wasmsplit-collect": "任务：开始生成采集包…", "wasmsplit-fresh": "任务：开始完整重采…", "wasmsplit-release": "任务：开始生成正式分包…", "preview": "任务：正在生成预览二维码…"}[mode]
+		"wasmsplit-collect": "任务：开始生成采集包…", "wasmsplit-fresh": "任务：开始完整重采…", "wasmsplit-release-force": "任务：开始生成正式分包…", "wasmsplit-release": "任务：开始生成正式分包…", "preview": "任务：正在生成预览二维码…"}[mode]
 	_task_line.tooltip_text = ""
 	_log_line({"plan": "开始检查设置和游戏工程。", "run": "开始导出并转换，运行目录在输出目录下。", "open": "打开 " + str(request.get("run", "")), "refresh": "只重新导出游戏资源，放进 " + str(request.get("run", "")),
-		"wasmsplit-collect": "WASM 分包：生成采集包（会上传引擎到微信后台）。", "wasmsplit-fresh": "WASM 分包：完整重采（换引擎编号，从零采集）。", "wasmsplit-release": "WASM 分包：按采集结果生成正式分包。", "preview": "用开发者工具生成手机预览二维码。"}[mode])
+		"wasmsplit-collect": "WASM 分包：生成采集包（会上传引擎到微信后台）。", "wasmsplit-fresh": "WASM 分包：完整重采（换引擎编号，从零采集）。", "wasmsplit-release-force": "WASM 分包：确认后仍然生成正式分包。", "wasmsplit-release": "WASM 分包：按采集结果生成正式分包。", "preview": "用开发者工具生成手机预览二维码。"}[mode])
 	_poll_elapsed = 0.0
 	_status_elapsed = 0.0
 	set_process(true)
@@ -1556,6 +1563,10 @@ func _on_quick_result(job: Dictionary, result: Dictionary) -> void:
 				_job = {}
 				_quick_start("preview")
 				return
+			elif result.get("status") == "NEEDS_CONFIRMATION":
+				_task_line.text = "任务：正式分包没有开始，等你确认"
+				_wasm_force_confirm.dialog_text = str(result.get("message", ""))
+				_wasm_force_confirm.popup_centered(Vector2i(520, 0))
 			elif result.get("status") == "BLOCKED":
 				_task_line.text = "任务：没有开始，见提示"
 				_show_problems("还不能做 WASM 分包", result.get("blockers", []))
