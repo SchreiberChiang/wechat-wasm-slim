@@ -6,7 +6,7 @@ import {prepareSecureRandomBridge} from './secure-random-bridge.mjs';
 
 export const bundledPairSchema = 'wxslim-bundled-engine-fingerprint-v1';
 const fingerprints = Object.freeze({
-  conservative: 'a795dec7a409f5b441afaf154d5e36289d59626489b6366ea809c07927b8e8b4',
+  conservative: 'cef29ea4b1ba2f445cbfd91be9569c92295954103b974d729365072663f1d986',
   'pure-2d': '53f99c65f133629fcf1582addd22bd92aa092cb20a97dac56b2dd51561774df0',
 });
 

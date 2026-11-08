@@ -6,8 +6,8 @@
     "sha256": "76362b5fc584cd515b42f6f4af2263f857cc20accf0ac9e9d241991e958a1940"
   },
   "wasm": {
-    "bytes": 62428779,
-    "sha256": "99dbe672e48c2847eae2c5a3e553b8f8594b949ff57c93da103713ba2d224915"
+    "bytes": 62429349,
+    "sha256": "ba57f1ff58b2ad2f170d564a761176895becc059cb534d776b9c25016eb3047d"
   },
   "features": {
     "schema": "wxslim-custom-wasm-plan-v1",
@@ -25,16 +25,16 @@
   },
   "sourceCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
   "sourceRecipe": "official-c050-capability-24",
-  "sourcePlanSha256": "70361e0808bdb075a0843425f97e879f67936263ba65e2b10ae66a280d8bcb97",
-  "taskId": "c2b24a6b-c948-4af4-abc1-e72de2faad07",
-  "originalBuildStatus": "FAILED",
+  "sourcePlanSha256": "4d5bf04a7545274e31dcfc70443983685efb8e4aefba567e327cce9ecae456ad",
+  "taskId": "4a984a92-4d04-4315-8ac0-77f116f9ab33",
+  "originalBuildStatus": "SUCCESS",
   "receipt": {
-    "bytes": 6865,
-    "sha256": "0a498fb093dbfa9622fd09d475806b255cf7ed4562bcc9f3a30121fee996cf4a"
+    "bytes": 5140,
+    "sha256": "1d403e510603f6c681a40670b4365a089261e2f9edbd369f33a8075e891f617d"
   },
   "build": {
-    "bytes": 224999,
-    "sha256": "dadaf158b0aba03e93e72d296781aa3e1389c4760a4c80420ee394589a43e40b"
+    "bytes": 3883125,
+    "sha256": "f66f9fd0355496594798ccd0d9ecace8ee3f6214cfb00f347d7e38d180efdd66"
   },
   "selectedProfile": {
     "path": "engine/conservative-glx.gdbuild",
@@ -96,7 +96,9 @@
           127
         ],
         "results": []
-      }
+      },
+      "proof": "DECLARATIVE_FUNCTION_LINK",
+      "definitionSha256": "328aa306cc3fad03e17fb895d1d0ff9cece3b0e8123b2edfb90e7aefef90c670"
     },
     {
       "module": "a",
@@ -107,7 +109,9 @@
           127
         ],
         "results": []
-      }
+      },
+      "proof": "DECLARATIVE_FUNCTION_LINK",
+      "definitionSha256": "b28b72d26f7eaec77c5b7129f5baea244a0671290f13d468e07e6602c6219f04"
     }
   ],
   "removedModules": [
@@ -118,5 +122,6 @@
     "upnp",
     "vhacd",
     "webxr"
-  ]
+  ],
+  "startupPrewarmSkippable": true
 }

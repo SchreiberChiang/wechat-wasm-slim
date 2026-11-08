@@ -18,8 +18,8 @@
       "sha256": "76362b5fc584cd515b42f6f4af2263f857cc20accf0ac9e9d241991e958a1940"
     },
     "engines/conservative/godot.wasm": {
-      "bytes": 62428779,
-      "sha256": "99dbe672e48c2847eae2c5a3e553b8f8594b949ff57c93da103713ba2d224915"
+      "bytes": 62429349,
+      "sha256": "ba57f1ff58b2ad2f170d564a761176895becc059cb534d776b9c25016eb3047d"
     },
     "engines/pure-2d/godot.prepared.js": {
       "bytes": 424243,
@@ -30,8 +30,8 @@
       "sha256": "4585d1710ac4b942fb0305073c7b9a925f90a429ff4a74294ddc7775cd0fd2e4"
     },
     "engines/conservative/fingerprint.json": {
-      "bytes": 3014,
-      "sha256": "a795dec7a409f5b441afaf154d5e36289d59626489b6366ea809c07927b8e8b4"
+      "bytes": 3327,
+      "sha256": "cef29ea4b1ba2f445cbfd91be9569c92295954103b974d729365072663f1d986"
     },
     "engines/pure-2d/fingerprint.json": {
       "bytes": 2804,
@@ -59,7 +59,8 @@
       "js": "engines/conservative/godot.prepared.js",
       "wasm": "engines/conservative/godot.wasm",
       "acceptedHistoricalGame": "wxslim-737408065d9db41750ad",
-      "requiresPreparedSource": true
+      "requiresPreparedSource": true,
+      "startupPrewarmSkippable": true
     },
     "pure-2d": {
       "profile": "custom-official-c050-dev",

@@ -25,7 +25,9 @@ const request = {
   sconsWheel:path.join(sdk,'downloads/scons-4.11.1-py3-none-any.whl'),
   sdkArchive:path.join(sdk,'downloads/emscripten-4.0.10-wasm-binaries.zip'),
   gitExecutable:path.join(tools,'git-windows/mingw64/bin/git.exe'),
-  upstreamSource:path.join(source,'offline/upstream/library_godot_memfs.js'), jobs:4, budgetBytes:8*2**30,
+  upstreamSource:path.join(source,'offline/upstream/library_godot_memfs.js'),
+  // 并行编译数：默认 10（16 核机器上留出余量），可用 WXSLIM_BUILD_JOBS 改，最多为核数的 3/4。
+  jobs:Number(process.env.WXSLIM_BUILD_JOBS)||10, budgetBytes:8*2**30,
 };
 const result=await executeOfficialRawBuild(request,{write:true});
 console.log(JSON.stringify(result));
