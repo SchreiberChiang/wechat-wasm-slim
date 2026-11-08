@@ -1591,7 +1591,7 @@ func _refresh() -> void:
 		_login_code.button_pressed = false
 		_loading = false
 	_login_code.disabled = _draft.template != "full"
-	_login_note.text = "只在完整模板可用。" if _draft.template != "full" else ("暂时不能和按场景分包同时用。" if _draft.subpackages == "scenes" else "默认关闭；开启后游戏要主动请求 code，不会自动登录。")
+	_login_note.text = "只在完整模板可用。" if _draft.template != "full" else "默认关闭；开启后游戏要主动请求 code，不会自动登录。可以和按场景分包一起用。"
 	# 跳过默认 3D 预热只在保守和 2D 模板可用（这两个引擎带开关）；完整模板保留预热，切到完整时清掉勾选。
 	var prewarm_ok: bool = _draft.template in ["conservative", "2d"]
 	if _draft.skipPrewarm and not prewarm_ok:

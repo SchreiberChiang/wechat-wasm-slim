@@ -164,7 +164,7 @@ test('blockers: unsupported combinations are named instead of silently downgrade
   assert.deepEqual(codes({locale: 'zh CN'}), ['QUICK_LOCALE_FORMAT']);
   assert.deepEqual(codes({loginCode: true}), []);
   assert.deepEqual(codes({loginCode: true, template: '2d', confirmNo3d: true}), ['QUICK_LOGIN_CODE_TEMPLATE']);
-  assert.deepEqual(codes({loginCode: true, subpackages: 'scenes', scenes: ['res://levels/a.tscn']}), ['QUICK_LOGIN_CODE_SCENES']);
+  assert.deepEqual(codes({loginCode: true, subpackages: 'scenes', scenes: ['res://levels/a.tscn']}), []);
   for (const s of [{subpackages: 'scenes'}, {locale: 'x'}, {loginCode: true, template: 'conservative', confirmRemovedModules: true}])
     assert.ok(settingsBlockers({...base, ...s}).every(b => typeof b.field === 'string'), '每个拦截都要指向一个设置');
   assert.deepEqual(codes({output: ''}), ['QUICK_OUTPUT_MISSING']);
