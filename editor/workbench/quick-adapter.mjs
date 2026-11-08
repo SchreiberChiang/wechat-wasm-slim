@@ -10,7 +10,7 @@
 //   runs 的请求是 {output}，只读列出该目录下的运行；status 的请求是 {run}，等同 quick status；
 //   open 的请求是 {run, settings}，等同 quick open：只打开已完成转换的运行，需要时用面板的 AppID 来源；
 //   requirements 的请求是 {template}，等同 quick requirements；
-//   refresh 的请求是 {project, settings, run, open}，等同 quick refresh：只重新导出 PCK，放进那次运行的实时预览副本；
+//   refresh 的请求是 {project, settings, run, open}，等同 quick refresh：只重新导出 PCK，直接替换开发者工具里打开的那份工程；
 //   receiver 的请求是 {project, settings, write}，等同 quick receiver（按场景分包前往游戏里装分包加载脚本）。
 //   请求内容读自 logs/TOKEN.quick-request.private.json
 import fs from 'node:fs';

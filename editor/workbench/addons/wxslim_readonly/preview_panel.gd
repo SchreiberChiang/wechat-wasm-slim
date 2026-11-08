@@ -3,7 +3,7 @@ extends VBoxContainer
 
 # 「微信导出」面板：设置、检查，并通过 quick-adapter.mjs 调用快速流程（wxslim.mjs quick 的同一套接口）。
 #   requirements：所选模板要确认的项目；plan：检查一次；run：导出并转换；status：单次运行的进度和结果；
-#   refresh：只重新导出游戏资源（PCK），替换进上次转换结果的实时副本；runs：最近运行；cancel：取消；open：打开一次已完成的运行；receiver：按场景分包前往游戏里装分包加载脚本。
+#   refresh：只重新导出游戏资源（PCK），直接替换进开发者工具里打开的那份工程；runs：最近运行；cancel：取消；open：打开一次已完成的运行；receiver：按场景分包前往游戏里装分包加载脚本。
 # 设置草稿保存在插件本机状态目录（*.private.* 已被 .gitignore 排除）。
 #
 # 布局：顶栏（标题 + 保存/放弃）固定；中间滚动区是三个可折叠设置组，组标题直接显示当前取值；
@@ -1372,7 +1372,7 @@ func _on_quick_result(job: Dictionary, result: Dictionary) -> void:
 					_task_line.text = "任务：游戏资源已更新（%d 秒）· 包号 %s" % [seconds, str(result.get("packageId", ""))]
 				else:
 					_task_line.text = "任务：游戏资源没有变化（%d 秒）" % seconds
-				_log_line("已更新实时预览副本：" + str(result.get("liveConfig", "")).get_base_dir())
+				_log_line("已替换开发者工具里打开的工程：" + str(result.get("projectConfig", "")).get_base_dir())
 			elif result.get("status") == "CANCELLED":
 				_task_line.text = "任务：已取消（%d 秒）" % seconds
 			elif result.get("status") == "BLOCKED":
