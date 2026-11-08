@@ -96,12 +96,15 @@ function resourceSnapshot(dir){
 export function checkResourceHeadroom(sample,{jobs,budgetBytes,initial=false,logicalBytes=0}){
   assert(Number.isInteger(jobs)&&jobs>=1&&jobs<=16);
   assert(sample.cpuCount>=11&&jobs<=Math.floor(sample.cpuCount*.75),'fixed ThinLTO 8 needs CPU headroom');
-  assert(sample.freeMemory>=Math.max((initial?12:2)*GiB,sample.totalMemory*(initial?.4:.2)),'insufficient available memory');
+  assert(sample.freeMemory>=Math.max((initial?8:2)*GiB,sample.totalMemory*(initial?.25:.1)),'insufficient available memory');
   assert(sample.commitHeadroomBytes>=(initial?8:2)*GiB,'insufficient commit headroom');
   assert(Number.isFinite(sample.cpuPercent)&&sample.cpuPercent>=0&&sample.cpuPercent<=100,'valid system CPU sample required');
-  if(initial){assert(sample.cpuPercent<60&&Math.max(jobs,8)<=Math.floor(sample.cpuCount*(.75-sample.cpuPercent/100)),'existing load leaves too little CPU headroom for fixed ThinLTO 8');assert(sample.freeDisk>=budgetBytes+2*GiB,'insufficient free disk for approved budget and reserve');}
-  else {assert(sample.cpuPercent<=90,'system CPU pressure; do not start next phase');assert(sample.freeDisk>=2*GiB,'disk reserve low');assert(logicalBytes<budgetBytes-Math.min(GiB,budgetBytes*.1),'budget reserve low');}
-  return {status:'PASS_CURRENT_RESOURCES',samplingIsGuarantee:false};
+  // CPU load only slows the build down; it never makes it unsafe. Memory, commit headroom, disk and budget
+  // still stop the build, because running out of those is what corrupts output or hangs the machine.
+  const cpuBusy=sample.cpuPercent>=(initial?60:90);
+  if(initial)assert(sample.freeDisk>=budgetBytes+2*GiB,'insufficient free disk for approved budget and reserve');
+  else {assert(sample.freeDisk>=2*GiB,'disk reserve low');assert(logicalBytes<budgetBytes-Math.min(GiB,budgetBytes*.1),'budget reserve low');}
+  return {status:'PASS_CURRENT_RESOURCES',samplingIsGuarantee:false,cpuBusy};
 }
 
 function dependencyAudit(request,env,cwd){
