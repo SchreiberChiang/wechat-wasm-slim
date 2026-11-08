@@ -1,0 +1,10 @@
+{
+  "schema": "wxslim-scene-pack-refresh-acceptance-v1",
+  "at": "2026-11-08T10:50:00Z",
+  "sourceCommit": "b30d18d",
+  "release": {"directory": "../release-b30d18d", "files": 347, "bytes": 327366264, "manifestIdentity": "9534a658e80135d52c4343bd8c9401d3ad5b0efbc46f2d41014e29dbbdd952a3"},
+  "game": "verify/分包试用游戏 (2D, scene packs level1/level2)",
+  "commandLine": {"template": "2d", "skipPrewarm": true, "change": "level1 title text", "seconds": 5.6, "changedPacks": ["level1"], "interfacesChanged": true, "interfacesMatchPacks": true, "note": "run on a scratch copy of the game, before the fixed-test-project rule"},
+  "userGui": {"result": "PASS", "userReply": "这轮测试通过，我已验收"},
+  "notVerified": ["phone", "scene-pack refresh without the computer preview package (final/ assembled result)"]
+}
