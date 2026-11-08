@@ -14,7 +14,20 @@ function readLocalConfig(file) {
   return {text, json: JSON.parse(text.replace(/^\uFEFF/, ''))};
 }
 
-// Only replace the two placeholder fields of an official output. A retry with
+// 共用组包任务（resource-runtime-assemble）成功写出的转换结果副本：TASK.json 和 terminal.json 都属于这次组包，
+// 副本里沿用的 CONVERT_REPORT.json 指向原转换的 converted/minigame。
+export function assembledCopy(root, report) {
+  const converted = path.dirname(root), task = path.dirname(converted);
+  if (path.basename(root) !== 'minigame' || path.basename(converted) !== 'converted') return false;
+  if (typeof report?.minigame !== 'string' || path.basename(report.minigame) !== 'minigame' || path.basename(path.dirname(report.minigame)) !== 'converted') return false;
+  try {
+    const owner = readLocalConfig(path.join(task, 'TASK.json')).json, terminal = readLocalConfig(path.join(task, 'terminal.json')).json;
+    return typeof owner.recipeId === 'string' && owner.recipeId.startsWith('resource-runtime-assemble:') && terminal.status === 'SUCCESS' &&
+      terminal.taskId === owner.taskId && terminal.details?.kind === 'RESOURCE_RUNTIME_ASSEMBLE';
+  } catch { return false; }
+}
+
+// Only replace the two placeholder fields of an official output (or a completed assembly copy of one). A retry with
 // the same source can finish a partial update. Never overwrite another AppID.
 export function configureLocalAppId(configFile, sourceFile) {
   const root = path.dirname(configFile);
@@ -43,7 +56,7 @@ export function configureLocalAppId(configFile, sourceFile) {
     const changes = entries.filter(e => e.id === PLACEHOLDER_APPID);
     if (changes.length) {
       const report = readLocalConfig(path.join(path.dirname(root), 'CONVERT_REPORT.json')).json;
-      if (report.appidSource !== 'placeholder' || path.relative(root, report.minigame) !== '') throw Error('目标与官方转换回执不匹配');
+      if (report.appidSource !== 'placeholder' || (path.relative(root, report.minigame) !== '' && !assembledCopy(root, report))) throw Error('目标与官方转换回执不匹配');
     }
     for (const {file,text} of changes) {
       const placeholder = JSON.stringify(PLACEHOLDER_APPID);
