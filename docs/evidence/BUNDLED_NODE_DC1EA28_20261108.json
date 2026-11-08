@@ -1,0 +1,11 @@
+{
+  "schema": "wxslim-bundled-node-acceptance-v1",
+  "at": "2026-11-08T03:45:00Z",
+  "sourceCommit": "dc1ea28",
+  "node": {"version": "24.18.0", "download": "https://nodejs.org/dist/v24.18.0/node-v24.18.0-win-x64.zip", "zipSha256": "0ae68406b42d7725661da979b1403ec9926da205c6770827f33aac9d8f26e821", "zipMatchesInputsPin": true,
+    "nodeExeSha256": "9a4eb5f1c29c6a2e93852ead46b999e284a6a5ca8bab4d4e241d587d025a52de", "licenseSha256": "d9c4eeda951d6d08f4aa1316b61aafcf67e6da5f79b18f8edeb56fa6abdc038c", "sameAsInstalledNodeExe": true},
+  "release": {"directory": "../release-dc1ea28", "files": 340, "bytes": 327302073, "manifestIdentity": "89300a465dbef6c64b49e2d6835d7ee3103416448b8bf284a1de258c9a51c1b4"},
+  "tests": {"total": 527, "pass": 527, "fail": 0},
+  "checked": ["copy addons into a blank game + plugin enabled: setup recorded kit/tools/node/node.exe as Node", "2D quick run with only the bundled node.exe: SUCCESS, PCK 1,744 bytes"],
+  "notChecked": ["a machine that never had Node installed", "the person's own GUI check of this release"]
+}
