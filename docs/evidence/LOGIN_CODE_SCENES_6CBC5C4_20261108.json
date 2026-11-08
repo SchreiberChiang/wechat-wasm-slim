@@ -1,0 +1,15 @@
+{
+  "schema": "wxslim-login-code-scenes-acceptance-v1",
+  "at": "2026-11-08T11:15:00Z",
+  "sourceCommit": "6cbc5c4",
+  "release": {"directory": "../release-6cbc5c4", "files": 347, "bytes": 327367719, "manifestIdentity": "f404eb6e35ded3384d1d83ea508386beb8e940051d0eb7a1522930246ba48d26"},
+  "game": "verify/分包试用游戏",
+  "commandLine": [
+    {"template": "full", "path": "GLX preview", "run": "分包试用游戏-20261108-185519", "export": "SUCCESS", "refresh": "SUCCESS, level1 only, login adapter kept, interfacesSha256 updated"},
+    {"template": "full", "path": "WebGL assembly", "run": "分包试用游戏-20261108-185926", "export": "SUCCESS (failed with RESOURCE_ASSEMBLY_INTERFACES_BYTES before de87b11)", "refresh": "SUCCESS"},
+    {"template": "2d", "path": "GLX preview", "run": "分包试用游戏-20261108-190614", "export": "SUCCESS", "loginAdapterPresent": true},
+    {"template": "conservative", "path": "WebGL assembly", "run": "分包试用游戏-20261108-190730", "export": "SUCCESS", "loginAdapterPresent": true}
+  ],
+  "userGui": {"result": "PASS", "userReply": "能导出了", "scope": "export with login code and scene packs from the panel"},
+  "notVerified": ["the game actually requesting a login code (the demo game has no call)", "phone"]
+}
