@@ -14,4 +14,5 @@
 2. 面板从 `wxslim.mjs quick requirements` 读取模板需要确认的项目，用 `quick plan` 检查一次用户操作，用 `quick run` 执行。进度、历史、取消和打开工程分别使用 `quick status`、`quick runs`、`quick cancel`、`quick open`。错误的 `field` 指向对应设置，`reasonCode` 记录已知的底层原因。随附模板由服务读取安装版内的固定指纹单。面板不用定位历史证据。重建配对通过 `rebuiltPreparation` 选择。请求草稿、PCK 绑定、引擎审核和任务收据由服务处理。具体命令见[离线开发](docs/离线开发.md)。
 3. 改变了任何运行文件引用时更新打包白名单。按 README 的本地测试，另外用空白游戏安装 release，核对面板→导出→重复转换→打开、拒绝已有输出、取消、实际文件指纹。
 4. 合并到 source 的本地基线后，再用 packaging/build-release.mjs 生成新发行版。用更新后的 install.mjs 更新测试工程。将版本号、打包清单、实测包号和未验项一同交付。编辑器界面修订不自动获得引擎或设备验收结论。
-5. 项目只在本机维护。另建副本、大型编译、预览上传、真机验收及清理沿用用户的逐轮授权。合并源码和生成本地安装版不需要联系其他会话。
+5. 超过 1 MiB 的离线二进制，以及授权未确认的测试原件（含 AppID 的转换参考工程、转换器产物、测试游戏数据），都列在 `.gitignore` 末尾，不进 Git。它们的 SHA-256 记在 `offline/inputs.json`、`offline/vendor` 指纹单等清单里，本地副本从精简源码 ZIP 取得。`F:\GLX-OpenSource\offline-source-delivery-01\source` 是只读存档，不在那里提交。
+6. 项目只在本机维护。另建副本、大型编译、预览上传、真机验收及清理沿用用户的逐轮授权。合并源码和生成本地安装版不需要联系其他会话。
