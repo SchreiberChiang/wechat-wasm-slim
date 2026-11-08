@@ -1,3 +1,4 @@
+import {readOfficialSource} from './pinned-godot-source.mjs';
 // Actual pinned input functions, modeled DOM/events/keyboard/heap only.
 // No actual C++, WASM, IME platform or device acceptance.
 import test from 'node:test';
@@ -45,11 +46,11 @@ function model(source,{wechat=false,wxOnly=false}={}) {
   };
 }
 const moveEvent={clientX:30,clientY:45,movementX:2,movementY:-3,shiftKey:true,altKey:false,ctrlKey:true,metaKey:false};
-if(process.env.WXSLIM_OFFICIAL_INPUT_SOURCE!=='fetch-fixed-c050'||!process.env.WXSLIM_FIXED_ENGINE_SOURCE)test('explicit fixed official input sources required',{skip:'No default network: set WXSLIM_OFFICIAL_INPUT_SOURCE=fetch-fixed-c050 and WXSLIM_FIXED_ENGINE_SOURCE'},()=>{});
+if((!process.env.WXSLIM_C050_GIT && process.env.WXSLIM_OFFICIAL_INPUT_SOURCE!=='fetch-fixed-c050')||!process.env.WXSLIM_FIXED_ENGINE_SOURCE)test('explicit fixed official input sources required',{skip:'No default network: set WXSLIM_OFFICIAL_INPUT_SOURCE=fetch-fixed-c050 and WXSLIM_FIXED_ENGINE_SOURCE'},()=>{});
 else {
   const root=process.env.WXSLIM_FIXED_ENGINE_SOURCE;assert(path.isAbsolute(root));const base=new Map(),fork=new Map();
   for(const [name,p]of Object.entries(pins)){
-    const r=await fetch('https://raw.githubusercontent.com/godotengine/godot/'+baseCommit+'/'+name,{redirect:'error',signal:AbortSignal.timeout(15000)});assert(r.ok);const text=await r.text();assert.deepEqual(id(text),{bytes:p.bytes,sha256:p.sha256});base.set(name,text);
+    const text=(await readOfficialSource(baseCommit,name)).toString('utf8');assert.deepEqual(id(text),{bytes:p.bytes,sha256:p.sha256});base.set(name,text);
     const b=execFileSync('git',['-C',root,'show',forkCommit+':'+name]);assert.deepEqual(id(b),{bytes:p.forkBytes,sha256:p.forkSha256});fork.set(name,b);
   }
   const patch=fs.readFileSync(new URL('../engine/official-input-source.patch',import.meta.url)),replay=replayUnifiedPatch(patch,n=>{assert.equal(n,file);return base.get(n);});

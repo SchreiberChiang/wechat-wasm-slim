@@ -1,0 +1,83 @@
+{
+  "schema": "storage-cn-phone-acceptance-v1",
+  "at": "2026-11-06T01:49:42.573Z",
+  "status": "PASS_IOS_WRITE_AND_REOPEN_READ",
+  "packageId": "wxslim-5f4a55e7697a95ce9f27",
+  "sourceSha256": "6ae0edd432abeecfe2309c6d26839b9e5b92d1e860abb0c2d8b62498b7faf79d",
+  "device": {
+    "model": "iPhone 16 Pro<iPhone17,1>",
+    "system": "iOS 18.3.1",
+    "wechatVersion": "8.0.75",
+    "SDKVersion": "3.17.6"
+  },
+  "requestedMode": "glx",
+  "actualMode": "glx",
+  "wasmSha256": "12dc2e40e1044345fbcd153497643bcd7b952705b1074da139f8b50048894861",
+  "writeSession": "mw4bcw3q-th5siqo7",
+  "readSession": "mw4bdeqt-c0fc712h",
+  "writeSteps": 9,
+  "readSteps": 7,
+  "files": {
+    "empty": {
+      "bytes": 0,
+      "evidence": "metadata"
+    },
+    "bytes": {
+      "bytes": 2,
+      "content": [
+        0,
+        231
+      ]
+    },
+    "grow": {
+      "bytes": 5,
+      "content": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    "truncate": {
+      "bytes": 0,
+      "evidence": "metadata"
+    }
+  },
+  "independentNativeReadback": true,
+  "readPhaseWrites": false,
+  "automaticLocator": true,
+  "nativeRandom": {
+    "ok": true,
+    "status": "PASS_NATIVE_ABI_ONLY",
+    "nativeCalls": 1,
+    "requestedBytes": 32,
+    "outputBytesDisclosed": 0,
+    "cryptographicQuality": "NOT_TESTED",
+    "clearedBytes": 1024
+  },
+  "cloud": {
+    "phoneBatches": 9,
+    "phoneEntries": 30,
+    "contiguousRelaySequences": true,
+    "contiguousFlowSequences": true,
+    "droppedReported": 0,
+    "maxEntryChars": 977,
+    "errors": 0,
+    "warnings": [
+      "[WXSLIM_RENDER_SUMMARY]",
+      "[WXSLIM_RENDER_SUMMARY]"
+    ],
+    "notFullVConsole": true,
+    "lastBatchDeliveryAfterObservedTail": "UNKNOWN"
+  },
+  "userReport": "Completed prescribed write / re-enter / read procedure",
+  "restartBoundary": "same package; new application session; reopening procedure reported complete; no independent OS process evidence",
+  "unverified": [
+    "Android for this c050 candidate",
+    "OS reboot / force-killed process recovery",
+    "cryptographic quality",
+    "general game visual acceptance",
+    "full capability acceptance"
+  ]
+}

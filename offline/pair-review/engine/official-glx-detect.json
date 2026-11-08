@@ -1,0 +1,239 @@
+{
+  "schema": "official-glx-detect-source-preparation-v1",
+  "status": "SOURCE_ONLY_UNAPPLIED",
+  "date": "2026-11-05",
+  "file": "platform/web/detect.py",
+  "base": {
+    "repository": "godotengine/godot",
+    "commit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+    "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/platform/web/detect.py",
+    "bytes": 14068,
+    "sha256": "9b3ead90fddaab15f2ce647db54421e647553887d023b1842365dbb7863d08e6",
+    "gitBlob": "57b79b2c3e6675307f622f302964f174eef4cffb"
+  },
+  "referenceFork": {
+    "repository": "citizenll/godot",
+    "commit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+    "bytes": 17690,
+    "sha256": "3599c3dca741651981389429fd294bc42af80b5176abe36299499d5bf7e5861a"
+  },
+  "patch": {
+    "file": "engine/official-glx-detect.patch",
+    "bytes": 6258,
+    "sha256": "9eb2f529efb783319d384b54b1e0f7f0599ecd5545356eb1784bda956e2ad252",
+    "hunks": 7
+  },
+  "derived": {
+    "bytes": 17505,
+    "sha256": "27ee74d628083a2135c3c58223efddef87778f0697f1483d93cc13407eae4e96"
+  },
+  "referenceWindowsAdapter": {
+    "file": "engine/alpha-preserve-lighting/delivery-windows-link.patch",
+    "bytes": 1211,
+    "sha256": "52065f189ef7c30e41b3ed1fd5cce106b4a259ac0b0b1f3d41bce25bdc6a5220",
+    "integration": "Already included once, GLX plus Windows only; do not stack the old adapter patch on this candidate"
+  },
+  "library": {
+    "file": "engine/alpha-preserve-lighting/libemscriptenglx-4.0.10-026e.a",
+    "bytes": 3866614,
+    "sha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+    "pathPolicy": "Explicit caller path; no auto-discovery/latest download. Name is not trusted; size and SHA256 checked during GLX configuration.",
+    "licenseNotice": "engine/alpha-preserve-lighting/GLX_LIBRARY_NOTICE.md",
+    "licenseScope": "Existing exact attachment notice only; no new third-party permission or native ABI conclusion"
+  },
+  "constraints": {
+    "use_wx_glxDefault": false,
+    "emscripten": [
+      4,
+      0,
+      10
+    ],
+    "arch": "wasm32",
+    "threads": false,
+    "wasm_simd": false,
+    "dlink_enabled": false,
+    "proxy_to_pthread": false,
+    "opengl3": true,
+    "disable_exceptions": "Forced false before SConstruct applies exception flags",
+    "fullSdkIdentity": "Existing fixed external SDK file-hash admission remains required; compiler version alone does not prove SDK identity."
+  },
+  "behavior": {
+    "nonGlx": "Preserve c050 official defaults and configuration outputs, including SIMD default true, explicit WASM_BIGINT, OFFSCREEN_FRAMEBUFFER and wasm longjmp",
+    "glx": "Match successful df3 plus reviewed Windows adapter configuration flag outputs for the explicitly tested combination",
+    "simd": "Official default remains true; GLX caller must explicitly supply wasm_simd=no",
+    "bigint": {
+      "glxAddsExplicitFlag": false,
+      "glxAddsDisableFlag": false,
+      "effectiveFixedSdkDefault": true,
+      "correction": "Omitting -sWASM_BIGINT does not disable BigInt in fixed Emscripten 4.0.10",
+      "sdkSettings": {
+        "bytes": 106843,
+        "sha256": "354a963241a71fcaae25d068c96c3a379c7ddd451ec40121df7d15e18ebfa9bb"
+      }
+    },
+    "legacyCompatibility": {
+      "CHECK_NULL_WRITES": 0,
+      "ERROR_ON_UNDEFINED_SYMBOLS": 0,
+      "strictUndefinedLinkClaim": false,
+      "reason": "Preserved explicitly from successful recipe; no claim these settings are safe or allow unresolved imports in delivery."
+    },
+    "exports": {
+      "functions": [
+        "_main",
+        "_malloc",
+        "_free"
+      ],
+      "runtimeMethods": [
+        "ccall",
+        "cwrap",
+        "stringToUTF8",
+        "lengthBytesUTF8",
+        "callMain",
+        "cwrap",
+        "HEAP8",
+        "HEAPU8",
+        "HEAP16",
+        "HEAPU16",
+        "HEAP32",
+        "HEAPU32",
+        "HEAP64",
+        "HEAPU64",
+        "HEAPF32",
+        "HEAPF64"
+      ],
+      "nativeGlxExports": "Actual four native GLX exports and import bindings remain required in final pair audit; names in config are insufficient."
+    }
+  },
+  "intentionalMigrationDifferences": [
+    "GLX admission rejects versions other than 4.0.10, rather than fork warning and proceeding.",
+    "GLX admission requires exact library size/hash and explicit path, rather than fork auto-discovery.",
+    "GLX admission rejects unverified architecture/thread/SIMD/dlink/proxy/renderer combinations instead of warning or proceeding.",
+    "Windows response-file adapter is now gated to GLX Windows builds; the official non-GLX configure output remains unchanged.",
+    "Official SIMD default true is preserved; successful GLX command already explicitly supplies wasm_simd=no.",
+    "This candidate has a new official base and source identity; matching selected configuration flags does not mean an identical build recipe or artifact."
+  ],
+  "referenceRecipes": [
+    "engine/alpha-preserve-lighting/delivery-recipe.json",
+    "engine/alpha-preserve-lighting/build-settings-20261103.json"
+  ],
+  "validation": {
+    "checks": [
+      "actual get_opts preserves official defaults and adds explicit false GLX option",
+      "browser-default full actual configure output equals official",
+      "browser-no-simd full actual configure output equals official",
+      "browser-wasm64 full actual configure output equals official",
+      "browser-4.0.0 full actual configure output equals official",
+      "GLX full actual configure flags and Windows response settings equal fixed fork plus reviewed Windows adapter",
+      "SDK (4, 0, 9) rejected",
+      "SDK (4, 0, 11) rejected",
+      "SDK 3.1.74 rejected by official minimum",
+      "unsupported arch rejected",
+      "unsupported threads rejected",
+      "unsupported wasm_simd rejected",
+      "unsupported dlink_enabled rejected",
+      "unsupported proxy_to_pthread rejected",
+      "unsupported opengl3 rejected",
+      "implicit library path rejected",
+      "missing library rejected",
+      "wrong size library rejected",
+      "same-size wrong library hash rejected without file modification",
+      "browser branch never opens GLX library"
+    ],
+    "passed": 20,
+    "failed": 0,
+    "pythonAstParsed": true,
+    "actualConfigureFunctionsExecutedWithMocks": true,
+    "SConsExecuted": false,
+    "compilerExecuted": false,
+    "WindowsTempFileMungeExecuted": false,
+    "successfulGlxFlags": {
+      "CCFLAGS": [
+        "-flto=thin",
+        "-sMEMORY64=0",
+        "-sSUPPORT_LONGJMP='emscripten'"
+      ],
+      "CXXFLAGS": [
+        "-fexceptions"
+      ],
+      "LINKFLAGS": [
+        "--emit-symbol-map",
+        "-Wl,--thinlto-jobs=8",
+        "-fexceptions",
+        "-sCHECK_NULL_WRITES=0",
+        "-sERROR_ON_UNDEFINED_SYMBOLS=0",
+        "<EXACT_PINNED_LIBRARY>",
+        "-sINITIAL_MEMORY=32MB",
+        "-flto=thin",
+        "-sMAX_WEBGL_VERSION=2",
+        "-sGL_ENABLE_GET_PROC_ADDRESS=0",
+        "-sSTACK_SIZE=5120KB",
+        "-Wl,-u,_emscripten_run_callback_on_thread",
+        "-sMEMORY64=0",
+        "-sENVIRONMENT=web,worker",
+        "-sMODULARIZE=1",
+        "-sEXPORT_NAME='Godot'",
+        "-sSUPPORT_LONGJMP='emscripten'",
+        "-sALLOW_MEMORY_GROWTH=1",
+        "-sINVOKE_RUN=0",
+        "-sEXIT_RUNTIME=1",
+        "-sGL_WORKAROUND_SAFARI_GETCONTEXT_BUG=0"
+      ],
+      "CPPDEFINES": [
+        "WECHAT_GLX_EXPERIMENTAL",
+        "WEB_ENABLED",
+        "UNIX_ENABLED",
+        "UNIX_SOCKET_UNAVAILABLE",
+        "GLES3_ENABLED",
+        "JAVASCRIPT_EVAL_ENABLED",
+        "GDSCRIPT_NO_LSP"
+      ],
+      "EXPORTED_FUNCTIONS": [
+        "_main",
+        "_malloc",
+        "_free"
+      ],
+      "EXPORTED_RUNTIME_METHODS": [
+        "ccall",
+        "cwrap",
+        "stringToUTF8",
+        "lengthBytesUTF8",
+        "callMain",
+        "cwrap",
+        "HEAP8",
+        "HEAPU8",
+        "HEAP16",
+        "HEAPU16",
+        "HEAP32",
+        "HEAPU32",
+        "HEAP64",
+        "HEAPU64",
+        "HEAPF32",
+        "HEAPF64"
+      ]
+    },
+    "strictForwardReplay": true,
+    "strictReverseReplay": true,
+    "duplicateRejected": true,
+    "checker": ".local/verify-official-glx-detect-20261105.mjs",
+    "result": ".local/official-glx-detect-check-20261105.json",
+    "scope": "Python AST parse and actual get_opts/configure functions under in-memory mocks. SCons modules are fake types; no SCons, compiler or TempFileMunge execution.",
+    "checkerCorrections": "Initial checker treated quoted SDK version text as bare text and used locale-dependent Python stdin. Corrected checker parsing and explicit Python UTF-8; production patch not changed for those checker failures."
+  },
+  "unmodified": [
+    "Existing six-file official-graphics-conditional-seed.patch",
+    "Current engine source/builders/SDK/packages",
+    "Old full/conservative admission and delivery recipe"
+  ],
+  "remaining": [
+    "Separate platform-guarded patch_em_gl context/native initialization unit",
+    "Graphics-only generated-glue postprocessor with fail-closed matching and no legacy filesystem rule",
+    "Full official migration source/library/license/ABI and toolchain admission",
+    "Actual controlled build, import/native/export pairing, browser and WeChat runtime acceptance"
+  ],
+  "license": "Retain applicable original Godot notices. New configuration glue does not grant permission for fork/vendor additions; provenance and native ABI review remain separate.",
+  "applied": false,
+  "SConsRun": false,
+  "compilerRun": false,
+  "engineRun": false,
+  "packageChanged": false
+}

@@ -1,0 +1,190 @@
+{
+  "schema": "wxslim-official-shader-diagnostics-v1",
+  "status": "SOURCE_ONLY_UNAPPLIED",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "forkCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "inputs": [
+    {
+      "path": "drivers/gles3/shader_gles3.cpp",
+      "bytes": 28071,
+      "sha256": "17c01277dc3468a1d53081f01a6f7665f5d0f82e7882a8198e1f486ee344d5d8",
+      "role": "FIXED_OFFICIAL_BASE",
+      "equalsFixedFork": true
+    },
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 5079,
+      "sha256": "30c1a567061eeba620b0346a5dc63835a8fac6f65f5b0b88efcda88befdeef03",
+      "role": "AFTER_CONTEXT_STORAGE_HTTP_SELECTION"
+    }
+  ],
+  "prerequisite": {
+    "path": "engine/official-http-selection.patch",
+    "bytes": 558,
+    "sha256": "581717e6b4a0b610669f59c761cba5c8f51fbe1ab31bf487bfbaec86d79b97bf",
+    "output": {
+      "path": "platform/web/SCsub",
+      "bytes": 5079,
+      "sha256": "30c1a567061eeba620b0346a5dc63835a8fac6f65f5b0b88efcda88befdeef03"
+    }
+  },
+  "provenance": {
+    "path": "engine/alpha-preserve-lighting/baseline-shader-diagnostic.patch",
+    "bytes": 24303,
+    "sha256": "84204452f43c04ef40ad4efcdd37e132f11ea429a42d029b63f6222d3e781ee6",
+    "cppSection": "All original CPP operations unchanged; move only three added blank lines inside adjacent WECHAT guards. Enabled projection equals original baseline byte-for-byte; disabled projection equals entire official CPP byte-for-byte. Official/fork full base bytes equal.",
+    "newFiles": "All five new-file payloads byte-exact to original baseline; no helper reimplementation."
+  },
+  "patch": {
+    "path": "engine/official-shader-diagnostics.patch",
+    "bytes": 23569,
+    "sha256": "857e8a91596ae14e9bed15349878da88e3b679392487fd12c6f54351fe6b0f20"
+  },
+  "outputs": [
+    {
+      "path": "drivers/gles3/shader_gles3.cpp",
+      "bytes": 29539,
+      "sha256": "6544b24c320d62994bde0984a21b83bbbd70ae7336860da6076f8af3b57300a0",
+      "added": false
+    },
+    {
+      "path": "drivers/gles3/wxslim_shader_failure.h",
+      "bytes": 4984,
+      "sha256": "cd6d99284f270998168d0091031a50b47fcd548815138310035195ac169b8224",
+      "added": true
+    },
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 5223,
+      "sha256": "0e791e965c1182d704df794b7b8841575a2b764566a474fc0df137b8e67d3c24",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_shader_failure.js",
+      "bytes": 6815,
+      "sha256": "c1e9386f676e77d8883b634f3781a7737a3f8fe6e0694be7db0a82fbe4ac5ce6",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_shader_type_return.js",
+      "bytes": 1607,
+      "sha256": "7becb45ffff5cc6049321e8f16da91440f78bd75ce2a16d935233a8d63b0b606",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/patches/wxslim_shader_instrument.cjs",
+      "bytes": 2181,
+      "sha256": "5778bd25ed34a050bd2285b53886953528299e9ceb677573aee5a2b8efff76d0",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/patches/wxslim_shader_type_instrument.cjs",
+      "bytes": 1961,
+      "sha256": "f60329e242d84b3dcc24fb579812de6538a148ebf6c4904f2af2cac34c607c7c",
+      "added": true
+    }
+  ],
+  "newFileBaseExistence": {
+    "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+    "method": "FIXED_RAW_HEAD",
+    "status": 404,
+    "paths": [
+      "drivers/gles3/wxslim_shader_failure.h",
+      "platform/web/js/libs/library_wxslim_shader_failure.js",
+      "platform/web/js/libs/library_wxslim_shader_type_return.js",
+      "platform/web/js/patches/wxslim_shader_instrument.cjs",
+      "platform/web/js/patches/wxslim_shader_type_instrument.cjs"
+    ]
+  },
+  "conditions": {
+    "macro": "WEB_ENABLED && WECHAT_GLX_EXPERIMENTAL",
+    "cppRegions": 11,
+    "macroOffProjectionEqualsEntireOfficialCpp": true,
+    "macroOnProjectionEqualsRetainedBaselineCpp": true,
+    "scsub": "Add both diagnostic JS libraries only within existing use_wx_glx block; existing lists/order preserved."
+  },
+  "abi": {
+    "externC": [
+      {
+        "name": "wxslim_shader_failure_begin",
+        "argumentCount": 9,
+        "returnType": "int"
+      },
+      {
+        "name": "wxslim_shader_failure_arm_type",
+        "argumentCount": 0,
+        "returnType": "void"
+      },
+      {
+        "name": "wxslim_shader_failure_arm_source",
+        "argumentCount": 0,
+        "returnType": "void"
+      },
+      {
+        "name": "wxslim_shader_failure_observe",
+        "argumentCount": 3,
+        "returnType": "void"
+      },
+      {
+        "name": "wxslim_shader_failure_error",
+        "argumentCount": 3,
+        "returnType": "void"
+      },
+      {
+        "name": "wxslim_shader_failure_end",
+        "argumentCount": 0,
+        "returnType": "void"
+      }
+    ],
+    "jsExplicitSignatures": "No __sig fields in retained diagnostic JS. C++ extern declarations and matching JS arity/deps inspected; emitted SDK signature/pointer mapping remains uncompiled.",
+    "jsDependencies": [
+      {
+        "path": "platform/web/js/libs/library_wxslim_shader_failure.js",
+        "sigs": [
+          "  $WXSLIMShaderFailure__deps: ['$UTF8ToString'],",
+          "  wxslim_shader_failure_begin__deps: ['$WXSLIMShaderFailure'],",
+          "  wxslim_shader_failure_arm_source__deps: ['$WXSLIMShaderFailure'],",
+          "  wxslim_shader_failure_observe__deps: ['$WXSLIMShaderFailure'],",
+          "  wxslim_shader_failure_error__deps: ['$WXSLIMShaderFailure'],",
+          "  wxslim_shader_failure_end__deps: ['$WXSLIMShaderFailure'],"
+        ]
+      },
+      {
+        "path": "platform/web/js/libs/library_wxslim_shader_type_return.js",
+        "sigs": [
+          "  wxslim_shader_failure_arm_type__deps: ['$WXSLIMShaderTypeReturn'],"
+        ]
+      }
+    ],
+    "guardEMJSDependencies": [
+      "$stackSave",
+      "$stackRestore",
+      "$dynCall"
+    ],
+    "nativeQueries": "Two existing baseline diagnostic queries only, protected by unchanged numeric-exception/stack cleanup wrapper; not a graphics compatibility fix."
+  },
+  "buildParametersAdded": [],
+  "godotProcessIncluded": false,
+  "postprocessorWired": false,
+  "scope": "Exactly seven output files: one CPP, five preserved additions and one SCsub. Does not include old godot_process.js or modify official patch_em_gl.js, GLSL shader fixes, flags or recipes.",
+  "validation": {
+    "test": "tests/official-shader-diagnostics-tests.mjs",
+    "audit": "engine/official-shader-diagnostics-audit.mjs",
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "Strict memory replay, full macro-off projection, five payload equality, source ABI/JS syntax and fixed Python selected-SCsub-AST models only."
+  },
+  "limitations": [
+    "Requires official GLX detect option/macro and prior context/storage/HTTP selection source units.",
+    "Root must independently migrate and audit generated-JS instrumentation using both preserved CJS helpers; no godot_process migration supplied here.",
+    "No compiled CPP/import signature, actual SDK glue, shader failure runtime or device proof.",
+    "Diagnostics preserve first-failure observation behavior and do not fix shader compilation or graphics correctness.",
+    "No new build options; linking and downstream postprocessing remain separately required."
+  ],
+  "applied": false,
+  "compilerRun": false,
+  "engineRun": false,
+  "phone": "NOT_RUN",
+  "licenseCleared": false
+}

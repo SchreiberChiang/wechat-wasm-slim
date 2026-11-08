@@ -1,0 +1,176 @@
+{
+  "schema": "wxslim-official-secure-random-source-v1",
+  "status": "SOURCE_ONLY_UNAPPLIED_UNCOMPILED",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "inputs": [
+    {
+      "path": "core/crypto/crypto_core.cpp",
+      "bytes": 10142,
+      "sha256": "e5401beaa0f9dacf7c82e00300adf33a8935e97a4b019c6a8cde979b0ebd0769",
+      "role": "FIXED_OFFICIAL_BASE"
+    },
+    {
+      "path": "platform/web/detect.py",
+      "bytes": 17505,
+      "sha256": "27ee74d628083a2135c3c58223efddef87778f0697f1483d93cc13407eae4e96",
+      "role": "AFTER_REVIEWED_FIFTEEN_PATCHES"
+    },
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 5223,
+      "sha256": "0e791e965c1182d704df794b7b8841575a2b764566a474fc0df137b8e67d3c24",
+      "role": "AFTER_REVIEWED_FIFTEEN_PATCHES"
+    },
+    {
+      "path": "core/crypto/SCsub",
+      "bytes": 2711,
+      "sha256": "4b16ce9bc271a4c5f080b81439a24eb3baa6e8a89461a941332bd32c626549c2",
+      "role": "READ_ONLY_CONFIG_SELECTION_REFERENCE"
+    }
+  ],
+  "officialInputs": [
+    {
+      "path": "core/crypto/crypto_core.cpp",
+      "bytes": 10142,
+      "sha256": "e5401beaa0f9dacf7c82e00300adf33a8935e97a4b019c6a8cde979b0ebd0769"
+    },
+    {
+      "path": "core/crypto/SCsub",
+      "bytes": 2711,
+      "sha256": "4b16ce9bc271a4c5f080b81439a24eb3baa6e8a89461a941332bd32c626549c2"
+    },
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 4631,
+      "sha256": "d8292a8945f941c061f6484ea2bcce783d7838cde8ecad8ff3ca86ff29b36180"
+    },
+    {
+      "path": "platform/web/detect.py",
+      "bytes": 14068,
+      "sha256": "9b3ead90fddaab15f2ce647db54421e647553887d023b1842365dbb7863d08e6"
+    }
+  ],
+  "prerequisites": [
+    {
+      "path": "engine/official-glx-detect.patch",
+      "bytes": 6258,
+      "sha256": "9eb2f529efb783319d384b54b1e0f7f0599ecd5545356eb1784bda956e2ad252"
+    },
+    {
+      "path": "engine/official-glx-context-source.patch",
+      "bytes": 8090,
+      "sha256": "022456eae38ce11f9fb4f6b27a4fb3f2f00582c4c1d63c823ca87d220dd7e503"
+    },
+    {
+      "path": "engine/official-storage-source.patch",
+      "bytes": 22114,
+      "sha256": "87f4f5de71c73f149a85b7ef1abf26bd81171fb904e3a8e739eeca07bea3f0ed"
+    },
+    {
+      "path": "engine/official-http-selection.patch",
+      "bytes": 558,
+      "sha256": "581717e6b4a0b610669f59c761cba5c8f51fbe1ab31bf487bfbaec86d79b97bf"
+    },
+    {
+      "path": "engine/official-shader-diagnostics.patch",
+      "bytes": 23569,
+      "sha256": "857e8a91596ae14e9bed15349878da88e3b679392487fd12c6f54351fe6b0f20"
+    }
+  ],
+  "patch": {
+    "path": "engine/official-secure-random-source.patch",
+    "bytes": 12892,
+    "sha256": "65f9b666ac923f2fa70734e9ebca3b4fd77001e2a405f8350de17055696c07d2"
+  },
+  "outputs": [
+    {
+      "path": "core/crypto/crypto_core.cpp",
+      "bytes": 13168,
+      "sha256": "c215fae7602085875a5d22fc99bf54e425e86d3e3bd48ee447fcdafdc8e21b9c",
+      "added": false
+    },
+    {
+      "path": "platform/web/detect.py",
+      "bytes": 17570,
+      "sha256": "3558e308750cafc529d6e8367790ab55648df585b88bb1fabde0d93ecf8529ab",
+      "added": false
+    },
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 5460,
+      "sha256": "3034576bf737dcc5fe697215468b42655524200d328675462cc60f6a280aa950",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_crypto.js",
+      "bytes": 4605,
+      "sha256": "a1f30e4fb8b13a295922ef6e85700e38c5354e171d23828a7103ba3622759666",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_wechat_entropy.js",
+      "bytes": 3241,
+      "sha256": "411a142bdc51e941b2088265066d3de8566bfd5152a5b2527efedadaa1c9ab01",
+      "added": true
+    }
+  ],
+  "abi": {
+    "export": {
+      "name": "_godot_wechat_random_buffer",
+      "signature": "ii",
+      "arguments": [
+        "size: 1..1024; 0 permanently terminates"
+      ],
+      "result": "private wasm32 output pointer or 0"
+    },
+    "import": {
+      "name": "godot_js_wechat_entropy_take",
+      "signature": "iii",
+      "arguments": [
+        "pointer",
+        "size=48"
+      ],
+      "result": "0 success; -1 failure"
+    },
+    "factoryOptions": {
+      "__wxslimSecureRandomMode": "WECHAT_CTR_DRBG_V1",
+      "__wxslimEntropyTake": "synchronous take(Uint8Array): exact byteLength or throw; raw fresh bytes only",
+      "__wxslimEntropyAssertReady": "synchronous assertReady(): undefined or throw; no allocation/consumption/platform IO"
+    },
+    "shutdown": "Host must call Module._godot_wechat_random_buffer(0) before discarding runtime; close() of JS queue alone does not free C state.",
+    "modes": "Explicit factory mode selects bridge. Detected wx without explicit mode fails closed; no wx + absent mode preserves actual globalThis.crypto."
+  },
+  "drbg": {
+    "algorithm": "independent static mbedTLS AES-256 CTR_DRBG",
+    "entropyBytes": 48,
+    "reseedInterval": 10000,
+    "maxRequestBytes": 1024,
+    "customConfiguration": "compile-time reject different key size/reseed/max; requires AES/CTR_DRBG config",
+    "threading": "single-thread only; existing detect gate and C compile guard",
+    "allocator": "no Godot allocator/OS/RandomGenerator calls in added region"
+  },
+  "buildParametersAdded": [],
+  "exportsAdded": [
+    "_godot_wechat_random_buffer"
+  ],
+  "ordinaryBrowserSelectedFilesUnchanged": true,
+  "weakShimIntroduced": false,
+  "validation": {
+    "strictReplay": true,
+    "duplicateReject": true,
+    "macroOffEntireCppUnchanged": true,
+    "jsModels": "separate Node VM boundary tests only",
+    "mbedtlsCompiled": false,
+    "mbedtlsExecuted": false,
+    "realEntropyCalled": false,
+    "engineRun": false,
+    "phone": "NOT_RUN"
+  },
+  "remaining": [
+    "host startup integration must await preparation before factory",
+    "host shutdown must terminate C context",
+    "actual compiled imports/exports and MBEDTLS config",
+    "real WASM constructor/main ordering, failure propagation and heap growth",
+    "real wx entropy callback contract, automatic reseed/queue exhaustion, lifecycle/device acceptance"
+  ]
+}

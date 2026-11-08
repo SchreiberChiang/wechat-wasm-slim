@@ -25,7 +25,10 @@ for (let i = 0; i < args.length; i++) {
   else if (args[i] === '--json' && args[i + 1]) jsonOut = path.resolve(args[++i]);
   else { console.error('用法：node tests/run-external.mjs [--root DIR]... [--all] [--json FILE]'); process.exit(2); }
 }
-if (!roots.length) roots.push(path.resolve(source, '../../clean-20261104'), path.resolve(source, '../portable-proof-01/proof'));
+if (!roots.length) {
+  console.error('历史材料诊断需要显式 --root DIR。完整离线回归请使用 tests/run-offline.mjs TOOLS。');
+  process.exit(2);
+}
 const existingRoots = roots.filter(dir => fs.existsSync(dir));
 
 // ---------- 收集候选 ----------

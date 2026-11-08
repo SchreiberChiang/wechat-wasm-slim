@@ -1,3 +1,4 @@
+import {fileURLToPath} from 'node:url';
 // Fixed-source reads/GET plus memory replay and selected Python AST execution.
 // No SCons, compiler, engine, GL API, filesystem mutation or business network.
 import fs from 'node:fs';
@@ -6,19 +7,18 @@ import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {execFileSync} from 'node:child_process';
-import {officialStorageInputPlan,fetchOfficialStorageInputs,prepareOfficialStorageSources} from '../engine/official-storage-source-audit.mjs';
+import {officialStorageInputPlan,prepareOfficialStorageSources} from '../engine/official-storage-source-audit.mjs';
 import {prepareOfficialShaderDiagnostics} from '../engine/official-shader-diagnostics-audit.mjs';
 import {replayUnifiedPatch} from '../engine/fixed-source-audit.mjs';
 const cpp='drivers/gles3/shader_gles3.cpp',sc='platform/web/SCsub',base='c050c09b105c3715e1caa57a7109cd752047fd89';
 const id=b=>({bytes:Buffer.byteLength(b),sha256:crypto.createHash('sha256').update(b).digest('hex')});
 const metadata=JSON.parse(fs.readFileSync(new URL('../engine/official-shader-diagnostics.json',import.meta.url),'utf8'));
-const storageInputs=process.env.WXSLIM_OFFICIAL_SOURCE_ROOT?new Map(officialStorageInputPlan().map(p=>[p.path,fs.readFileSync(path.join(process.env.WXSLIM_OFFICIAL_SOURCE_ROOT,p.path))])):await fetchOfficialStorageInputs();
+const sourceRoot=process.env.WXSLIM_OFFICIAL_SOURCE_ROOT || fileURLToPath(new URL('../offline/fixtures/c050-source/',import.meta.url));
+const storageInputs=new Map(officialStorageInputPlan().map(p=>[p.path,fs.readFileSync(path.join(sourceRoot,p.path))]));
 const storage=prepareOfficialStorageSources(storageInputs);
 const selection=fs.readFileSync(new URL('../engine/official-http-selection.patch',import.meta.url));
 const scsub=replayUnifiedPatch(selection,()=>storage.scsubSource).get(sc).text;
-let originalCpp;
-if(process.env.WXSLIM_OFFICIAL_SOURCE_ROOT)originalCpp=fs.readFileSync(path.join(process.env.WXSLIM_OFFICIAL_SOURCE_ROOT,cpp));
-else {const r=await fetch('https://raw.githubusercontent.com/godotengine/godot/'+base+'/'+cpp,{redirect:'error',signal:AbortSignal.timeout(15000)});assert(r.ok);originalCpp=Buffer.from(await r.arrayBuffer());assert(originalCpp.length<=128*1024);}
+const originalCpp=fs.readFileSync(path.join(sourceRoot,cpp));
 const sources=new Map([[cpp,originalCpp],[sc,Buffer.from(scsub)]]),prepared=prepareOfficialShaderDiagnostics(sources);
 test('fixed official CPP and exact HTTP-selection SCsub feed seven outputs, no old processor',()=>{
   assert.deepEqual(id(originalCpp),{bytes:28071,sha256:'17c01277dc3468a1d53081f01a6f7665f5d0f82e7882a8198e1f486ee344d5d8'});

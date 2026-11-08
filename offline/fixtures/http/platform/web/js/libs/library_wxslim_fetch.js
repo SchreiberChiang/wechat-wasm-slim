@@ -1,0 +1,310 @@
+/**************************************************************************/
+/*  library_godot_fetch.js                                                */
+/**************************************************************************/
+/*                         This file is part of:                          */
+/*                             GODOT ENGINE                               */
+/*                        https://godotengine.org                         */
+/**************************************************************************/
+/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
+/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
+/*                                                                        */
+/* Permission is hereby granted, free of charge, to any person obtaining  */
+/* a copy of this software and associated documentation files (the        */
+/* "Software"), to deal in the Software without restriction, including    */
+/* without limitation the rights to use, copy, modify, merge, publish,    */
+/* distribute, sublicense, and/or sell copies of the Software, and to     */
+/* permit persons to whom the Software is furnished to do so, subject to  */
+/* the following conditions:                                              */
+/*                                                                        */
+/* The above copyright notice and this permission notice shall be         */
+/* included in all copies or substantial portions of the Software.        */
+/*                                                                        */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
+/**************************************************************************/
+
+const GodotFetch = {
+    $GodotFetch__deps: ['$IDHandler', '$GodotRuntime'],
+    $GodotFetch: {
+        // Preserve raw bytes. Never encode strings/objects as a substitute body.
+        convertToUint8Array: function (data) {
+            if (data instanceof ArrayBuffer) {
+                return new Uint8Array(data).slice();
+            }
+            if (ArrayBuffer.isView(data)) {
+                return new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice();
+            }
+            throw new TypeError('HTTP body must be an ArrayBuffer or view');
+        },
+
+        active: function (id, obj) {
+            return IDHandler.get(id) === obj && !obj.closed && !obj.settled;
+        },
+
+        read_errno: function (error) {
+            try {
+                // Read once: an untrusted getter can throw or change its value.
+                const errno = error && error.errno;
+                return Number.isSafeInteger(errno) ? errno : undefined;
+            } catch (e) {
+                return undefined;
+            }
+        },
+
+        log_error: function (kind, errno) {
+            // Only internal categories and validated numeric codes reach logs.
+            const code = Number.isSafeInteger(errno) ? ' errno=' + errno : '';
+            try {
+                GodotRuntime.error('[GodotFetch] ' + kind + code);
+            } catch (e) {
+                // A failing logger must not undo the already recorded failure/close.
+            }
+        },
+
+        onerror: function (id, obj, kind, errno) {
+            if (!GodotFetch.active(id, obj)) {
+                return;
+            }
+            obj.settled = true;
+            obj.done = true;
+            obj.reading = false;
+            obj.error = { kind: kind };
+            if (Number.isSafeInteger(errno)) {
+                obj.error.errno = errno;
+            }
+            GodotFetch.log_error(kind, errno);
+        },
+
+        create: function (method, url, headers, body) {
+            const obj = {
+                requestTask: null,
+                response: null,
+                error: null,
+                done: false,
+                reading: false,
+                status: 0,
+                chunks: [],
+                bodySize: -1,
+                closed: false,
+                settled: false,
+            };
+            const id = IDHandler.add(obj);
+            let setupKind = 'REQUEST_DATA';
+            try {
+                // wx.request accepts ArrayBuffer, not arbitrary typed views.
+                const requestBody = body === null ? null : GodotFetch.convertToUint8Array(body).buffer;
+                setupKind = 'REQUEST_SETUP';
+                obj.requestTask = wx.request({
+                    url: url,
+                    method: method,
+                    data: requestBody,
+                    header: headers,
+                    dataType: 'text',
+                    responseType: 'arraybuffer',
+                    enableChunked: false,
+                    success: (res) => {
+                        if (!GodotFetch.active(id, obj)) {
+                            return;
+                        }
+                        let kind = 'RESPONSE_STATUS';
+                        try {
+                            const status = res && res.statusCode;
+                            if (!Number.isInteger(status) || status < 100 || status > 599) {
+                                throw new TypeError('Invalid HTTP status');
+                            }
+                            kind = 'RESPONSE_HEADERS';
+                            const sourceHeaders = res.header;
+                            if (!sourceHeaders || typeof sourceHeaders !== 'object' || Array.isArray(sourceHeaders)) {
+                                throw new TypeError('Invalid HTTP headers');
+                            }
+                            const responseHeaders = Object.create(null);
+                            for (const [name, value] of Object.entries(sourceHeaders)) {
+                                if (!/^[!#$%&'*+.^_|~0-9A-Za-z\x60-]+$/.test(name) ||
+                                        !(typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value))) ||
+                                        /[\x00-\x08\x0a-\x1f\x7f]/.test(String(value))) {
+                                    throw new TypeError('Invalid HTTP header field');
+                                }
+                                responseHeaders[name] = value;
+                            }
+                            kind = 'RESPONSE_DATA';
+                            // Missing/unknown data is not evidence of an empty body.
+                            const data = GodotFetch.convertToUint8Array(res.data);
+                            if (!GodotFetch.active(id, obj)) {
+                                return;
+                            }
+                            obj.response = { header: responseHeaders };
+                            obj.status = status;
+                            obj.bodySize = data.byteLength;
+                            // Godot's unknown-length consumer needs one BODY read
+                            // to observe EOF, including an explicitly empty response.
+                            obj.chunks = [data];
+                            obj.done = true;
+                            obj.reading = false;
+                            obj.settled = true;
+                        } catch (e) {
+                            GodotFetch.onerror(id, obj, kind);
+                        }
+                    },
+                    fail: (err) => {
+                        if (!GodotFetch.active(id, obj)) {
+                            return;
+                        }
+                        GodotFetch.onerror(id, obj, 'REQUEST_FAILED', GodotFetch.read_errno(err));
+                    },
+                });
+                // Whole-response mode has no optional task listener dependency.
+            } catch (e) {
+                GodotFetch.onerror(id, obj, setupKind, GodotFetch.read_errno(e));
+            }
+            return id;
+        },
+
+        free: function (id) {
+            const obj = IDHandler.get(id);
+            if (!obj) {
+                return;
+            }
+            obj.closed = true;
+            IDHandler.remove(id);
+            // Invalidate before abort: it can throw or invoke fail synchronously.
+            try {
+                if (obj.requestTask && typeof obj.requestTask.abort === 'function') {
+                    obj.requestTask.abort();
+                }
+            } catch (e) {
+                GodotFetch.log_error('REQUEST_ABORT', GodotFetch.read_errno(e));
+            }
+        },
+
+        read: function (id) {
+            // Whole-response data is queued once by success; no stream pull.
+        },
+    },
+
+    godot_js_fetch_create__sig: 'iiiiiii',
+    godot_js_fetch_create: function (p_method, p_url, p_headers, p_headers_size, p_body, p_body_size) {
+        const method = GodotRuntime.parseString(p_method);
+        const url = GodotRuntime.parseString(p_url);
+        const headers = GodotRuntime.parseStringArray(p_headers, p_headers_size);
+        const body = p_body_size ? GodotRuntime.heapSlice(HEAP8, p_body, p_body_size) : null;
+        return GodotFetch.create(method, url, headers.reduce((acc, hv) => {
+            const idx = hv.indexOf(':');
+            if (idx > 0) {
+                acc[hv.slice(0, idx).trim()] = hv.slice(idx + 1).trim();
+            }
+            return acc;
+        }, {}), body);
+    },
+
+    godot_js_fetch_state_get__sig: 'ii',
+    godot_js_fetch_state_get: function (p_id) {
+        const obj = IDHandler.get(p_id);
+        if (!obj) {
+            return -1;
+        }
+
+        let state = -1;
+        if (obj.error) {
+            state = -1;
+        } else if (!obj.response) {
+            state = 0; // Request in progress
+        } else if (obj.done && obj.chunks.length === 0) {
+            state = 2; // Done
+        } else {
+            state = 1; // Reading
+        }
+
+        return state;
+    },
+
+    godot_js_fetch_http_status_get__sig: 'ii',
+    godot_js_fetch_http_status_get: function (p_id) {
+        const obj = IDHandler.get(p_id);
+        if (!obj || !obj.response) {
+            return 0;
+        }
+        return obj.status;
+    },
+
+    godot_js_fetch_read_headers__sig: 'iiii',
+    godot_js_fetch_read_headers: function (p_id, p_parse_cb, p_ref) {
+        const obj = IDHandler.get(p_id);
+        if (!obj || !obj.response) {
+            return 1;
+        }
+
+        // Check if header exists and is an object
+        if (!obj.response.header || typeof obj.response.header !== 'object') {
+            return 1;
+        }
+
+        try {
+            const cb = GodotRuntime.get_func(p_parse_cb);
+            const arr = Object.entries(obj.response.header).map(([h, v]) => `${h}:${v}`);
+
+            const c_ptr = GodotRuntime.allocStringArray(arr);
+
+            try {
+                cb(arr.length, c_ptr, p_ref);
+            } finally {
+                GodotRuntime.freeStringArray(c_ptr, arr.length);
+            }
+            return 0;
+        } catch (e) {
+            return 1;
+        }
+    },
+
+    godot_js_fetch_read_chunk__sig: 'iiii',
+    godot_js_fetch_read_chunk: function (p_id, p_buf, p_buf_size) {
+        const obj = IDHandler.get(p_id);
+        if (!obj || !obj.response) {
+            return 0;
+        }
+        let to_read = p_buf_size;
+        let write_offset = 0;
+        const chunks = obj.chunks;
+        while (to_read && chunks.length) {
+            const chunk = chunks[0];
+            if (chunk.length > to_read) {
+                GodotRuntime.heapCopy(HEAP8, chunk.slice(0, to_read), p_buf + write_offset);
+                chunks[0] = chunk.slice(to_read);
+                write_offset += to_read;
+                to_read = 0;
+            } else {
+                GodotRuntime.heapCopy(HEAP8, chunk, p_buf + write_offset);
+                to_read -= chunk.length;
+                write_offset += chunk.length;
+                chunks.shift();
+            }
+        }
+        return p_buf_size - to_read;
+    },
+
+    godot_js_fetch_body_length_get__sig: 'ii',
+    godot_js_fetch_body_length_get: function (p_id) {
+        const obj = IDHandler.get(p_id);
+        if (!obj || !obj.response) {
+            return -1;
+        }
+        return obj.bodySize;
+    },
+
+    godot_js_fetch_is_chunked__sig: 'ii',
+    godot_js_fetch_is_chunked: function (p_id) {
+        return 1;
+    },
+
+    godot_js_fetch_free__sig: 'vi',
+    godot_js_fetch_free: function (id) {
+        GodotFetch.free(id);
+    },
+};
+
+autoAddDeps(GodotFetch, '$GodotFetch');
+mergeInto(LibraryManager.library, GodotFetch);

@@ -1,0 +1,17 @@
+{
+  "python-3.14.0.zip": {
+    "sha256": "649b9528654298354a4fa844e4e9106e23e175f0ddb521d5ffeb8ec664201a1c",
+    "bytes": 15290293,
+    "files": 805
+  },
+  "git-windows.zip": {
+    "sha256": "06be1b86266d67350e07080d39d333cafe7937f99d196362dbd36a5592689828",
+    "bytes": 3702722,
+    "files": 62
+  },
+  "godot-4.7.2.zip": {
+    "sha256": "11e26c1d8983a49ae93d4349118a8e5641d16c4f366e938928f24434b98135d2",
+    "bytes": 88522563,
+    "files": 4
+  }
+}

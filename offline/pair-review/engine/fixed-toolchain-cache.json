@@ -1,0 +1,38 @@
+{
+  "schema": "wxslim-fixed-toolchain-cache-v1",
+  "referenceBuildSha256": "e1ba62e2eab7f439ad71644dc0a3a4fa5f8307f03767fe95ec262ad7130be9b3",
+  "reference": "Successful 2026-11-04 BUILD.json freshCache and identity.sdk; paths omitted. Not a new BUILD or a reproducibility claim.",
+  "sourceCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "flags": {"platform":"web","arch":"wasm32","target":"template_release","threads":false,"lto":"thin","thinLtoJobs":8,"useWxGlx":true,"cppdefines":"","symbols":true,"profile":"full-reference; conservative may only remove the separately reviewed seven modules"},
+  "pythonVersion": "3.14.0",
+  "pythonExeSha256": "7bcdf892816a8d651e89f008cfc2f1544a41f13089af70a227b9fc54ced8551f",
+  "pythonBaseExeSha256": "467014615a5255aca450ae88100dd2caf887da87657f00e3c2171ec44a685aec",
+  "referencePyvenvCfgSha256": "2db025809ce5c2aaf66f5a693378fdee491de75099278c67b4aca8c1915f234d",
+  "sconsVersion": "4.11.1",
+  "sconsWheel": {"bytes":4123659,"sha256":"454cef364348053422696e3d2ecb4fa593c96a624f955842eaaea64f95c8d11d"},
+  "sdkArchive": {"bytes":539321345,"sha256":"1a66825e85fda039f57d39c98ae2bdb96a18e53745159e9599f69679be18439f"},
+  "sdkFiles": {
+    ".emscripten":"19e1a7c839001b3f3dc528e771353460a9af3bb420360efe06517dee269bf86e",
+    "upstream/emscripten/emscripten-version.txt":"ca0f65b7dc4f97d03522346306ff0323f61de41cdb0c00304dd54db3111a4446",
+    "upstream/emscripten/emcc.py":"4b47445c680acc3ce625312f1d279d4d50347c27661fcde9b5b904a775eae9ec",
+    "upstream/emscripten/em++.py":"017f735c953318fdaaa4af68c8d4bf13936a787ddbd5dad804d532b0223b6c2f",
+    "upstream/bin/clang.exe":"2139bce5bdd3ba2648e353d56d9e75654cf89c2dfed10ebfbc56a60979a86c55",
+    "upstream/bin/wasm-ld.exe":"3b6db708d4e85e592017832b1ffd245469776bbbc4d9be50d4de9a1f3171e2fc",
+    "upstream/bin/wasm-opt.exe":"7d69f7f4a46b208493ab8405309c58226b67e7905c1015069acf9001055b8a33",
+    "node/24.19.0_64bit/node.exe":"3602f2bb1a10f2cbab4c36886218a33c1ab3db87290e73b033c46c77147d0237",
+    "python/3.13.3_64bit/python.exe":"d87063e5597f257004c731b66c59c56c91038861c6877b1a3dca6b8c4e919125"
+  },
+  "thinLtoLibraries": {
+    "libal.a":"310b48b5bc3271a7e63c426fa5813c8a57cda84ba3e9b2c3ab7acd1aebcb6e90",
+    "libc.a":"ac77bd3b69e62e4a387fc9886f21632f17f7983d403e7f2eb46deb65f0c5ef5c",
+    "libc++.a":"0c1d569de0e2738932c4d9c9790a55c161daa88456d41ae1d2b8e393d0b9fdd5",
+    "libc++abi.a":"42af59ab618bfba9798b20787f8141910091c391bba740b5154f9a5bb9d6e94c",
+    "libcompiler_rt.a":"fb08d8d3f874c21676ded87537c00c5b7d927443387782448dd3c0c5e3540751",
+    "libdlmalloc.a":"10d8cbdd987284f15f28f9295af714849abc00c68eca6e7be16439b0fb94b51b",
+    "libGL-webgl2.a":"bd9a99a94066266d952f199835cbe51911b69c2197f0d41fc55d450452718428",
+    "libhtml5.a":"6bb6268a6897cb5a08a237b7aafc02fb210d24db550e2b8aac1f8aa5d81cbd3a",
+    "libsockets.a":"bf1279889a20cd62e016c564e722c9bab4a0838f48303484f9b1cff5c9bbacf9",
+    "libstubs.a":"1e5f1192e207ad1c4f22b7f0d727bc755f00a10525e7511721fe11c7776ac386"
+  },
+  "limitations": ["Ten ThinLTO libraries have recorded build provenance; non-LTO/cache extras are fingerprinted only, not thereby approved or proven used.","Python standard library/DLLs are not fully pinned by the executable hashes.","No SDK writes, installation, dependency repair, cache warming or engine compilation is authorized by this audit."]
+}

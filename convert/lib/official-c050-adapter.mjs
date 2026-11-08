@@ -398,14 +398,15 @@ export async function auditCompletedCustomC050Output(options){
   const expected=customOutputExpected(prepared);inspectOutputSource(bytes.framework,expected,bridge);
   await prepared.recheck();
   for(const [key,max]of Object.entries(limits))assert(readOrdinary(files[key],max).equals(bytes[key]),'C050_CUSTOM_FINAL_FILE_DRIFT');
-  return {schema:'wxslim-completed-custom-c050-output-audit-v1',status:'PASS_SOURCE_STATIC_ONLY',
+  return {schema:'wxslim-completed-custom-c050-output-audit-v1',status:prepared.bundled?'PASS_FINGERPRINT_STATIC_ONLY':'PASS_SOURCE_STATIC_ONLY',
     preparation:prepared.preparation,sourceTaskId:prepared.summary.taskId,sourceCommit:prepared.summary.sourceCommit,
     sourcePlanSha256:prepared.summary.sourcePlanSha256,features:prepared.summary.features,
     inputs:{js:prepared.summary.outputJs,wasm:prepared.summary.inputs.wasm},framework:pin(bytes.framework),bridge:pin(Buffer.from(bridge)),
     manifest:pin(bytes.manifest),launch:pin(bytes.launch),storedWasm,requestedMode:manifest.requestedMode,
     importNames:expected.importNames,nativeMapping:prepared.summary.derivation.hostProposal.nativeMapping,
-    ...(prepared.summary.retainedFixed || prepared.summary.retainedEvidence ? {originalBuildStatus:'FAILED',sourceBasis:'RETAINED_ARTIFACT_REAUDIT'} : {}),
-    sourceBuildReaudited:true,hostBridgeExact:true,sevenRulesPreserved:true,hostHelpersAndExportsPreserved:true,
+    ...(prepared.summary.retainedFixed || prepared.summary.retainedEvidence ? {originalBuildStatus:'FAILED',sourceBasis:prepared.bundled?'BUNDLED_ENGINE_FINGERPRINT':'RETAINED_ARTIFACT_REAUDIT'} : {}),
+    ...(prepared.bundled ? {pairFingerprintVerified:true} : {}),
+    sourceBuildReaudited:!prepared.bundled,hostBridgeExact:true,sevenRulesPreserved:true,hostHelpersAndExportsPreserved:true,
     converterCallMainCallback:'EXACT_OBSERVED_1_0_35',
     effectiveCompilerMacros:prepared.summary.effectiveCompilerMacros,otherPackageAssets:'NOT_CHECKED_BY_THIS_ENTRY',
     converterAccepted:false,targetExecuted:false,written:false,admission:'NOT_ADMITTED',runtime:'NOT_RUN',phone:'NOT_RUN'};

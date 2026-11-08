@@ -1,0 +1,29 @@
+{
+  "schema": "wxslim-fixed-engine-policy-v1",
+  "sourceCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "full": {
+    "path": "examples/glx-smoke/full-engine.gdbuild",
+    "sha256": "920ca801a58fe5bfb0f56aa39a1d523adae9658233189d6518b17e3c5b98e81b",
+    "disabledModules": []
+  },
+  "conservative": {
+    "path": "engine/conservative-glx.gdbuild",
+    "sha256": "14e9dc1a98af01974f93c77b74a151541d3831402ee028b066020229711f2699",
+    "disabledModules": ["gltf", "fbx", "vhacd", "webxr", "mobile_vr", "enet", "upnp"],
+    "buildStatus": "NOT_BUILT",
+    "runtimeStatus": "NOT_VERIFIED"
+  },
+  "removedFeatures": {
+    "runtime_gltf": {"module":"gltf","limit":"No GLTFDocument/State/extensions or runtime glTF/GLB import/export. Ordinary editor-exported scenes remain intended, pending build/runtime verification."},
+    "runtime_fbx": {"module":"fbx","limit":"No FBXDocument/State or runtime FBX import/export; FBX depends on gltf in this source."},
+    "runtime_convex_decomposition": {"module":"vhacd","limit":"No runtime VHACD, multiple convex collision generation or simplified convex creation that needs decomposition. Existing exported shapes remain intended."},
+    "webxr": {"module":"webxr","limit":"No WebXR interface; does not disable all 3D or XR core."},
+    "mobile_vr": {"module":"mobile_vr","limit":"No MobileVRInterface."},
+    "enet": {"module":"enet","limit":"No ENet classes/API. Current web NetSocket already lacks working UDP; HTTP/WebSocket and multiplayer core stay."},
+    "upnp": {"module":"upnp","limit":"No UPNP classes. Fixed web build already omits miniupnpc; do not promise substantial size savings."}
+  },
+  "keepModules": ["gdscript","freetype","text_server_adv","msdfgen","svg","astcenc","etcpak","bcdec","basis_universal","webp","jpg","bmp","tga","hdr","tinyexr","dds","ktx","ogg","vorbis","mp3","theora","interactive_music","mbedtls","websocket","multiplayer","meshoptimizer","godot_physics_2d","godot_physics_3d","jolt_physics","navigation_2d","navigation_3d","csg","gridmap","noise","visual_shader","jsonrpc","regex","webrtc","zip"],
+  "forbiddenChanges": ["disable_3d","disable_physics_2d","disable_physics_3d","disable_navigation_2d","disable_navigation_3d","disable_advanced_gui","disable_exceptions","javascript_eval","use_wx_glx","opengl3","threads","lto","optimization","GLX library","shader patches"],
+  "evidence": "docs/FIXED_FULL_TRIM_MODULES_20261104.md",
+  "scope": "Explicit full or bounded conservative profile only; declarations are not proof of dynamic dependency absence. No arbitrary module overrides or class trimming. Neither profile grants device acceptance."
+}

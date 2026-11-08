@@ -1,0 +1,1270 @@
+{
+  "schema": 1,
+  "files": {
+    "vendor/engines/full/godot.prepared.js": {
+      "bytes": 446605,
+      "sha256": "54a18a0d5022979420a968f84616757f73cbdd2f0f36a94050e36a776ed1cf1e",
+      "origin": "packaging/vendor-lock.json"
+    },
+    "vendor/engines/full/godot.wasm": {
+      "bytes": 65187084,
+      "sha256": "5dfe6064bc773569ad782eca8e07688c6d4a3f57fe590a5af2e730811da5fe16",
+      "origin": "packaging/vendor-lock.json"
+    },
+    "vendor/tools/wx-transformer-v1.0.35-win.exe": {
+      "bytes": 46401062,
+      "sha256": "f5b2d4ebbe2d077821309a455f60e397bb559ef342e51dd1b8f9a040a85e586e",
+      "origin": "packaging/vendor-lock.json"
+    },
+    "vendor/engines/conservative/godot.prepared.js": {
+      "bytes": 429639,
+      "sha256": "76362b5fc584cd515b42f6f4af2263f857cc20accf0ac9e9d241991e958a1940",
+      "origin": "packaging/vendor-lock.json"
+    },
+    "vendor/engines/conservative/godot.wasm": {
+      "bytes": 62428779,
+      "sha256": "99dbe672e48c2847eae2c5a3e553b8f8594b949ff57c93da103713ba2d224915",
+      "origin": "packaging/vendor-lock.json"
+    },
+    "vendor/engines/pure-2d/godot.prepared.js": {
+      "bytes": 424243,
+      "sha256": "9fb6e1857f2866ba7ce6e68429b295aaee398e7026f11fb078415e1a4702a84e",
+      "origin": "packaging/vendor-lock.json"
+    },
+    "vendor/engines/pure-2d/godot.wasm": {
+      "bytes": 52243631,
+      "sha256": "4585d1710ac4b942fb0305073c7b9a925f90a429ff4a74294ddc7775cd0fd2e4",
+      "origin": "packaging/vendor-lock.json"
+    },
+    "downloads/node-v24.18.0-win-x64.zip": {
+      "bytes": 37176245,
+      "sha256": "0ae68406b42d7725661da979b1403ec9926da205c6770827f33aac9d8f26e821",
+      "origin": "engine/official-toolchain-downloads.json"
+    },
+    "downloads/emscripten-4.0.10-wasm-binaries.zip": {
+      "bytes": 539321345,
+      "sha256": "1a66825e85fda039f57d39c98ae2bdb96a18e53745159e9599f69679be18439f",
+      "origin": "engine/official-toolchain-downloads.json"
+    },
+    "downloads/node-v24.19.0-win-x64.zip": {
+      "bytes": 37304352,
+      "sha256": "57f71ab3652e797d84acddc79c81cc9ff1c6ddb2a1974cdb83f00fee9bff4c73",
+      "origin": "engine/official-toolchain-downloads.json"
+    },
+    "downloads/python-3.13.3-0-win-amd64.zip": {
+      "bytes": 29736374,
+      "sha256": "6fe7a540c6b8b185780467cf7495e884ee62316ec4abb19e1c735b8a77c62465",
+      "origin": "engine/official-toolchain-downloads.json"
+    },
+    "downloads/emsdk-4.0.10.py": {
+      "bytes": 114791,
+      "sha256": "07ca12876cbc49283c4b2d441b0ebe8a741c31c5f776abe59c9f3f7364b4524b",
+      "origin": "engine/official-toolchain-downloads.json"
+    },
+    "downloads/emsdk-4.0.10-tags.json": {
+      "bytes": 16051,
+      "sha256": "70c566d0212d79f041d18a3841c1eee521953f42cc60fc4c90bfe1ad74736f78",
+      "origin": "engine/official-toolchain-downloads.json"
+    },
+    "downloads/scons-4.11.1-py3-none-any.whl": {
+      "bytes": 4123659,
+      "sha256": "454cef364348053422696e3d2ecb4fa593c96a624f955842eaaea64f95c8d11d",
+      "origin": "engine/requirements-scons.lock"
+    },
+    "upstream/library_godot_memfs.js": {
+      "bytes": 30148,
+      "sha256": "a96d4cde41cf91a83a77cb4eb6f23d40e3231f3c4d1a84465198a5e128c77d95",
+      "origin": "099277108e30c0af92bcbbbe7171fa073ae37606/platform/web/js/libs/library_godot_memfs.js"
+    },
+    "fixtures/http/platform/web/js/libs/library_wxslim_fetch.js": {
+      "bytes": 12888,
+      "sha256": "4bdaefe74d6cfd7c77b919fe71a9bc0b462701fb5eff358bc4259f5bc33cba10",
+      "origin": "engine/official-http-response-source.json"
+    },
+    "fixtures/http/platform/web/http_client_web.cpp": {
+      "bytes": 9722,
+      "sha256": "ebd199b1b79a4dfdf8ea9b8b19b518b0ede083104a0cf8b7218ece97df8b1ff6",
+      "origin": "engine/official-http-response-source.json"
+    },
+    "fixtures/http/platform/web/http_client_web.h": {
+      "bytes": 4720,
+      "sha256": "4f38e788c3c5af798cf5426fa19667b773771c45b5eb701521ce78757d0d817f",
+      "origin": "engine/official-http-response-source.json"
+    },
+    "fixtures/http/platform/web/js/libs/library_godot_fetch.js": {
+      "bytes": 8303,
+      "sha256": "47a515b15a93650ce3d45dbbd906818ecec191e8f0a1a5cb19de59043166e74f",
+      "origin": "engine/official-http-response-source.json"
+    },
+    "fixtures/http/platform/web/SCsub": {
+      "bytes": 5459,
+      "sha256": "94677374bcddeb1805833f892e4ff5a4698da22b66e90e6d1529fafb04c5e99d",
+      "origin": "engine/official-http-response-source.json"
+    },
+    "fixtures/ime/library_godot_input.js": {
+      "bytes": 29238,
+      "sha256": "105a1fb250fbdde6d1ee98d91325de5464f88cb6462684a7c7f7d050acc99a65",
+      "origin": "engine/official-ime-session-source.mjs"
+    },
+    "fixtures/c050/godot.raw.js": {
+      "bytes": 441774,
+      "sha256": "2b53363f6d569e9914d00eb679bc328b967d45c36b92faa2d463624e8b399207",
+      "origin": "official-engine-dev-01/artifacts/godot.raw.js"
+    },
+    "fixtures/c050/godot.wasm": {
+      "bytes": 65186782,
+      "sha256": "12dc2e40e1044345fbcd153497643bcd7b952705b1074da139f8b50048894861",
+      "origin": "official-engine-dev-01/artifacts/godot.wasm"
+    },
+    "fixtures/c050/framework.js": {
+      "bytes": 483731,
+      "sha256": "19b61328740c90e9e45e7b8ee5483763768881425afd721584baedc59b98bbbe",
+      "origin": "official-c050-desktop-01/task/converted/minigame/framework.js"
+    },
+    "fixtures/df3/emscripten-before-godot-process.js": {
+      "bytes": 478655,
+      "sha256": "982e4241ffbf1d69039e7c460fc1c403f551d414be811f0569111eed3361f2af",
+      "origin": "persistent-dev-01/postcompile-02/artifacts/emscripten-before-godot-process.js"
+    },
+    "fixtures/game/boot.pck": {
+      "bytes": 136576,
+      "sha256": "67baa2ff6a4413fa8e679b4db9198a726de6e630f650e6094f36bf5ad63329ae",
+      "origin": "resource-game-task-01/partition-task/packs/boot.pck"
+    },
+    "fixtures/stored/wx-game-kit/config.json": {
+      "bytes": 131,
+      "sha256": "e5359704d183236cac87cd607cf8f759769804ee6a742ec7285824b7a420bff7",
+      "origin": "full-official launch.code projection"
+    },
+    "fixtures/stored/wasmcode/927543c35b933d9.wasm.br": {
+      "bytes": 8629442,
+      "sha256": "24c6142511375ef291691dc0f96e986a323a470eda8346fef101333b5cbdae59",
+      "origin": "full-official/converted/minigame/wasmcode/927543c35b933d9.wasm.br"
+    },
+    "upstream/c050.pack": {
+      "bytes": 71132244,
+      "sha256": "f66488de130a3d19411f447b9c2ecba7762cff51ff068b6d8a766c4a09cea550",
+      "origin": "Godot c050 shallow commit and complete tree"
+    },
+    "upstream/df3.pack": {
+      "bytes": 73387257,
+      "sha256": "38efde6b0ef730460528f75dec34a82d838dd589963f0754b58eabc4bff0a815",
+      "origin": "citizenll/godot df3 source pack"
+    },
+    "fixtures/fork-http/platform/web/js/libs/library_godot_fetch.js": {
+      "bytes": 9159,
+      "sha256": "06740803e8cff87a074e9b09d492c224e969bdefe11094bf19dbe647812553b5",
+      "origin": "fixed-fetch-source-model original"
+    },
+    "fixtures/fork-http/platform/web/js/libs/library_godot_os.js": {
+      "bytes": 15059,
+      "sha256": "79025fde693a2310a61c58fcca8e657bc04c6fa5eda589d0aafc8d18ee081acf",
+      "origin": "fixed-fetch-source-model original"
+    },
+    "fixtures/modules/SConstruct": {
+      "bytes": 53054,
+      "sha256": "b67bd31bf2d3bc1d91d4a1c5b2e4117c3d2dbd9c066ba3bb040cdd61226845f7",
+      "origin": "official-engine-dev-01/engine/SConstruct"
+    },
+    "fixtures/modules/methods.py": {
+      "bytes": 65515,
+      "sha256": "5d860ccce735661b778edaf37478317c1b8e763af272d5355de1bc43688da154",
+      "origin": "official-engine-dev-01/engine/methods.py"
+    },
+    "fixtures/modules/modules/modules_builders.py": {
+      "bytes": 1669,
+      "sha256": "950322da2b321856ba901a3659b20040b4922aaa9ee870367ed97fe53135dce5",
+      "origin": "official-engine-dev-01/engine/modules/modules_builders.py"
+    },
+    "fixtures/modules/modules/SCsub": {
+      "bytes": 1906,
+      "sha256": "43f12939fd16e1a9f6fba96f73235be51e60e72b4794a1fdf8f555f5b614d51d",
+      "origin": "official-engine-dev-01/engine/modules/SCsub"
+    },
+    "fixtures/modules/core/crypto/SCsub": {
+      "bytes": 2711,
+      "sha256": "4b16ce9bc271a4c5f080b81439a24eb3baa6e8a89461a941332bd32c626549c2",
+      "origin": "official-engine-dev-01/engine/core/crypto/SCsub"
+    },
+    "fixtures/modules/modules/mbedtls/SCsub": {
+      "bytes": 3795,
+      "sha256": "f99fdcfaa845ad90e90cecff705fa56ae6faf91fd910a9bb39b9fcf090cfb031",
+      "origin": "official-engine-dev-01/engine/modules/mbedtls/SCsub"
+    },
+    "fixtures/modules/thirdparty/mbedtls/include/godot_module_mbedtls_config.h": {
+      "bytes": 3527,
+      "sha256": "0fef6e4710a1063f401ad6f10b95d4a4ffbbeea2740cf886e29c6c71e9025d8f",
+      "origin": "official-engine-dev-01/engine/thirdparty/mbedtls/include/godot_module_mbedtls_config.h"
+    },
+    "fixtures/modules/thirdparty/mbedtls/include/mbedtls/mbedtls_config.h": {
+      "bytes": 159124,
+      "sha256": "004edfaa0f9877a9f3baa7911ab708fd9d7c615f836f6b6674434e337145b7be",
+      "origin": "official-engine-dev-01/engine/thirdparty/mbedtls/include/mbedtls/mbedtls_config.h"
+    },
+    "fixtures/modules/thirdparty/mbedtls/include/mbedtls/ctr_drbg.h": {
+      "bytes": 25386,
+      "sha256": "601db8f2eb7a1269807547180f5d46249c07968a9191a187e0e88aba312bc74a",
+      "origin": "official-engine-dev-01/engine/thirdparty/mbedtls/include/mbedtls/ctr_drbg.h"
+    },
+    "fixtures/modules/modules/astcenc/config.py": {
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "origin": "official-engine-dev-01/engine/modules/astcenc/config.py"
+    },
+    "fixtures/modules/modules/basis_universal/config.py": {
+      "bytes": 194,
+      "sha256": "522e2c314578c8466a0e10c299b25392fdfad78c4ad84799a8ea1c15ab5d33eb",
+      "origin": "official-engine-dev-01/engine/modules/basis_universal/config.py"
+    },
+    "fixtures/modules/modules/bcdec/config.py": {
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "origin": "official-engine-dev-01/engine/modules/bcdec/config.py"
+    },
+    "fixtures/modules/modules/betsy/config.py": {
+      "bytes": 399,
+      "sha256": "12d3b2860cd8d6a1f2dfa08d01664b484f48ef1e2fb35cc381956d174d098cef",
+      "origin": "official-engine-dev-01/engine/modules/betsy/config.py"
+    },
+    "fixtures/modules/modules/bmp/config.py": {
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "origin": "official-engine-dev-01/engine/modules/bmp/config.py"
+    },
+    "fixtures/modules/modules/camera/config.py": {
+      "bytes": 389,
+      "sha256": "d45bc93d0ff35c6b5ba5907df5e9b188f5c77f21c583c70a4dd5455d98c01a99",
+      "origin": "official-engine-dev-01/engine/modules/camera/config.py"
+    },
+    "fixtures/modules/modules/csg/config.py": {
+      "bytes": 393,
+      "sha256": "17ab56196a3a6f2b3cf513eb9cd879755a48c4010b3586c483ddf0be39e27ab0",
+      "origin": "official-engine-dev-01/engine/modules/csg/config.py"
+    },
+    "fixtures/modules/modules/cvtt/config.py": {
+      "bytes": 396,
+      "sha256": "8936830d05a510c7debb6e6b4f589d8588a880769b082ef19be9ea6e31b0c125",
+      "origin": "official-engine-dev-01/engine/modules/cvtt/config.py"
+    },
+    "fixtures/modules/modules/dds/config.py": {
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "origin": "official-engine-dev-01/engine/modules/dds/config.py"
+    },
+    "fixtures/modules/modules/enet/config.py": {
+      "bytes": 251,
+      "sha256": "634448cf7089d5b12ab600ed76ac5effc4365a6d8e6113d6136d5e0f77010174",
+      "origin": "official-engine-dev-01/engine/modules/enet/config.py"
+    },
+    "fixtures/modules/modules/etcpak/config.py": {
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "origin": "official-engine-dev-01/engine/modules/etcpak/config.py"
+    },
+    "fixtures/modules/modules/fbx/config.py": {
+      "bytes": 363,
+      "sha256": "95860b5807e2168ca9a7bbcb1322f57af09ea4d554a284c62f15854cecceca8e",
+      "origin": "official-engine-dev-01/engine/modules/fbx/config.py"
+    },
+    "fixtures/modules/modules/freetype/config.py": {
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "origin": "official-engine-dev-01/engine/modules/freetype/config.py"
+    },
+    "fixtures/modules/modules/gdscript/config.py": {
+      "bytes": 419,
+      "sha256": "d4b684b463b0f1faab79da71a8c4ce0aec0ecfdf4717ebe0d7347703e4ae1ec9",
+      "origin": "official-engine-dev-01/engine/modules/gdscript/config.py"
+    },
+    "fixtures/modules/modules/glslang/config.py": {
+      "bytes": 249,
+      "sha256": "7550de9530b4bec40ce5956e1c255ae247cf8a0e8521346b6816d3cef10eeeae",
+      "origin": "official-engine-dev-01/engine/modules/glslang/config.py"
+    },
+    "fixtures/modules/modules/gltf/config.py": {
+      "bytes": 834,
+      "sha256": "c9cd77f57b14bb8b76afecbd53818564f2023518b7da6bd7ce9e219f73f38060",
+      "origin": "official-engine-dev-01/engine/modules/gltf/config.py"
+    },
+    "fixtures/modules/modules/godot_physics_2d/config.py": {
+      "bytes": 102,
+      "sha256": "fda4fa64ff6b567fb7ebb95e8f72778689b43c4475b055e4cf3675f4da789e87",
+      "origin": "official-engine-dev-01/engine/modules/godot_physics_2d/config.py"
+    },
+    "fixtures/modules/modules/godot_physics_3d/config.py": {
+      "bytes": 102,
+      "sha256": "f5307daa7374fe6cba2f1944308a53bc3c149c8c4cefb0c208b0becddc780a52",
+      "origin": "official-engine-dev-01/engine/modules/godot_physics_3d/config.py"
+    },
+    "fixtures/modules/modules/gridmap/config.py": {
+      "bytes": 212,
+      "sha256": "ea4d056707640bb9428e3ab7e06100899d9db1e1691a6630aef25c2dd4229456",
+      "origin": "official-engine-dev-01/engine/modules/gridmap/config.py"
+    },
+    "fixtures/modules/modules/hdr/config.py": {
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "origin": "official-engine-dev-01/engine/modules/hdr/config.py"
+    },
+    "fixtures/modules/modules/interactive_music/config.py": {
+      "bytes": 392,
+      "sha256": "d922521d72c058d090907611306760ccd456f97363f6ec93ca08283aaf2c32bb",
+      "origin": "official-engine-dev-01/engine/modules/interactive_music/config.py"
+    },
+    "fixtures/modules/modules/jolt_physics/config.py": {
+      "bytes": 102,
+      "sha256": "f5307daa7374fe6cba2f1944308a53bc3c149c8c4cefb0c208b0becddc780a52",
+      "origin": "official-engine-dev-01/engine/modules/jolt_physics/config.py"
+    },
+    "fixtures/modules/modules/jpg/config.py": {
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "origin": "official-engine-dev-01/engine/modules/jpg/config.py"
+    },
+    "fixtures/modules/modules/jsonrpc/config.py": {
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "origin": "official-engine-dev-01/engine/modules/jsonrpc/config.py"
+    },
+    "fixtures/modules/modules/ktx/config.py": {
+      "bytes": 137,
+      "sha256": "db099d8574cc9aa5a1fb9aa5fbd89f5b82e5f115ba22bba10c53cb4ffc5ce9e2",
+      "origin": "official-engine-dev-01/engine/modules/ktx/config.py"
+    },
+    "fixtures/modules/modules/lightmapper_rd/config.py": {
+      "bytes": 89,
+      "sha256": "53202f2e83a926a34f429a37a2c49f94201a6fa66ce14575fb194c651a9fc67b",
+      "origin": "official-engine-dev-01/engine/modules/lightmapper_rd/config.py"
+    },
+    "fixtures/modules/modules/mbedtls/config.py": {
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "origin": "official-engine-dev-01/engine/modules/mbedtls/config.py"
+    },
+    "fixtures/modules/modules/meshoptimizer/config.py": {
+      "bytes": 193,
+      "sha256": "e845ac7c3b1c89f7c4ab92b59d24e268a40d22ec3565041ee267701aabafdd1f",
+      "origin": "official-engine-dev-01/engine/modules/meshoptimizer/config.py"
+    },
+    "fixtures/modules/modules/mobile_vr/config.py": {
+      "bytes": 214,
+      "sha256": "ae479a0d1b50249fb9df119638c11b6d3e64702b6f512db412d3c421ecc8a0a2",
+      "origin": "official-engine-dev-01/engine/modules/mobile_vr/config.py"
+    },
+    "fixtures/modules/modules/mono/config.py": {
+      "bytes": 722,
+      "sha256": "31368c2e3e9da4eed6e1d643ad6eebd0aea077d17ab4ab743ad1bf87edddc4e6",
+      "origin": "official-engine-dev-01/engine/modules/mono/config.py"
+    },
+    "fixtures/modules/modules/mp3/config.py": {
+      "bytes": 416,
+      "sha256": "1fac0f2ad756dec322cd1583338a3500af9db30ca18417af50c99ad50f78ad2a",
+      "origin": "official-engine-dev-01/engine/modules/mp3/config.py"
+    },
+    "fixtures/modules/modules/msdfgen/config.py": {
+      "bytes": 134,
+      "sha256": "1afa0bfa4cd1ed566748c92df02abae764f5585c74b5979836a76235971e8f04",
+      "origin": "official-engine-dev-01/engine/modules/msdfgen/config.py"
+    },
+    "fixtures/modules/modules/multiplayer/config.py": {
+      "bytes": 329,
+      "sha256": "98da0433c19b5931bcbf498dfbeefed2c0b65de0f43d5bbc386bfb41f27d0af6",
+      "origin": "official-engine-dev-01/engine/modules/multiplayer/config.py"
+    },
+    "fixtures/modules/modules/navigation_2d/config.py": {
+      "bytes": 105,
+      "sha256": "8e3083f9aae197c01bd0287d80cc76a10239bf5d538b29fb629fbe4b5b498f21",
+      "origin": "official-engine-dev-01/engine/modules/navigation_2d/config.py"
+    },
+    "fixtures/modules/modules/navigation_3d/config.py": {
+      "bytes": 208,
+      "sha256": "4b5197eb4e81c2769c47ebd29ae40c879d75c20c3f92c10d95694191c9b49f87",
+      "origin": "official-engine-dev-01/engine/modules/navigation_3d/config.py"
+    },
+    "fixtures/modules/modules/noise/config.py": {
+      "bytes": 262,
+      "sha256": "3609ff7971b1ca4d96a38b0aa0ef2d9fe341186c2d2813e13ce6ee90206105c2",
+      "origin": "official-engine-dev-01/engine/modules/noise/config.py"
+    },
+    "fixtures/modules/modules/objectdb_profiler/config.py": {
+      "bytes": 91,
+      "sha256": "d8643279400149eca650782aa54bdc99c7a684d0c4b5ca558fff5ed33de814b9",
+      "origin": "official-engine-dev-01/engine/modules/objectdb_profiler/config.py"
+    },
+    "fixtures/modules/modules/ogg/config.py": {
+      "bytes": 234,
+      "sha256": "1e9d230eb2ef938e27f03e0128b62c2024b408cb97b44fb92bcbfc1a94087f2c",
+      "origin": "official-engine-dev-01/engine/modules/ogg/config.py"
+    },
+    "fixtures/modules/modules/openxr/config.py": {
+      "bytes": 2903,
+      "sha256": "6c9a9ac6b2d9396fe400167fb2642eaa97744a9c11f40388447d75d272c29f97",
+      "origin": "official-engine-dev-01/engine/modules/openxr/config.py"
+    },
+    "fixtures/modules/modules/raycast/config.py": {
+      "bytes": 394,
+      "sha256": "0872af94d0f593ee71031749877c436f5e686c9aec57d56d850a13760b73a1b2",
+      "origin": "official-engine-dev-01/engine/modules/raycast/config.py"
+    },
+    "fixtures/modules/modules/regex/config.py": {
+      "bytes": 207,
+      "sha256": "d23342572c26a5ef82249980c498c5b9e8850aeea26871a126e18d9df8a0244e",
+      "origin": "official-engine-dev-01/engine/modules/regex/config.py"
+    },
+    "fixtures/modules/modules/svg/config.py": {
+      "bytes": 139,
+      "sha256": "b5aef0161d51ee13679917aaf5f2d3f690fb627b3bdab2cfdcc6570ec91c58a4",
+      "origin": "official-engine-dev-01/engine/modules/svg/config.py"
+    },
+    "fixtures/modules/modules/text_server_adv/config.py": {
+      "bytes": 461,
+      "sha256": "33b12f1c1a9f60c07cd549c8d880e9a11603b01b8e764feda7664ab49408e518",
+      "origin": "official-engine-dev-01/engine/modules/text_server_adv/config.py"
+    },
+    "fixtures/modules/modules/text_server_fb/config.py": {
+      "bytes": 416,
+      "sha256": "b43f9b00e3f13825ea183351d41502033ce3853b95bc36d1f7cf17b51cb1ca16",
+      "origin": "official-engine-dev-01/engine/modules/text_server_fb/config.py"
+    },
+    "fixtures/modules/modules/tga/config.py": {
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "origin": "official-engine-dev-01/engine/modules/tga/config.py"
+    },
+    "fixtures/modules/modules/theora/config.py": {
+      "bytes": 316,
+      "sha256": "eb97f5cf46667ea3190522d632610cbb4ee06b1d8cb58273d4b328fb7b28b827",
+      "origin": "official-engine-dev-01/engine/modules/theora/config.py"
+    },
+    "fixtures/modules/modules/tinyexr/config.py": {
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "origin": "official-engine-dev-01/engine/modules/tinyexr/config.py"
+    },
+    "fixtures/modules/modules/upnp/config.py": {
+      "bytes": 206,
+      "sha256": "3981d4dd748199ee6cd931bc3f6edb768682beb2428374887ff99052e94af683",
+      "origin": "official-engine-dev-01/engine/modules/upnp/config.py"
+    },
+    "fixtures/modules/modules/vhacd/config.py": {
+      "bytes": 102,
+      "sha256": "f5307daa7374fe6cba2f1944308a53bc3c149c8c4cefb0c208b0becddc780a52",
+      "origin": "official-engine-dev-01/engine/modules/vhacd/config.py"
+    },
+    "fixtures/modules/modules/visual_shader/config.py": {
+      "bytes": 4666,
+      "sha256": "ece70b08aa05087ece102f9783b58b747cab3fed008a2e2d9e463c02084e5bb6",
+      "origin": "official-engine-dev-01/engine/modules/visual_shader/config.py"
+    },
+    "fixtures/modules/modules/vorbis/config.py": {
+      "bytes": 328,
+      "sha256": "44096c6a0b493d77f52e70a0e228f95ade3afd0fae6759dd42ad40250b4d0d86",
+      "origin": "official-engine-dev-01/engine/modules/vorbis/config.py"
+    },
+    "fixtures/modules/modules/webp/config.py": {
+      "bytes": 77,
+      "sha256": "cb63fcfb37b9f3cc775d166a98806d96d3215372c70c1a1610f6030e708d3117",
+      "origin": "official-engine-dev-01/engine/modules/webp/config.py"
+    },
+    "fixtures/modules/modules/webrtc/config.py": {
+      "bytes": 341,
+      "sha256": "c6bd9ca5f8b1e866c37ee16baeec4ad1b4720716137d4c4503f185fc5e2a1da7",
+      "origin": "official-engine-dev-01/engine/modules/webrtc/config.py"
+    },
+    "fixtures/modules/modules/websocket/config.py": {
+      "bytes": 283,
+      "sha256": "c1f2419ac93a50ede07b3ff96c9e9c3aeaad6fb3b891e92c208ff3b88c37ee0b",
+      "origin": "official-engine-dev-01/engine/modules/websocket/config.py"
+    },
+    "fixtures/modules/modules/webxr/config.py": {
+      "bytes": 346,
+      "sha256": "fec8bfc5d23243b654aa2394ff01a98b3af4e32392905afa8feb7b31eeba73db",
+      "origin": "official-engine-dev-01/engine/modules/webxr/config.py"
+    },
+    "fixtures/modules/modules/xatlas_unwrap/config.py": {
+      "bytes": 89,
+      "sha256": "53202f2e83a926a34f429a37a2c49f94201a6fa66ce14575fb194c651a9fc67b",
+      "origin": "official-engine-dev-01/engine/modules/xatlas_unwrap/config.py"
+    },
+    "fixtures/modules/modules/zip/config.py": {
+      "bytes": 220,
+      "sha256": "050814db8a4b08ae5a95f35744ade17cbb0895ced371b2b50c88d06eeca133bd",
+      "origin": "official-engine-dev-01/engine/modules/zip/config.py"
+    },
+    "fixtures/modules/platform/web/detect.py": {
+      "bytes": 17570,
+      "sha256": "3558e308750cafc529d6e8367790ab55648df585b88bb1fabde0d93ecf8529ab",
+      "origin": "official-engine-dev-01/engine/platform/web/detect.py"
+    },
+    "fixtures/modules/platform/web/SCsub": {
+      "bytes": 5459,
+      "sha256": "94677374bcddeb1805833f892e4ff5a4698da22b66e90e6d1529fafb04c5e99d",
+      "origin": "official-engine-dev-01/engine/platform/web/SCsub"
+    },
+    "fixtures/modules/core/crypto/crypto_core.cpp": {
+      "bytes": 13168,
+      "sha256": "c215fae7602085875a5d22fc99bf54e425e86d3e3bd48ee447fcdafdc8e21b9c",
+      "origin": "official-engine-dev-01/engine/core/crypto/crypto_core.cpp"
+    },
+    "fixtures/modules/modules/astcenc/register_types.h": {
+      "bytes": 2428,
+      "sha256": "1ff7ea9d8c40663da5036167140098bb8fad475b2ed6cf063bbc9aa2bf58d95f",
+      "origin": "official-engine-dev-01/engine/modules/astcenc/register_types.h"
+    },
+    "fixtures/modules/modules/astcenc/SCsub": {
+      "bytes": 1760,
+      "sha256": "0f46e3f1341e02ed2a378c0f1a79849c365c0023c5cc7f8ee6096df6f68743b7",
+      "origin": "official-engine-dev-01/engine/modules/astcenc/SCsub"
+    },
+    "fixtures/modules/modules/basis_universal/register_types.h": {
+      "bytes": 2444,
+      "sha256": "3f32c6a3fd3b8baf2aecc1c234de0ec379cb06c34d41cf2a73f3d62fd9674c11",
+      "origin": "official-engine-dev-01/engine/modules/basis_universal/register_types.h"
+    },
+    "fixtures/modules/modules/basis_universal/SCsub": {
+      "bytes": 2819,
+      "sha256": "539e0fe638e83a363f3ff6bc0b5974a9116d97a6cfb9566e75a87b2478100c9f",
+      "origin": "official-engine-dev-01/engine/modules/basis_universal/SCsub"
+    },
+    "fixtures/modules/modules/bcdec/register_types.h": {
+      "bytes": 2424,
+      "sha256": "a8d5612188c752ff09e05b2e279ab0c2837ebae8107943802ae9a07f4a804494",
+      "origin": "official-engine-dev-01/engine/modules/bcdec/register_types.h"
+    },
+    "fixtures/modules/modules/bcdec/SCsub": {
+      "bytes": 210,
+      "sha256": "68658662012dd5bf12c5dff54be5fb69b71f75bb63eb1038bc0396c34f1c15e7",
+      "origin": "official-engine-dev-01/engine/modules/bcdec/SCsub"
+    },
+    "fixtures/modules/modules/betsy/register_types.h": {
+      "bytes": 2424,
+      "sha256": "38f6fce15689f208356d2897c65db396bfbc623b2afb51500acbd3f74f2a53c7",
+      "origin": "official-engine-dev-01/engine/modules/betsy/register_types.h"
+    },
+    "fixtures/modules/modules/betsy/SCsub": {
+      "bytes": 532,
+      "sha256": "8843ca717ceb00ac9d726eb664332adc94485fbc5582c6de1f25c28b526dc0dc",
+      "origin": "official-engine-dev-01/engine/modules/betsy/SCsub"
+    },
+    "fixtures/modules/modules/bmp/register_types.h": {
+      "bytes": 2420,
+      "sha256": "470e6c3edc42289119a2a70a63c3b93dd546f07ad43ceff537db0d752e1084c4",
+      "origin": "official-engine-dev-01/engine/modules/bmp/register_types.h"
+    },
+    "fixtures/modules/modules/bmp/SCsub": {
+      "bytes": 206,
+      "sha256": "c01a758ecb8468d6c6fdc958311423cc35f90f918311ef82852c0e5f5d977017",
+      "origin": "official-engine-dev-01/engine/modules/bmp/SCsub"
+    },
+    "fixtures/modules/modules/camera/register_types.h": {
+      "bytes": 2426,
+      "sha256": "eca44b42e16e85ef09ec79f90518cde468e2d85b5a19222cb42bb8bdfe27c6ce",
+      "origin": "official-engine-dev-01/engine/modules/camera/register_types.h"
+    },
+    "fixtures/modules/modules/camera/SCsub": {
+      "bytes": 1196,
+      "sha256": "3de70e050706f211e5b3761b63359da9d108d453dee2022d162f0758a565898c",
+      "origin": "official-engine-dev-01/engine/modules/camera/SCsub"
+    },
+    "fixtures/modules/modules/csg/register_types.h": {
+      "bytes": 2420,
+      "sha256": "9d0d3575615263b98bf19911d814ab04f41d88e73c7715cb2aa83f7560f32f31",
+      "origin": "official-engine-dev-01/engine/modules/csg/register_types.h"
+    },
+    "fixtures/modules/modules/csg/SCsub": {
+      "bytes": 1309,
+      "sha256": "5872a0a7f0d6f36feab901ea6d26cadeb2d7973ebf85c566f1d15d5f6aa50f84",
+      "origin": "official-engine-dev-01/engine/modules/csg/SCsub"
+    },
+    "fixtures/modules/modules/cvtt/register_types.h": {
+      "bytes": 2422,
+      "sha256": "e5a3feb6b482b79c9b50bfbb226546a24f248657d8a178cb906c5cfc5364a04f",
+      "origin": "official-engine-dev-01/engine/modules/cvtt/register_types.h"
+    },
+    "fixtures/modules/modules/cvtt/SCsub": {
+      "bytes": 1153,
+      "sha256": "65a2f86c68a954ad79f9a96910020b91986c1b6179092d161450bdd59da39276",
+      "origin": "official-engine-dev-01/engine/modules/cvtt/SCsub"
+    },
+    "fixtures/modules/modules/dds/register_types.h": {
+      "bytes": 2420,
+      "sha256": "da30c115ae98780f8b76fdc7f69f7d1c0c2c7cb9222339e6c24a8e523054268c",
+      "origin": "official-engine-dev-01/engine/modules/dds/register_types.h"
+    },
+    "fixtures/modules/modules/dds/SCsub": {
+      "bytes": 185,
+      "sha256": "478f2f4897e05b66c0194659208632c59365541f128ea2591bb97a9e1a00982e",
+      "origin": "official-engine-dev-01/engine/modules/dds/SCsub"
+    },
+    "fixtures/modules/modules/enet/register_types.h": {
+      "bytes": 2422,
+      "sha256": "33cad2efb04a9b40ee59c3515813247f427347dc82b32b1bc36066d175cbe5d9",
+      "origin": "official-engine-dev-01/engine/modules/enet/register_types.h"
+    },
+    "fixtures/modules/modules/enet/SCsub": {
+      "bytes": 1059,
+      "sha256": "5d145ab7b83f5feeb3b0ee0ffe61f40a5f6940dba740ba46468a577444caf32d",
+      "origin": "official-engine-dev-01/engine/modules/enet/SCsub"
+    },
+    "fixtures/modules/modules/etcpak/register_types.h": {
+      "bytes": 2426,
+      "sha256": "faed8a284da167d6ee6af645ade128ac829c80b37f0c7a89eddb3c28069f54f5",
+      "origin": "official-engine-dev-01/engine/modules/etcpak/register_types.h"
+    },
+    "fixtures/modules/modules/etcpak/SCsub": {
+      "bytes": 896,
+      "sha256": "624c9106f13b35fd53b2b418a86de0ff81ad833883676cfe69250f9e43b45871",
+      "origin": "official-engine-dev-01/engine/modules/etcpak/SCsub"
+    },
+    "fixtures/modules/modules/fbx/register_types.h": {
+      "bytes": 2420,
+      "sha256": "67c366cac6430883169019e11054b16940fe4171e19de9ba79447e7440e71e32",
+      "origin": "official-engine-dev-01/engine/modules/fbx/register_types.h"
+    },
+    "fixtures/modules/modules/fbx/SCsub": {
+      "bytes": 1185,
+      "sha256": "b83363114255799d389d82690749bd4705e47fe0d9b0446bde62884e18a453fd",
+      "origin": "official-engine-dev-01/engine/modules/fbx/SCsub"
+    },
+    "fixtures/modules/modules/freetype/register_types.h": {
+      "bytes": 2434,
+      "sha256": "eadd1fdb9d18691f5ee283c96834bf7d577da17a2d4fbce63c26dd066f07ac27",
+      "origin": "official-engine-dev-01/engine/modules/freetype/register_types.h"
+    },
+    "fixtures/modules/modules/freetype/SCsub": {
+      "bytes": 3968,
+      "sha256": "6db86715c81113a9a07c084b0cc795e21e35f68fdf9d164dd539287dc3419901",
+      "origin": "official-engine-dev-01/engine/modules/freetype/SCsub"
+    },
+    "fixtures/modules/modules/gdscript/register_types.h": {
+      "bytes": 2430,
+      "sha256": "42dbce717ae4c40b520d1e9c3085fd1828fbd44d0e720c5af2bd3d3eb1452812",
+      "origin": "official-engine-dev-01/engine/modules/gdscript/register_types.h"
+    },
+    "fixtures/modules/modules/gdscript/SCsub": {
+      "bytes": 1109,
+      "sha256": "f1298c11c276c05a988ea6da422778485e7095a087cc872fdf42efbc8bbfd8cf",
+      "origin": "official-engine-dev-01/engine/modules/gdscript/SCsub"
+    },
+    "fixtures/modules/modules/glslang/register_types.h": {
+      "bytes": 2468,
+      "sha256": "a6657f3cd9288a2626d184d2ddffe51ed54b33cfc8191f3df624308f5ea214a0",
+      "origin": "official-engine-dev-01/engine/modules/glslang/register_types.h"
+    },
+    "fixtures/modules/modules/glslang/SCsub": {
+      "bytes": 3234,
+      "sha256": "fce469edb7b07383b85bc3dc42dbd58ddf1d6090fa43b8fc2812b282c524e992",
+      "origin": "official-engine-dev-01/engine/modules/glslang/SCsub"
+    },
+    "fixtures/modules/modules/gltf/register_types.h": {
+      "bytes": 2422,
+      "sha256": "b606e82913e0438d1929101094b312fdd4d6a1aee101d3c8179750ca836e69f7",
+      "origin": "official-engine-dev-01/engine/modules/gltf/register_types.h"
+    },
+    "fixtures/modules/modules/gltf/SCsub": {
+      "bytes": 397,
+      "sha256": "3bff37b940ada62f104e31d4c17bc3a6051b2596fade1f09c83427a3bbfeed55",
+      "origin": "official-engine-dev-01/engine/modules/gltf/SCsub"
+    },
+    "fixtures/modules/modules/godot_physics_2d/register_types.h": {
+      "bytes": 2446,
+      "sha256": "891afde1db0bc308e35cbffdcf454b250d09900e095eaa23e3c1ac760ecad77e",
+      "origin": "official-engine-dev-01/engine/modules/godot_physics_2d/register_types.h"
+    },
+    "fixtures/modules/modules/godot_physics_2d/SCsub": {
+      "bytes": 128,
+      "sha256": "d4fc762311e16ac6ea95fe02591e1a1779d26a73c491a7d519e416ec40f204d5",
+      "origin": "official-engine-dev-01/engine/modules/godot_physics_2d/SCsub"
+    },
+    "fixtures/modules/modules/godot_physics_3d/register_types.h": {
+      "bytes": 2446,
+      "sha256": "43340d2dd6c260af85a79ee8810dd2a1a0ec79b4e9371d07c9e6a9de5c1d72ed",
+      "origin": "official-engine-dev-01/engine/modules/godot_physics_3d/register_types.h"
+    },
+    "fixtures/modules/modules/godot_physics_3d/SCsub": {
+      "bytes": 156,
+      "sha256": "da2acf104b80d8a75e85e3ff662170ee73fe4a3f77a603830120fadcedab684f",
+      "origin": "official-engine-dev-01/engine/modules/godot_physics_3d/SCsub"
+    },
+    "fixtures/modules/modules/gridmap/register_types.h": {
+      "bytes": 2428,
+      "sha256": "fcf0db7eacf58b84dfd93460483a6cf504bc0096e2fd66c57cb92bbbf90076ae",
+      "origin": "official-engine-dev-01/engine/modules/gridmap/register_types.h"
+    },
+    "fixtures/modules/modules/gridmap/SCsub": {
+      "bytes": 305,
+      "sha256": "f2dfa5c540b438800ecdba3c24965dd24ef9060ccff3887c24290ea6b874f7f9",
+      "origin": "official-engine-dev-01/engine/modules/gridmap/SCsub"
+    },
+    "fixtures/modules/modules/hdr/register_types.h": {
+      "bytes": 2420,
+      "sha256": "cdb737594ab14da24dfa32bc1d2944ef305ce886313d509261752ed8564041b7",
+      "origin": "official-engine-dev-01/engine/modules/hdr/register_types.h"
+    },
+    "fixtures/modules/modules/hdr/SCsub": {
+      "bytes": 206,
+      "sha256": "df26b68c744776814892a865fc4f1d3bada98e8eb765fa023819b8b0861db865",
+      "origin": "official-engine-dev-01/engine/modules/hdr/SCsub"
+    },
+    "fixtures/modules/modules/interactive_music/register_types.h": {
+      "bytes": 2448,
+      "sha256": "eec80631bf7751ca8f74cacdee04fe29c511d2963eac076d02ea1419c63b0715",
+      "origin": "official-engine-dev-01/engine/modules/interactive_music/register_types.h"
+    },
+    "fixtures/modules/modules/interactive_music/SCsub": {
+      "bytes": 341,
+      "sha256": "48c58fb043bb0716158550b0a0dce4147f5435ffae6e28d5acd37c67b1ac4607",
+      "origin": "official-engine-dev-01/engine/modules/interactive_music/SCsub"
+    },
+    "fixtures/modules/modules/jolt_physics/register_types.h": {
+      "bytes": 2438,
+      "sha256": "5d1d0521d403843cd6110987455605cd8cff4d810716fe1b0cbec836ceffa33b",
+      "origin": "official-engine-dev-01/engine/modules/jolt_physics/register_types.h"
+    },
+    "fixtures/modules/modules/jolt_physics/SCsub": {
+      "bytes": 7614,
+      "sha256": "231b01de1f15a396565d87bcb6b4f859025e1ac1a879654b7848964c3a993874",
+      "origin": "official-engine-dev-01/engine/modules/jolt_physics/SCsub"
+    },
+    "fixtures/modules/modules/jpg/register_types.h": {
+      "bytes": 2420,
+      "sha256": "e84188c6f52294fe90d4e4231578b595839b5f8f0891acc01177f55ed7a260c0",
+      "origin": "official-engine-dev-01/engine/modules/jpg/register_types.h"
+    },
+    "fixtures/modules/modules/jpg/SCsub": {
+      "bytes": 2710,
+      "sha256": "ebe332973d9789726b7aa283352a3a2bb83ebd6b4ae96282db2971cbf16e8621",
+      "origin": "official-engine-dev-01/engine/modules/jpg/SCsub"
+    },
+    "fixtures/modules/modules/jsonrpc/register_types.h": {
+      "bytes": 2428,
+      "sha256": "5dc1862d19b8dfdd66b796c942da2689b7a786e1ff21f7fe671720171ced3e38",
+      "origin": "official-engine-dev-01/engine/modules/jsonrpc/register_types.h"
+    },
+    "fixtures/modules/modules/jsonrpc/SCsub": {
+      "bytes": 281,
+      "sha256": "4a03522baf9491e66f809c1aa3dfa51b168a0a15ebbe703b2900019d85d7bfdb",
+      "origin": "official-engine-dev-01/engine/modules/jsonrpc/SCsub"
+    },
+    "fixtures/modules/modules/ktx/register_types.h": {
+      "bytes": 2420,
+      "sha256": "33731563efadba7a3a16d74e7ca6c7238aa004041e63e68d6e4fc7d4e5526d5e",
+      "origin": "official-engine-dev-01/engine/modules/ktx/register_types.h"
+    },
+    "fixtures/modules/modules/ktx/SCsub": {
+      "bytes": 2008,
+      "sha256": "b33742c00c602058a2245bd04f90cdf488f65382fa8a9c36967c2d0c306e402b",
+      "origin": "official-engine-dev-01/engine/modules/ktx/SCsub"
+    },
+    "fixtures/modules/modules/lightmapper_rd/register_types.h": {
+      "bytes": 2442,
+      "sha256": "49dab9bc00ce1c4e74f38c1d32474c6ff33f1455083e38c9c39df3c599ff1891",
+      "origin": "official-engine-dev-01/engine/modules/lightmapper_rd/register_types.h"
+    },
+    "fixtures/modules/modules/lightmapper_rd/SCsub": {
+      "bytes": 474,
+      "sha256": "2cdc0550a1c3ddbeb7b684ec08d03fdda804214a576832db9e7953e8b06efa6c",
+      "origin": "official-engine-dev-01/engine/modules/lightmapper_rd/SCsub"
+    },
+    "fixtures/modules/modules/mbedtls/register_types.h": {
+      "bytes": 2428,
+      "sha256": "f220570c76d10ad7b01f29f5af4e39df3bf750a0105eab2bb18076843077edb7",
+      "origin": "official-engine-dev-01/engine/modules/mbedtls/register_types.h"
+    },
+    "fixtures/modules/modules/meshoptimizer/register_types.h": {
+      "bytes": 2440,
+      "sha256": "2842c11e6ea72ac7bfe72229233ebb3e2398992953b27cdfd1944da05351622c",
+      "origin": "official-engine-dev-01/engine/modules/meshoptimizer/register_types.h"
+    },
+    "fixtures/modules/modules/meshoptimizer/SCsub": {
+      "bytes": 1158,
+      "sha256": "986d95efe48c1ee52f6fcef9e85241e88c96fb868d35a6b7bfb8aa87510b2c0a",
+      "origin": "official-engine-dev-01/engine/modules/meshoptimizer/SCsub"
+    },
+    "fixtures/modules/modules/mobile_vr/register_types.h": {
+      "bytes": 2432,
+      "sha256": "a77182989239d3402becf136e5970a6ca04ad352ebce93b6ebb1821a2ca44ebc",
+      "origin": "official-engine-dev-01/engine/modules/mobile_vr/register_types.h"
+    },
+    "fixtures/modules/modules/mobile_vr/SCsub": {
+      "bytes": 197,
+      "sha256": "dcb03ea23dad22bfd2af407e1bf91a0ba3fc6f77b84f6f1599ca5162053df99a",
+      "origin": "official-engine-dev-01/engine/modules/mobile_vr/SCsub"
+    },
+    "fixtures/modules/modules/mono/register_types.h": {
+      "bytes": 2422,
+      "sha256": "9d0c517d8bd93d8cb12b38e4cc2aba84b843d739c303635a1383c42d52bdde4d",
+      "origin": "official-engine-dev-01/engine/modules/mono/register_types.h"
+    },
+    "fixtures/modules/modules/mono/SCsub": {
+      "bytes": 640,
+      "sha256": "a465aa031e0e2324f8002e4c7c42bb2220cb93239bea3e02a68eb97b959197dd",
+      "origin": "official-engine-dev-01/engine/modules/mono/SCsub"
+    },
+    "fixtures/modules/modules/mp3/register_types.h": {
+      "bytes": 2420,
+      "sha256": "2073ad995305c66668872d6b6eff311a6f46653b57574fd225a74b9e9de8b1cc",
+      "origin": "official-engine-dev-01/engine/modules/mp3/register_types.h"
+    },
+    "fixtures/modules/modules/mp3/SCsub": {
+      "bytes": 291,
+      "sha256": "d4c460ea8828b9714b1ac8ced135670899feb896396ce43b394f8ef1906f539e",
+      "origin": "official-engine-dev-01/engine/modules/mp3/SCsub"
+    },
+    "fixtures/modules/modules/msdfgen/register_types.h": {
+      "bytes": 2432,
+      "sha256": "fbd76a64e2e65ac2fcb957e0bea09a97c222197bd9abc9a6ffa778e7e68cae3f",
+      "origin": "official-engine-dev-01/engine/modules/msdfgen/register_types.h"
+    },
+    "fixtures/modules/modules/msdfgen/SCsub": {
+      "bytes": 2361,
+      "sha256": "291c08141b374ff306c9558913db7abda9f74437fac58f5b14fe1d231374cd57",
+      "origin": "official-engine-dev-01/engine/modules/msdfgen/SCsub"
+    },
+    "fixtures/modules/modules/multiplayer/register_types.h": {
+      "bytes": 2436,
+      "sha256": "02efb0d5e68dede96189fd3c3d14977ca8125eea4e7f16abe9e7017877f06d65",
+      "origin": "official-engine-dev-01/engine/modules/multiplayer/register_types.h"
+    },
+    "fixtures/modules/modules/multiplayer/SCsub": {
+      "bytes": 387,
+      "sha256": "88a1af0e07dddb2ea65bbc4476823220fd47b332a9c67b8da13de662bb2a9a75",
+      "origin": "official-engine-dev-01/engine/modules/multiplayer/SCsub"
+    },
+    "fixtures/modules/modules/navigation_2d/register_types.h": {
+      "bytes": 2440,
+      "sha256": "2f7ad1b464bce3cf77568089d1e4e4e3e5b207e8327178cd130de1e7a25d57b4",
+      "origin": "official-engine-dev-01/engine/modules/navigation_2d/register_types.h"
+    },
+    "fixtures/modules/modules/navigation_2d/SCsub": {
+      "bytes": 1172,
+      "sha256": "9cdc71f90526a98bfe5d0ded9273eaf12ece240baff26b2473acf6f6f63fc9e6",
+      "origin": "official-engine-dev-01/engine/modules/navigation_2d/SCsub"
+    },
+    "fixtures/modules/modules/navigation_3d/register_types.h": {
+      "bytes": 2440,
+      "sha256": "703ac022efd3ab183a54fa7c8f80d2bff8328e0c9dfd3d20249632efcf251728",
+      "origin": "official-engine-dev-01/engine/modules/navigation_3d/register_types.h"
+    },
+    "fixtures/modules/modules/navigation_3d/SCsub": {
+      "bytes": 2702,
+      "sha256": "fd50f00f09e63be1a5f2679d6bd7cba41a42d5efc8d3c6c0976a1a6b80ee1574",
+      "origin": "official-engine-dev-01/engine/modules/navigation_3d/SCsub"
+    },
+    "fixtures/modules/modules/noise/register_types.h": {
+      "bytes": 2424,
+      "sha256": "4adcc8fd0ba6680854d59b20a5b17e776df719eee126c62c92fa9a4517ef5d9f",
+      "origin": "official-engine-dev-01/engine/modules/noise/register_types.h"
+    },
+    "fixtures/modules/modules/noise/SCsub": {
+      "bytes": 417,
+      "sha256": "761e404db03256c5c9eb0f944e6b0855e7d72b2da7c1b952d660e3d2a2825ca0",
+      "origin": "official-engine-dev-01/engine/modules/noise/SCsub"
+    },
+    "fixtures/modules/modules/objectdb_profiler/register_types.h": {
+      "bytes": 2448,
+      "sha256": "6018e15a1e96e923ed8ca85045874fee3ece61c7f4284993c3d3896bb2e18730",
+      "origin": "official-engine-dev-01/engine/modules/objectdb_profiler/register_types.h"
+    },
+    "fixtures/modules/modules/objectdb_profiler/SCsub": {
+      "bytes": 546,
+      "sha256": "3699049b20f92f88cfc21939f2b123f4018360414898b3a4ed441c53e5614720",
+      "origin": "official-engine-dev-01/engine/modules/objectdb_profiler/SCsub"
+    },
+    "fixtures/modules/modules/ogg/register_types.h": {
+      "bytes": 2420,
+      "sha256": "624380a21e71ab37bf28874e62ef6a6ec56a88c453e3b004793942da8754e85a",
+      "origin": "official-engine-dev-01/engine/modules/ogg/register_types.h"
+    },
+    "fixtures/modules/modules/ogg/SCsub": {
+      "bytes": 887,
+      "sha256": "882975fe89cb83008ee787bfb2f29a0794c5a12f0ef0eb9fa80afbca85fbf721",
+      "origin": "official-engine-dev-01/engine/modules/ogg/SCsub"
+    },
+    "fixtures/modules/modules/openxr/register_types.h": {
+      "bytes": 2465,
+      "sha256": "53f948ba52346634695af7c4f9c3ac158afd20332985b59162fad5e8e34d855c",
+      "origin": "official-engine-dev-01/engine/modules/openxr/register_types.h"
+    },
+    "fixtures/modules/modules/openxr/SCsub": {
+      "bytes": 4465,
+      "sha256": "f03e48203c7730f93da6c45c7323ffb15c53f807d04d735fc2efe4ad62ec0d6e",
+      "origin": "official-engine-dev-01/engine/modules/openxr/SCsub"
+    },
+    "fixtures/modules/modules/raycast/register_types.h": {
+      "bytes": 2428,
+      "sha256": "456af5a5ef1557214eaf19662e780d122db731a25c589b7281033340b0548239",
+      "origin": "official-engine-dev-01/engine/modules/raycast/register_types.h"
+    },
+    "fixtures/modules/modules/raycast/SCsub": {
+      "bytes": 4465,
+      "sha256": "b66856ff589b157124474f70c053855163d4140465566e8e8486e25e8d9212ad",
+      "origin": "official-engine-dev-01/engine/modules/raycast/SCsub"
+    },
+    "fixtures/modules/modules/regex/register_types.h": {
+      "bytes": 2424,
+      "sha256": "59e3b44f79654fff23aa722c42e633af93936f6282e3f2f6db1d40a63a49f40b",
+      "origin": "official-engine-dev-01/engine/modules/regex/register_types.h"
+    },
+    "fixtures/modules/modules/regex/SCsub": {
+      "bytes": 2233,
+      "sha256": "8f3f2499be80c1554d837afc497cfa70678313784e50543f33256825ebe56d18",
+      "origin": "official-engine-dev-01/engine/modules/regex/SCsub"
+    },
+    "fixtures/modules/modules/svg/register_types.h": {
+      "bytes": 2420,
+      "sha256": "5394f65e5605bccfb97f7640e85ee56bac081695d1215e2e72be975c1363f208",
+      "origin": "official-engine-dev-01/engine/modules/svg/register_types.h"
+    },
+    "fixtures/modules/modules/svg/SCsub": {
+      "bytes": 3649,
+      "sha256": "f0e455d82523c26e232402876f9ce47cd07f6a1f70c5fe3a239aaf6d92ea3550",
+      "origin": "official-engine-dev-01/engine/modules/svg/SCsub"
+    },
+    "fixtures/modules/modules/text_server_adv/register_types.h": {
+      "bytes": 2444,
+      "sha256": "2492b125daa484e71c77a06b5ca42a45a0b843e8aabd6636b9b3245f69dafd66",
+      "origin": "official-engine-dev-01/engine/modules/text_server_adv/register_types.h"
+    },
+    "fixtures/modules/modules/text_server_adv/SCsub": {
+      "bytes": 18165,
+      "sha256": "b2d9e82f7e596325e51c28ba3d7a574526a4a65336f8bc41aed367d657376a4a",
+      "origin": "official-engine-dev-01/engine/modules/text_server_adv/SCsub"
+    },
+    "fixtures/modules/modules/text_server_fb/register_types.h": {
+      "bytes": 2442,
+      "sha256": "038c1901536b1f1b85587889238d32cf4ba63dfe8382cdc57f19d53b5b1dfa1f",
+      "origin": "official-engine-dev-01/engine/modules/text_server_fb/register_types.h"
+    },
+    "fixtures/modules/modules/text_server_fb/SCsub": {
+      "bytes": 959,
+      "sha256": "ec729e86727159591dfdf375cc44a025f3c0b3037814f96815ad862de1c27aa4",
+      "origin": "official-engine-dev-01/engine/modules/text_server_fb/SCsub"
+    },
+    "fixtures/modules/modules/tga/register_types.h": {
+      "bytes": 2420,
+      "sha256": "04593840ee6d60cf7703f0b0bcb178a5c8bb3688a8f9df7861220ee68afd3365",
+      "origin": "official-engine-dev-01/engine/modules/tga/register_types.h"
+    },
+    "fixtures/modules/modules/tga/SCsub": {
+      "bytes": 206,
+      "sha256": "1130c8abe17323b2b387aef3e8fd8b45a304b68db365425d36ab0cdb28adaafb",
+      "origin": "official-engine-dev-01/engine/modules/tga/SCsub"
+    },
+    "fixtures/modules/modules/theora/register_types.h": {
+      "bytes": 2426,
+      "sha256": "7d8c6f2a162de3211b2e051df1478303f2f9c9b4a05ce599f20657c17fdb7364",
+      "origin": "official-engine-dev-01/engine/modules/theora/register_types.h"
+    },
+    "fixtures/modules/modules/theora/SCsub": {
+      "bytes": 2837,
+      "sha256": "fd6aced9e044b4d5002f23c2985c888b5214bf711fed8c20c6b4147bb0e24f2a",
+      "origin": "official-engine-dev-01/engine/modules/theora/SCsub"
+    },
+    "fixtures/modules/modules/tinyexr/register_types.h": {
+      "bytes": 2428,
+      "sha256": "6c38692f8d4857c56c5e4c96f618fb43947547e8ce769a2b4fc315e604b6c1e9",
+      "origin": "official-engine-dev-01/engine/modules/tinyexr/register_types.h"
+    },
+    "fixtures/modules/modules/tinyexr/SCsub": {
+      "bytes": 1152,
+      "sha256": "c3a560a17322e9b75737538cbe019e20fd316d09483e350be6e9a1a4c0ac0eca",
+      "origin": "official-engine-dev-01/engine/modules/tinyexr/SCsub"
+    },
+    "fixtures/modules/modules/upnp/register_types.h": {
+      "bytes": 2422,
+      "sha256": "f5095f1fbffe4c4dd1e85e51a8fe28e28954089150d3b7b8496e02de5b8e969d",
+      "origin": "official-engine-dev-01/engine/modules/upnp/register_types.h"
+    },
+    "fixtures/modules/modules/upnp/SCsub": {
+      "bytes": 1469,
+      "sha256": "6db9231fe9a8d9fb5857e9c3a3d292c703e19bc98a2f35c9676d290bb059890f",
+      "origin": "official-engine-dev-01/engine/modules/upnp/SCsub"
+    },
+    "fixtures/modules/modules/vhacd/register_types.h": {
+      "bytes": 2424,
+      "sha256": "4e0dc5691b6b67b71130992af1f302acdbbe1da843a1e399fbb2277813ffa610",
+      "origin": "official-engine-dev-01/engine/modules/vhacd/register_types.h"
+    },
+    "fixtures/modules/modules/vhacd/SCsub": {
+      "bytes": 1086,
+      "sha256": "6a378c983af79217d619c6bcf69af84a8b54e6bfdab3c0b9f8558d3187c1dd44",
+      "origin": "official-engine-dev-01/engine/modules/vhacd/SCsub"
+    },
+    "fixtures/modules/modules/visual_shader/register_types.h": {
+      "bytes": 2440,
+      "sha256": "02849e26d6d9ec464c5585f02fd248f9db7972c776152810db4dd6c1050deae4",
+      "origin": "official-engine-dev-01/engine/modules/visual_shader/register_types.h"
+    },
+    "fixtures/modules/modules/visual_shader/SCsub": {
+      "bytes": 426,
+      "sha256": "bab86b3431c4f894f115e176e5322900cc19e93be4e417cef18040ba2b1e7340",
+      "origin": "official-engine-dev-01/engine/modules/visual_shader/SCsub"
+    },
+    "fixtures/modules/modules/vorbis/register_types.h": {
+      "bytes": 2426,
+      "sha256": "9bf061325b8317ef823d802e933dd9520006d69933a2d7badcef49fd83b67229",
+      "origin": "official-engine-dev-01/engine/modules/vorbis/register_types.h"
+    },
+    "fixtures/modules/modules/vorbis/SCsub": {
+      "bytes": 1573,
+      "sha256": "73f3d7cfd00838fda98088f70d6b2d6ff85a20dd674047be90ff4b718da71cba",
+      "origin": "official-engine-dev-01/engine/modules/vorbis/SCsub"
+    },
+    "fixtures/modules/modules/webp/register_types.h": {
+      "bytes": 2422,
+      "sha256": "573e4d8fb9f7d9d821ac803fef0d4b5038ecfbe85a27bee3709bea99739ad24a",
+      "origin": "official-engine-dev-01/engine/modules/webp/register_types.h"
+    },
+    "fixtures/modules/modules/webp/SCsub": {
+      "bytes": 5188,
+      "sha256": "c0119f88ae149c8377afefed2a687c853ad61dd26acb24213db180b2c5f80ff8",
+      "origin": "official-engine-dev-01/engine/modules/webp/SCsub"
+    },
+    "fixtures/modules/modules/webrtc/register_types.h": {
+      "bytes": 2426,
+      "sha256": "96fa351f629a6910346e287da15ff2890e3d456e20741bb963a95b9b453e0421",
+      "origin": "official-engine-dev-01/engine/modules/webrtc/register_types.h"
+    },
+    "fixtures/modules/modules/webrtc/SCsub": {
+      "bytes": 309,
+      "sha256": "984c0bb60b45ad50229227319d8b354d6d4f73ece2140e0751476153cc257431",
+      "origin": "official-engine-dev-01/engine/modules/webrtc/SCsub"
+    },
+    "fixtures/modules/modules/websocket/register_types.h": {
+      "bytes": 2432,
+      "sha256": "facb7d2c3d35fd9f9ecb35c9df269c9494c5749206c9524ca12a27e805b1f5bf",
+      "origin": "official-engine-dev-01/engine/modules/websocket/register_types.h"
+    },
+    "fixtures/modules/modules/websocket/SCsub": {
+      "bytes": 1340,
+      "sha256": "519fe265bd8c27766d7ab68460dd933b2b8ca7336f25ec40bef2a81773ad5a4d",
+      "origin": "official-engine-dev-01/engine/modules/websocket/SCsub"
+    },
+    "fixtures/modules/modules/webxr/register_types.h": {
+      "bytes": 2424,
+      "sha256": "ca96f07f70f81924e892ce7298ec27bb604e8595af24021c17d39f0fa3b69e31",
+      "origin": "official-engine-dev-01/engine/modules/webxr/register_types.h"
+    },
+    "fixtures/modules/modules/webxr/SCsub": {
+      "bytes": 326,
+      "sha256": "a0e45660a642e46d015be931b64ee2eccc91fbea6b6024b506d82c4034c58d3f",
+      "origin": "official-engine-dev-01/engine/modules/webxr/SCsub"
+    },
+    "fixtures/modules/modules/xatlas_unwrap/register_types.h": {
+      "bytes": 2440,
+      "sha256": "ba1c020a6ef6ef38e66728208d65d7d8be64540d81207359efd0fb4fbf60ff24",
+      "origin": "official-engine-dev-01/engine/modules/xatlas_unwrap/register_types.h"
+    },
+    "fixtures/modules/modules/xatlas_unwrap/SCsub": {
+      "bytes": 907,
+      "sha256": "4b51f4de5b23b9faac069b7ab3102646261fffe28f18518ade3797fded3ddc6d",
+      "origin": "official-engine-dev-01/engine/modules/xatlas_unwrap/SCsub"
+    },
+    "fixtures/modules/modules/zip/register_types.h": {
+      "bytes": 2420,
+      "sha256": "fe5cde50e41dc90f18b356590e79a800721cd768f0308aa311cd268ab70cf738",
+      "origin": "official-engine-dev-01/engine/modules/zip/register_types.h"
+    },
+    "fixtures/modules/modules/zip/SCsub": {
+      "bytes": 285,
+      "sha256": "90bb6e05658f6755e51403eef29bae3290b1476eb5d88162df6b89a53e3986d3",
+      "origin": "official-engine-dev-01/engine/modules/zip/SCsub"
+    },
+    "fixtures/modules/modules/modules_enabled.gen.h": {
+      "bytes": 3734,
+      "sha256": "499f8bbf4b8b02d7d3f4c7c5fc397903f3a6ea7179a96c7073af6dc198ef4f14",
+      "origin": "official-engine-dev-01/engine/modules/modules_enabled.gen.h"
+    },
+    "fixtures/modules/modules/register_module_types.gen.cpp": {
+      "bytes": 13750,
+      "sha256": "786a6423cf256fbe9093c9330c0fc70398f27455893a25c8a3eab292230e2c13",
+      "origin": "official-engine-dev-01/engine/modules/register_module_types.gen.cpp"
+    },
+    "fixtures/c050-source/platform/web/js/libs/library_godot_os.js": {
+      "sha256": "211dfb5520e9dd1381e3c379b4d9486420a02d9f3f72c40b912e3b2a5e7daaa9",
+      "bytes": 14940,
+      "origin": "c050c09b105c3715e1caa57a7109cd752047fd89:platform/web/js/libs/library_godot_os.js"
+    },
+    "fixtures/c050-source/platform/web/SCsub": {
+      "sha256": "d8292a8945f941c061f6484ea2bcce783d7838cde8ecad8ff3ca86ff29b36180",
+      "bytes": 4631,
+      "origin": "c050c09b105c3715e1caa57a7109cd752047fd89:platform/web/SCsub"
+    },
+    "fixtures/c050-source/drivers/gles3/shader_gles3.cpp": {
+      "sha256": "17c01277dc3468a1d53081f01a6f7665f5d0f82e7882a8198e1f486ee344d5d8",
+      "bytes": 28071,
+      "origin": "c050c09b105c3715e1caa57a7109cd752047fd89:drivers/gles3/shader_gles3.cpp"
+    },
+    "fixtures/reference-parents/glx.json": {
+      "bytes": 9714,
+      "sha256": "10157ec424746065718eb0929d91c046e43c045ec09509206416d412dd2ed2d3",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/ade498e34a85117314bdf5317ea27b73a546fff5946fae46e29f79de31d3b260": {
+      "bytes": 587,
+      "sha256": "ade498e34a85117314bdf5317ea27b73a546fff5946fae46e29f79de31d3b260",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/43d230c1ce5ffbc32834a35ee5ef177eee0c38322265e1b48097cac70cd262ca": {
+      "bytes": 98,
+      "sha256": "43d230c1ce5ffbc32834a35ee5ef177eee0c38322265e1b48097cac70cd262ca",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/5135b80343d366591c80c085450e2b8677e0728b670472c6e07736b4e001ca3c": {
+      "bytes": 5291,
+      "sha256": "5135b80343d366591c80c085450e2b8677e0728b670472c6e07736b4e001ca3c",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/35c112610f236dfe0f38cb5af9cb7f0786bb720157dd34849d57b590e38d2b57": {
+      "bytes": 4425,
+      "sha256": "35c112610f236dfe0f38cb5af9cb7f0786bb720157dd34849d57b590e38d2b57",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/d6b179f5a9f69a1949a9dee04240494a4579510c9d9c80ed6bc208bbab732668": {
+      "bytes": 292,
+      "sha256": "d6b179f5a9f69a1949a9dee04240494a4579510c9d9c80ed6bc208bbab732668",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/0d4eb4b3f94e60468a271f705b177a2223fe9db6745fb254c388cd21d566ef5b": {
+      "bytes": 66364,
+      "sha256": "0d4eb4b3f94e60468a271f705b177a2223fe9db6745fb254c388cd21d566ef5b",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/b88b173f3f80a61370326a688a56d7ac368c6b5dcfb947412486ee056be2f654": {
+      "bytes": 136,
+      "sha256": "b88b173f3f80a61370326a688a56d7ac368c6b5dcfb947412486ee056be2f654",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/f0f648b6778446a990b9865b8d577674f439348f8a3cef622e56ae13b8fda46e": {
+      "bytes": 51322,
+      "sha256": "f0f648b6778446a990b9865b8d577674f439348f8a3cef622e56ae13b8fda46e",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/e9f09402ddc60b0407a803e74b2f8824cc14b05d38e3cce99fb05d06ff573ddb": {
+      "bytes": 469508,
+      "sha256": "e9f09402ddc60b0407a803e74b2f8824cc14b05d38e3cce99fb05d06ff573ddb",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/a3fa7032ace37840021c58bd06b6b49f7b0468c01dde4b9d63a33bc2d2cd82cf": {
+      "bytes": 8649514,
+      "sha256": "a3fa7032ace37840021c58bd06b6b49f7b0468c01dde4b9d63a33bc2d2cd82cf",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/dc2fad9b430dc190c41e011926b1cb5c20c59585cd9ced4b96aa6154ff10c787": {
+      "bytes": 2134,
+      "sha256": "dc2fad9b430dc190c41e011926b1cb5c20c59585cd9ced4b96aa6154ff10c787",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/1e780422d1cc158b06bfe88ac4c2579685b73095bfcc3cec1f34a875759026e8": {
+      "bytes": 249,
+      "sha256": "1e780422d1cc158b06bfe88ac4c2579685b73095bfcc3cec1f34a875759026e8",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/ddefd618579efe1a156392da1e8393cabeaa65af2bb8bed25fa72f5f3c7483b3": {
+      "bytes": 183,
+      "sha256": "ddefd618579efe1a156392da1e8393cabeaa65af2bb8bed25fa72f5f3c7483b3",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/1dd408fa7a69e2f4652033d6f08c12d70bb6f233cb3074bd0e7510173aa1ae1b": {
+      "bytes": 17397,
+      "sha256": "1dd408fa7a69e2f4652033d6f08c12d70bb6f233cb3074bd0e7510173aa1ae1b",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/ee88b4672db843d57b164c5deeaf62e096e3bf91881bdba71a85dd980687db80": {
+      "bytes": 8917,
+      "sha256": "ee88b4672db843d57b164c5deeaf62e096e3bf91881bdba71a85dd980687db80",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/72027bbda3797f17c21b81853f1e75f3dfa962097cc2627107cf75f955d52884": {
+      "bytes": 778,
+      "sha256": "72027bbda3797f17c21b81853f1e75f3dfa962097cc2627107cf75f955d52884",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/1e3ff92a1e7291f181c624292d788eae18e63b3cbb4e93a6f29bc57f422ac907": {
+      "bytes": 4972,
+      "sha256": "1e3ff92a1e7291f181c624292d788eae18e63b3cbb4e93a6f29bc57f422ac907",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/44005f5320062f736ea535656a6cd648f4793ce67e0e74102fd6bbbd3503e2f3": {
+      "bytes": 760,
+      "sha256": "44005f5320062f736ea535656a6cd648f4793ce67e0e74102fd6bbbd3503e2f3",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/d48038b6ce7b2e761d52a3f1aab7b6af12593a1cb88273f3d82718117f39524a": {
+      "bytes": 1107,
+      "sha256": "d48038b6ce7b2e761d52a3f1aab7b6af12593a1cb88273f3d82718117f39524a",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/cbf9eb24b100af5f0caf1013702c0e0d4c6710603dd7c2705e545d3e40a420c1": {
+      "bytes": 847,
+      "sha256": "cbf9eb24b100af5f0caf1013702c0e0d4c6710603dd7c2705e545d3e40a420c1",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/3cc9369e48326945bb6e2803d93c81bc98c6d362a8eef966655cbe636486e783": {
+      "bytes": 17888,
+      "sha256": "3cc9369e48326945bb6e2803d93c81bc98c6d362a8eef966655cbe636486e783",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/c224964186b97b8c4238e9fc4d0de96f1876e7cacb5f2d5352ed65a62a5f9fa2": {
+      "bytes": 1921,
+      "sha256": "c224964186b97b8c4238e9fc4d0de96f1876e7cacb5f2d5352ed65a62a5f9fa2",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/84c679ae0a6dbb226afb24110860e5142ac113a2e3a00a93449a09edeb4647f6": {
+      "bytes": 60774,
+      "sha256": "84c679ae0a6dbb226afb24110860e5142ac113a2e3a00a93449a09edeb4647f6",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/2f074c768b2b3da02341fdbd41a6316f41eac15372506fd07c57fa00f69574ec": {
+      "bytes": 1940,
+      "sha256": "2f074c768b2b3da02341fdbd41a6316f41eac15372506fd07c57fa00f69574ec",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/045a8cbfef04f60faa0e3b996d7ba76416dc138e0e8bc3856af66b6ea5bf1af5": {
+      "bytes": 1468,
+      "sha256": "045a8cbfef04f60faa0e3b996d7ba76416dc138e0e8bc3856af66b6ea5bf1af5",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/webgl.json": {
+      "bytes": 9914,
+      "sha256": "ec0ca6a01729c6d3cb8259b5e02dc46e92d4b793ec81afecdb658a605f18f91f",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/e8623d9096d07cd7c67198df5093a001650630c8c2ee5408e928e7802bc7a3aa": {
+      "bytes": 5699,
+      "sha256": "e8623d9096d07cd7c67198df5093a001650630c8c2ee5408e928e7802bc7a3aa",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/eabce804b064c1237c1774ac366b4b035247e85db56c59a721da5a078f99f701": {
+      "bytes": 308,
+      "sha256": "eabce804b064c1237c1774ac366b4b035247e85db56c59a721da5a078f99f701",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/fe314b3f727c41f23a26b1f53734acb7b0391defef2f5e44e97c1d9889b42b87": {
+      "bytes": 1108,
+      "sha256": "fe314b3f727c41f23a26b1f53734acb7b0391defef2f5e44e97c1d9889b42b87",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "fixtures/reference-parents/14e54cb3935cee46de0b37fcaa26ab11d2488c5e926c11b2cb24fbc253ed79b5": {
+      "bytes": 848,
+      "sha256": "14e54cb3935cee46de0b37fcaa26ab11d2488c5e926c11b2cb24fbc253ed79b5",
+      "origin": "engine/functional-acceptance/stage.mjs, original sealed parent manifest"
+    },
+    "vendor/engines/conservative/fingerprint.json": {
+      "bytes": 3014,
+      "sha256": "a795dec7a409f5b441afaf154d5e36289d59626489b6366ea809c07927b8e8b4",
+      "origin": "packaging/vendor-lock.json"
+    },
+    "vendor/engines/pure-2d/fingerprint.json": {
+      "bytes": 2804,
+      "sha256": "53f99c65f133629fcf1582addd22bd92aa092cb20a97dac56b2dd51561774df0",
+      "origin": "packaging/vendor-lock.json"
+    }
+  }
+}

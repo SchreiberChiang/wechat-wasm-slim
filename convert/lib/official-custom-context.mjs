@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {sha} from './inputs.mjs';
 import {CUSTOM_PAIR_PROFILE, readCompletedCustomPairTask} from '../../lib/custom-pair-task.mjs';
-import {portablePairSchema,readPortablePair} from './portable-pair.mjs';
+import {bundledPairSchema,readBundledPair} from './bundled-pair.mjs';
 import {getOfficialRecipe, getRecipeIdentity, OFFICIAL_C050_CAPABILITY_PROFILE} from './official-engine-admission.mjs';
 
 // The existing converter looks up recipes by profile at many checkpoints.
@@ -34,7 +34,7 @@ export async function readPreparedSource(file) {
     throw Object.assign(Error('TASK_PAIR_PREPARATION_FAILED'), {code:'TASK_PAIR_PREPARATION_FAILED',
       reason:'PAIR_CUSTOM_PREPARATION_UNREADABLE', possibleSideEffects:'NONE'});
   }
-  if (cfg.schema === portablePairSchema) return readPortablePair(file);
+  if (cfg.schema === bundledPairSchema) return readBundledPair(file, getOfficialRecipe(OFFICIAL_C050_CAPABILITY_PROFILE));
   if (cfg.schema === 'wxslim-rebuilt-capability-pair-v1') {
     const {readRebuiltCapabilityPair} = await import('../../engine/rebuilt-capability-pair.mjs');
     return readRebuiltCapabilityPair(file);
@@ -75,7 +75,7 @@ export function withOfficialConfiguration(file, action) {
     assert.equal(sha(configBytes), preparation.configuration.sha256);
     const paths = JSON.parse(configBytes);
     const resolve = p => path.resolve(path.dirname(preparationConfig), p);
-    const context = Object.freeze({record:Object.freeze({recipe,identity}), preparationConfig,
+    const context = Object.freeze({record:Object.freeze({recipe,identity}), preparationConfig, bundled:prepared.bundled === true,
       sourceRecipe:summary.sourceRecipe, protectedRoot:prepared.protectedRoot ?? resolve(paths.rawTaskRoot), rebuilt, retainedFixed:!!summary.retainedFixed,
       protectedFiles:Object.freeze(prepared.protectedRoot ? [preparationConfig] : [preparationConfig,resolve(paths.outputJs),resolve(paths.receipt)]),
       customSource:freeze(customSource), recheck:prepared.recheck,

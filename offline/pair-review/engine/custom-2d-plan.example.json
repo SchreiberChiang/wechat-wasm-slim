@@ -1,0 +1,6 @@
+{
+  "schema": "wxslim-custom-wasm-plan-v1",
+  "dimensions": "2d",
+  "disabledModules": ["gltf", "fbx", "vhacd", "webxr", "mobile_vr", "enet", "upnp"],
+  "disabledClasses": []
+}

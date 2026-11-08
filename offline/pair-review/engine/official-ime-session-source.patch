@@ -1,0 +1,355 @@
+diff --git a/platform/web/js/libs/library_godot_input.js b/platform/web/js/libs/library_godot_input.js
+--- a/platform/web/js/libs/library_godot_input.js
++++ b/platform/web/js/libs/library_godot_input.js
+@@ -47,163 +47,188 @@
+-	$GodotIMEWechat: {
+-		ime: null,
+-		active: false,
+-
+-		getModifiers: function (evt) {
+-			return (evt.shiftKey + 0) + ((evt.altKey + 0) << 1) + ((evt.ctrlKey + 0) << 2) + ((evt.metaKey + 0) << 3);
+-		},
+-
+-		ime_active: function (active) {
+-			if (GodotIME.ime) {
+-				if (active) {
+-					GodotIME.ime.show()
+-				} else {
+-					GodotIME.ime.hide()
+-				}
+-			}
+-		},
+-
+-		ime_position: function (x, y) {
+-		},
+-
+-		init: function (ime_cb, key_cb, code, key) {
+-			// Do not abandon callbacks or a failed cleanup from a previous instance.
+-			if (GodotIME.ime) GodotIME.clear();
+-			function ime_event_cb(type, event) {
+-				if (GodotIME.ime) {
+-					const ptr = GodotRuntime.allocString(event.value);
+-					ime_cb(type, ptr);
+-					GodotRuntime.free(ptr)
+-				}
+-			}
+-			let lastValue = ""
+-			let lastValueLength = 0
+-			let sessionInitialValue = ""
+-			let sessionInitialLength = 0
+-			let currentLength = 0
+-			let imeEnded = false
+-			let sendKey = (codeStr, keyStr, modifiers = 0) => {
+-				GodotRuntime.stringToHeap(codeStr, code, 32)
+-				GodotRuntime.stringToHeap(keyStr, key, 32)
+-				key_cb(1, 0, modifiers)
+-				key_cb(0, 0, modifiers)
+-			}
+-			let clearExistingText = (length) => {
+-				if (length <= 0) {
+-					return
+-				}
+-				// Try select-all then backspace to replace, and also fallback to backspace N times.
+-				sendKey("KeyA", "a", 4)
+-				sendKey("Backspace", "Backspace", 0)
+-				for (let i = 0; i < length; i++) {
+-					sendKey("Backspace", "Backspace", 0)
+-				}
+-			}
+-			let insertText = (text) => {
+-				for (const ch of text) {
+-					sendKey("Unidentified", ch, 0)
+-				}
+-			}
+-			let inputCb = evt => {
+-				if (GodotIME.ime !== ime || !GodotIME.active) return;
+-				if (!evt || typeof evt.value !== "string") {
+-					return
+-				}
+-				const value = evt.value
+-				if (value === lastValue) {
+-					return
+-				}
+-				if (!imeEnded) {
+-					// End IME so key events are not ignored.
+-					ime_event_cb(2, { value: "" })
+-					imeEnded = true
+-				}
+-				clearExistingText(currentLength)
+-				insertText(value)
+-				lastValue = value
+-				lastValueLength = value.length
+-				currentLength = lastValueLength
+-				GodotIME.initialText = lastValue
+-			}
+-			let inputConfirm = evt => {
+-				if (GodotIME.ime !== ime || !GodotIME.active) return;
+-				const value = (evt && typeof evt.value === "string") ? evt.value : lastValue
+-				ime_event_cb(2, { value: "" })
+-				clearExistingText(currentLength)
+-				insertText(value)
+-				GodotIME.initialText = value
+-				lastValue = value
+-				lastValueLength = value.length
+-				currentLength = lastValueLength
+-				ime.hide();
+-			}
+-			let inputComplete = evt => {
+-				if (GodotIME.ime !== ime || !GodotIME.active) return;
+-				const value = (evt && typeof evt.value === "string") ? evt.value : lastValue
+-				ime_event_cb(2, { value: "" })
+-				clearExistingText(currentLength)
+-				insertText(value)
+-				GodotIME.initialText = value
+-				lastValue = value
+-				lastValueLength = value.length
+-				currentLength = lastValueLength
+-				ime.hide();
+-			}
+-			let ime = {
+-				activeTime: 0,
+-				cleanupError: null,
+-				show() {
+-					if (ime.cleanupError !== null) throw ime.cleanupError;
+-					let delta = Date.now() - ime.activeTime
+-					if (delta < 100) {
+-						return
+-					}
+-					if (GodotIME.active) return;
+-					GodotIME.active = true;
+-					if (typeof GodotIME.initialText === "string") {
+-						lastValue = GodotIME.initialText
+-					}
+-					lastValueLength = lastValue.length
+-					sessionInitialValue = lastValue
+-					sessionInitialLength = lastValueLength
+-					currentLength = sessionInitialLength
+-					imeEnded = false
+-					wx.showKeyboard({
+-						defaultValue: lastValue,
+-						maxLength: 99,
+-						multiple: false,
+-						confirmHold: true,
+-						confirmType: "done"
+-					});
+-					ime_event_cb(0, { value: "" });
+-					wx.onKeyboardInput(inputCb);
+-					wx.onKeyboardConfirm(inputConfirm);
+-					__globalAdapter.onKeyboardComplete(inputComplete);
+-				},
+-				hide() {
+-					if (ime.cleanupError !== null) throw ime.cleanupError;
+-					if (!GodotIME.active)
+-						return;
+-					GodotIME.active = false;
+-					ime.activeTime = Date.now()
+-					try {
+-						__globalAdapter.offKeyboardInput(inputCb);
+-						__globalAdapter.offKeyboardConfirm(inputConfirm);
+-						__globalAdapter.offKeyboardComplete(inputComplete);
+-						__globalAdapter.hideKeyboard();
+-					} catch (error) {
+-						// Preserve the first failure; do not claim a later clear succeeded.
+-						ime.cleanupError = error instanceof Error ? error : new Error(String(error));
+-						throw ime.cleanupError;
+-					}
+-				}
+-			};
+-			GodotIME.ime = ime
+-		},
+-
+-		clear: function () {
+-			if (GodotIME.ime) {
+-				GodotIME.ime.hide();
+-				GodotIME.ime = null;
+-			}
+-		},
+-	},
++	$GodotIMEWechat: {
++		ime: null,
++		active: false,
++
++		getModifiers: function (evt) {
++			return (evt.shiftKey + 0) + ((evt.altKey + 0) << 1) + ((evt.ctrlKey + 0) << 2) + ((evt.metaKey + 0) << 3);
++		},
++		ime_active: function (active) {
++			if (GodotIME.ime) {
++				if (active) GodotIME.ime.show();
++				else GodotIME.ime.hide();
++			}
++		},
++		ime_position: function (x, y) {
++		},
++		init: function (ime_cb, key_cb, code, key) {
++			if (GodotIME.ime) GodotIME.clear();
++			const current = (session) => GodotIME.ime === ime && ime.session === session && !session.closed && GodotIME.active;
++			function ime_event_cb(session, type, value) {
++				if (!current(session)) return;
++				const ptr = GodotRuntime.allocString(value);
++				// A native callback may throw any value, including undefined.
++				let failed = false;
++				try {
++					ime_cb(type, ptr);
++				} catch (error) {
++					failed = true;
++					throw error;
++				} finally {
++					try { GodotRuntime.free(ptr); } catch (error) {
++						// Retain a secondary release failure without replacing the native throw.
++						ime.releaseError = error;
++						if (!failed) throw error;
++					}
++				}
++			}
++			function sendKey(session, codeStr, keyStr, modifiers = 0) {
++				if (!current(session)) return;
++				GodotRuntime.stringToHeap(codeStr, code, 32);
++				GodotRuntime.stringToHeap(keyStr, key, 32);
++				key_cb(1, 0, modifiers);
++				if (!current(session)) return;
++				key_cb(0, 0, modifiers);
++			}
++			function clearExistingText(session) {
++				if (session.currentLength <= 0) return;
++				sendKey(session, "KeyA", "a", 4);
++				if (!current(session)) return;
++				sendKey(session, "Backspace", "Backspace", 0);
++				for (let i = 0; i < session.currentLength && current(session); i++) {
++					sendKey(session, "Backspace", "Backspace", 0);
++				}
++			}
++			function insertText(session, value) {
++				for (const ch of value) {
++					if (!current(session)) return;
++					sendKey(session, "Unidentified", ch, 0);
++				}
++			}
++			function commit(session, value) {
++				clearExistingText(session);
++				if (!current(session)) return;
++				insertText(session, value);
++				if (!current(session)) return;
++				session.lastValue = value;
++				session.currentLength = value.length;
++				GodotIME.initialText = value;
++			}
++			function close(session) {
++				if (session.closed) return;
++				// Invalidate before host calls, which can synchronously reenter.
++				session.closed = true;
++				ime.closing = true;
++				if (GodotIME.ime === ime && ime.session === session) {
++					GodotIME.active = false;
++					ime.session = null;
++					ime.activeTime = Date.now();
++				}
++				let failed = false;
++				let firstError;
++				function attempt(fn) {
++					try { fn(); } catch (error) {
++						if (!failed) { failed = true; firstError = error; }
++					}
++				}
++				if (session.inputAttempted) attempt(() => __globalAdapter.offKeyboardInput(session.input));
++				if (session.confirmAttempted) attempt(() => __globalAdapter.offKeyboardConfirm(session.confirm));
++				if (session.completeAttempted) attempt(() => __globalAdapter.offKeyboardComplete(session.complete));
++				if (session.showAttempted) attempt(() => __globalAdapter.hideKeyboard());
++				ime.closing = false;
++				if (failed) {
++					ime.cleanupFailed = true;
++					ime.cleanupError = firstError;
++					throw firstError;
++				}
++			}
++			const ime = {
++				activeTime: 0,
++				cleanupError: null,
++				cleanupFailed: false,
++				showError: null,
++				releaseError: null,
++				session: null,
++				closing: false,
++				show() {
++					if (ime.cleanupFailed) throw ime.cleanupError;
++					if (GodotIME.ime !== ime || ime.closing || GodotIME.active || Date.now() - ime.activeTime < 100) return;
++					const session = {
++						closed: false,
++						lastValue: typeof GodotIME.initialText === "string" ? GodotIME.initialText : "",
++						imeEnded: false,
++					};
++					session.currentLength = session.lastValue.length;
++					session.input = (evt) => {
++						if (!current(session) || !evt || typeof evt.value !== "string" || evt.value === session.lastValue) return;
++						const value = evt.value;
++						if (!session.imeEnded) {
++							ime_event_cb(session, 2, "");
++							if (!current(session)) return;
++							session.imeEnded = true;
++						}
++						commit(session, value);
++					};
++					function finish(evt) {
++						if (!current(session)) return;
++						const value = evt && typeof evt.value === "string" ? evt.value : session.lastValue;
++						ime_event_cb(session, 2, "");
++						if (!current(session)) return;
++						commit(session, value);
++						if (!current(session)) return;
++						close(session);
++					}
++					session.confirm = (evt) => finish(evt);
++					session.complete = (evt) => finish(evt);
++					ime.session = session;
++					ime.showError = null;
++					GodotIME.active = true;
++					try {
++						session.showAttempted = true;
++						wx.showKeyboard({
++							defaultValue: session.lastValue,
++							maxLength: 99,
++							multiple: false,
++							confirmHold: true,
++							confirmType: "done",
++							fail: () => {
++								if (!current(session)) return;
++								// No platform payload or typed text enters diagnostics.
++								const error = new Error("GODOT_IME_KEYBOARD_SHOW_FAILED");
++								ime.showError = error;
++								try { close(session); } catch (_) { /* cleanupError remains latched */ }
++								throw error;
++							},
++						});
++						if (!current(session)) return;
++						ime_event_cb(session, 0, "");
++						if (!current(session)) return;
++						session.inputAttempted = true;
++						wx.onKeyboardInput(session.input);
++						if (!current(session)) return;
++						session.confirmAttempted = true;
++						wx.onKeyboardConfirm(session.confirm);
++						if (!current(session)) return;
++						session.completeAttempted = true;
++						__globalAdapter.onKeyboardComplete(session.complete);
++					} catch (error) {
++						ime.showError = error;
++						try { close(session); } catch (_) { /* preserve primary error; cleanupError is latched */ }
++						throw error;
++					}
++				},
++				hide() {
++					if (ime.cleanupFailed) throw ime.cleanupError;
++					if (ime.closing) throw new Error("GODOT_IME_CLEANUP_IN_PROGRESS");
++					if (GodotIME.ime !== ime || !ime.session) return;
++					close(ime.session);
++				},
++			};
++			GodotIME.ime = ime;
++		},
++		clear: function () {
++			if (GodotIME.ime) {
++				const ime = GodotIME.ime;
++				ime.hide();
++				if (GodotIME.ime === ime) GodotIME.ime = null;
++			}
++		},
++	},

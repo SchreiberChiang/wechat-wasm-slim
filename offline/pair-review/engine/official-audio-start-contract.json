@@ -1,0 +1,81 @@
+{
+  "schema": "wxslim-official-audio-start-contract-patch-v1",
+  "status": "SOURCE_ONLY_AWAITING_ROOT_REVIEW_AND_MODELS",
+  "dependsOn": {
+    "file": "engine/official-audio-lifecycle.patch",
+    "bytes": 18668,
+    "sha256": "d14de0afd45e66fc623cfcbcfc617683e2afa0ebb129909752db5fa98e16f570"
+  },
+  "patch": {
+    "file": "engine/official-audio-start-contract.patch",
+    "bytes": 7927,
+    "sha256": "1889f8441e7ae293a0c09c406f834077b81c5708200892f2b352a472a4bfcaa8"
+  },
+  "inputs": [
+    {
+      "path": "platform/web/js/libs/library_godot_audio.js",
+      "bytes": 119843,
+      "sha256": "32639f0b66998182f95e34bbec772fe2bfa8270634f2ce31d686cef74ee0e524"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "platform/web/js/libs/library_godot_audio.js",
+      "bytes": 123483,
+      "sha256": "d990e5d6dbbb860883812009b303c1e950ee7c59c8902ad34db7e301f623ba5e"
+    }
+  ],
+  "preparation": {
+    "schema": "wxslim-official-audio-start-contract-v1",
+    "status": "SOURCE_ONLY_MODELS_NOT_RUN",
+    "before": {
+      "bytes": 119843,
+      "sha256": "32639f0b66998182f95e34bbec772fe2bfa8270634f2ce31d686cef74ee0e524"
+    },
+    "after": {
+      "bytes": 123483,
+      "sha256": "d990e5d6dbbb860883812009b303c1e950ee7c59c8902ad34db7e301f623ba5e"
+    },
+    "changedMethods": [
+      "_GodotAudio.$GodotAudio.WX.startSample",
+      "_GodotAudio.godot_audio_sample_start",
+      "_GodotAudio.$GodotAudio.WX.init"
+    ],
+    "addedMembers": [
+      "failureCount",
+      "failureLogErrors",
+      "lastFailure",
+      "recordFailure",
+      "observeStartPromise",
+      "finishFailedStart"
+    ],
+    "unrelatedMembersUnchanged": true,
+    "nonWechatStartBranchUnchanged": true,
+    "registrationABI": "viiiiiiiiii",
+    "sampleStartABIUnchanged": true,
+    "defaultNativeMinSeconds": 3,
+    "defaultCacheBytes": 8388608,
+    "failureCountLimit": 65535,
+    "cppTiming": "Failure termination microtask runs after synchronous driver call/ordered insertion; existing exact-active identity reused.",
+    "asyncBoundary": "Diagnostic observer rethrows original rejection into a child Promise ignored by void ABI. Not a C++ error result; actual SDK visibility unverified.",
+    "manifestBinding": "NOT_IMPLEMENTED_BY_THIS_PATCH",
+    "newPlayer": false,
+    "newWasmImports": false,
+    "engineExecuted": false,
+    "platformExecuted": false,
+    "build": "NOT_RUN",
+    "runtime": "NOT_RUN"
+  },
+  "validation": {
+    "sourceParsed": true,
+    "strictReplay": true,
+    "models": "NOT_RUN_AWAITING_ROOT_REVIEW",
+    "engine": "NOT_RUN",
+    "platform": "NOT_RUN"
+  },
+  "limitations": [
+    "No C++ structured playback error API introduced. Existing finished callback remains termination only.",
+    "Actual unhandled-child-Promise behavior on WeChat/SDK must be validated; no C++ error-return claim.",
+    "Manifest binding and cache stat/error classification are not changed."
+  ]
+}

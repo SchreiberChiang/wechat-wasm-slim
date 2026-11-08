@@ -1,0 +1,139 @@
+{
+  "schema": "wxslim-official-http-source-v1",
+  "status": "SOURCE_ONLY_NOT_INTEGRATED",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "forkCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "officialSource": {
+    "path": "platform/web/js/libs/library_godot_fetch.js",
+    "bytes": 8303,
+    "sha256": "47a515b15a93650ce3d45dbbd906818ecec191e8f0a1a5cb19de59043166e74f",
+    "unchanged": true
+  },
+  "newFile": {
+    "path": "platform/web/js/libs/library_wxslim_fetch.js",
+    "baseExistence": "ABSENT_HTTP_404",
+    "bytes": 12888,
+    "sha256": "4bdaefe74d6cfd7c77b919fe71a9bc0b462701fb5eff358bc4259f5bc33cba10"
+  },
+  "patch": {
+    "path": "engine/official-http-source.patch",
+    "bytes": 13407,
+    "sha256": "39df4a2a0eca32bc30befe69e3c1886e196520b4870c577416a259c97fd3a411"
+  },
+  "provenance": {
+    "officialCopyrightPrefix": {
+      "bytes": 2234,
+      "sha256": "59a5f41005ddd021b32fafa7d1b3282acb856f412fe9d3e9ce9346397f0ae79d",
+      "extraction": "Byte-exact official prefix before const GodotFetch ="
+    },
+    "forkBefore": {
+      "path": "platform/web/js/libs/library_godot_fetch.js",
+      "bytes": 9159,
+      "sha256": "06740803e8cff87a074e9b09d492c224e969bdefe11094bf19dbe647812553b5"
+    },
+    "existingPatch": {
+      "path": "engine/wechat-http-whole-response.patch",
+      "bytes": 13537,
+      "sha256": "155dffe3223dc01b2b234cb5b095c85c539c3fead4d83d8acb7d035353491d0a"
+    },
+    "implementationAfter": {
+      "bytes": 10654,
+      "sha256": "e3f77149630e870986cd5e291effabfccb4610c19a8039ad85f3fafb9a4ed776",
+      "byteExact": true
+    }
+  },
+  "officialCppConsumer": {
+    "path": "platform/web/http_client_web.cpp",
+    "bytes": 9722,
+    "sha256": "ebd199b1b79a4dfdf8ea9b8b19b518b0ede083104a0cf8b7218ece97df8b1ff6",
+    "equalsFixedDf3Consumer": true
+  },
+  "officialHeader": {
+    "path": "platform/web/godot_js.h",
+    "bytes": 7600,
+    "sha256": "7942335057dc849fae1f6c04665bdf4aeb27ecdab732bd1d3413c303328c8b16"
+  },
+  "officialSignatures": [
+    {
+      "name": "godot_js_fetch_create__sig",
+      "signature": "iiiiiii"
+    },
+    {
+      "name": "godot_js_fetch_state_get__sig",
+      "signature": "ii"
+    },
+    {
+      "name": "godot_js_fetch_http_status_get__sig",
+      "signature": "ii"
+    },
+    {
+      "name": "godot_js_fetch_read_headers__sig",
+      "signature": "iiii"
+    },
+    {
+      "name": "godot_js_fetch_read_chunk__sig",
+      "signature": "iiii"
+    },
+    {
+      "name": "godot_js_fetch_is_chunked__sig",
+      "signature": "ii"
+    },
+    {
+      "name": "godot_js_fetch_free__sig",
+      "signature": "vi"
+    }
+  ],
+  "extraExistingForkExport": {
+    "name": "godot_js_fetch_body_length_get",
+    "signature": "ii",
+    "newlyIntroducedByMigration": false,
+    "referencedByOfficialCpp": false,
+    "declaredByOfficialHeader": false,
+    "meaning": "Existing df3 helper retained verbatim; not a new C++ body-length contract."
+  },
+  "selection": {
+    "scsubModified": false,
+    "replaceExistingLine": "    \"js/libs/library_godot_fetch.js\",",
+    "proposedLine": "    \"js/libs/library_wxslim_fetch.js\" if env[\"use_wx_glx\"] else \"js/libs/library_godot_fetch.js\",",
+    "prerequisite": "Official GLX detect option plus IDHandler/GodotRuntime library dependencies; root owns SCsub integration.",
+    "browserBranch": "Original official fetch library remains selected when use_wx_glx is false."
+  },
+  "requestConfiguration": {
+    "dataType": "text",
+    "responseType": "arraybuffer",
+    "enableChunked": false
+  },
+  "hostRelationship": {
+    "path": "convert/assets/wx-compat.js",
+    "lines": "141-155",
+    "behavior": "Existing wrapper also forces enableChunked=false and copies typed-view byte extent into ArrayBuffer. This new library already does both itself; retained host behavior reinforces it, rather than being the sole fix.",
+    "optionalListeners": "Not used; no header/chunk listener registration required."
+  },
+  "policy": "New file only. Official copyright prefix plus complete unchanged patched df3 implementation; failure, empty-body zero chunk, callback ordering and abort cleanup are not rewritten or simplified.",
+  "validation": [
+    "Fixed c050 source/header/consumer GET to memory only; new path GET returned 404.",
+    "Strict memory-only replay of existing HTTP patch and new-file patch; no engine writes.",
+    "Seven official signatures match retained implementations; extra body_length_get absent from official C++/header.",
+    "Node syntax parse only, with existing actual-JS-function offline models used for behavior checks."
+  ],
+  "modelValidation": {
+    "test": "tests/official-http-source-tests.mjs",
+    "passed": 11,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "Strict source pins/replay, actual JS library functions with modeled wx/heap; with and without existing host wrapper. Not C++/WASM or real network execution."
+  },
+  "limitations": [
+    "Whole-response memory cost; no streaming/backpressure guarantee.",
+    "Official C++ is unchanged: empty-header has_response and default-port ambiguity remain.",
+    "No SCons application, generated glue pairing, C++/WASM execution, real platform wx.request or network acceptance.",
+    "Typed arrays and empty-response lifecycle remain subject to fixed SDK/host integration and later runtime gates.",
+    "SCsub selection is proposed only; no build recipe or host/package was changed."
+  ],
+  "applied": false,
+  "compiled": false,
+  "runtime": "NOT_RUN",
+  "network": "NOT_RUN",
+  "phone": "NOT_RUN",
+  "licenseCleared": false
+}

@@ -1,0 +1,347 @@
+diff --git a/platform/web/js/libs/library_godot_fetch.js b/platform/web/js/libs/library_godot_fetch.js
+--- a/platform/web/js/libs/library_godot_fetch.js
++++ b/platform/web/js/libs/library_godot_fetch.js
+@@ -1,164 +1,161 @@
+ const GodotFetch = {
+     $GodotFetch__deps: ['$IDHandler', '$GodotRuntime'],
+-    $GodotFetch: {
+-        // Convert various data types to Uint8Array
+-        convertToUint8Array: function (data) {
+-            if (!data) {
+-                return new Uint8Array(0);
+-            }
+-
+-            // Already ArrayBuffer or TypedArray
+-            if (data instanceof ArrayBuffer) {
+-                return new Uint8Array(data);
+-            }
+-            if (ArrayBuffer.isView(data)) {
+-                return new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+-            }
+-
+-            // String - encode to UTF-8
+-            if (typeof data === 'string') {
+-                const encoder = new TextEncoder();
+-                return encoder.encode(data);
+-            }
+-
+-            // Object - convert to JSON string then encode
+-            if (typeof data === 'object') {
+-                const jsonStr = JSON.stringify(data);
+-                const encoder = new TextEncoder();
+-                return encoder.encode(jsonStr);
+-            }
+-
+-            // Fallback - convert to string
+-            const str = String(data);
+-            const encoder = new TextEncoder();
+-            return encoder.encode(str);
+-        },
+-
+-        onheaders: function (id, response) {
+-            const obj = IDHandler.get(id);
+-            if (!obj) {
+-                return;
+-            }
+-            // Set status code (default to 0 if not present)
+-            obj.status = response.statusCode || 0;
+-            
+-            // If we already have a response object (e.g. from partial headers), merge or update
+-            if (obj.response) {
+-                if (response.header) {
+-                    obj.response.header = response.header;
+-                }
+-                // Update other fields if needed
+-            } else {
+-                obj.response = response;
+-            }
+-        },
+-
+-        onchunk: function (id, data) {
+-            const obj = IDHandler.get(id);
+-            if (!obj) {
+-                return;
+-            }
+-            // data is ArrayBuffer
+-            if (data && data.byteLength > 0) {
+-                const uint8Data = new Uint8Array(data);
+-                obj.chunks.push(uint8Data);
+-                if (obj.bodySize === -1) obj.bodySize = 0;
+-                obj.bodySize += uint8Data.byteLength;
+-            }
+-        },
+-
+-        ondone: function (id) {
+-            const obj = IDHandler.get(id);
+-            if (!obj) {
+-                return;
+-            }
+-            obj.done = true;
+-            obj.reading = false;
+-        },
+-
+-        onerror: function (id, err) {
+-            GodotRuntime.error(err);
+-            const obj = IDHandler.get(id);
+-            if (!obj) {
+-                return;
+-            }
+-            obj.error = err;
+-        },
+-
+-        create: function (method, url, headers, body) {
+-            const obj = {
+-                requestTask: null,
+-                response: null,
+-                error: null,
+-                done: false,
+-                reading: false,
+-                status: 0,
+-                chunks: [],
+-                bodySize: -1,
+-            };
+-            const id = IDHandler.add(obj);
+-
+-            try {
+-                const requestTask = wx.request({
+-                    url: url,
+-                    method: method,
+-                    data: body,
+-                    header: headers,
+-                    responseType: 'arraybuffer',
+-                    enableChunked: true,
+-                    success: (res) => {
+-                        const obj = IDHandler.get(id);
+-                        if (obj) {
+-                            // Fallback: if onHeadersReceived didn't fire or didn't set response
+-                            if (!obj.response) {
+-                                GodotFetch.onheaders(id, res);
+-                            }
+-                            
+-                            // Fallback: if no chunks were received via onChunkReceived, check res.data
+-                            // This handles cases where enableChunked might be ignored or data is small
+-                            if (obj.chunks.length === 0 && res.data) {
+-                                GodotFetch.onchunk(id, res.data);
+-                            }
+-                        }
+-                        GodotFetch.ondone(id);
+-                    },
+-                    fail: (err) => {
+-                        GodotFetch.onerror(id, err);
+-                    }
+-                });
+-
+-                obj.requestTask = requestTask;
+-
+-                requestTask.onHeadersReceived((res) => {
+-                    GodotFetch.onheaders(id, res);
+-                });
+-
+-                requestTask.onChunkReceived((res) => {
+-                    if (res.data) {
+-                        GodotFetch.onchunk(id, res.data);
+-                    }
+-                });
+-
+-            } catch (e) {
+-                GodotFetch.onerror(id, { errMsg: 'Exception: ' + e.message, errno: -1 });
+-            }
+-
+-            return id;
+-        },
+-
+-        free: function (id) {
+-            const obj = IDHandler.get(id);
+-            if (obj && obj.requestTask) {
+-                obj.requestTask.abort();
+-            }
+-            IDHandler.remove(id);
+-        },
+-
+-        read: function (id) {
+-            // wx.request doesn't support streaming, so we don't need to implement this
+-        },
+-    },
+-
++    $GodotFetch: {
++        // Preserve raw bytes. Never encode strings/objects as a substitute body.
++        convertToUint8Array: function (data) {
++            if (data instanceof ArrayBuffer) {
++                return new Uint8Array(data).slice();
++            }
++            if (ArrayBuffer.isView(data)) {
++                return new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice();
++            }
++            throw new TypeError('HTTP body must be an ArrayBuffer or view');
++        },
++
++        active: function (id, obj) {
++            return IDHandler.get(id) === obj && !obj.closed && !obj.settled;
++        },
++
++        read_errno: function (error) {
++            try {
++                // Read once: an untrusted getter can throw or change its value.
++                const errno = error && error.errno;
++                return Number.isSafeInteger(errno) ? errno : undefined;
++            } catch (e) {
++                return undefined;
++            }
++        },
++
++        log_error: function (kind, errno) {
++            // Only internal categories and validated numeric codes reach logs.
++            const code = Number.isSafeInteger(errno) ? ' errno=' + errno : '';
++            try {
++                GodotRuntime.error('[GodotFetch] ' + kind + code);
++            } catch (e) {
++                // A failing logger must not undo the already recorded failure/close.
++            }
++        },
++
++        onerror: function (id, obj, kind, errno) {
++            if (!GodotFetch.active(id, obj)) {
++                return;
++            }
++            obj.settled = true;
++            obj.done = true;
++            obj.reading = false;
++            obj.error = { kind: kind };
++            if (Number.isSafeInteger(errno)) {
++                obj.error.errno = errno;
++            }
++            GodotFetch.log_error(kind, errno);
++        },
++
++        create: function (method, url, headers, body) {
++            const obj = {
++                requestTask: null,
++                response: null,
++                error: null,
++                done: false,
++                reading: false,
++                status: 0,
++                chunks: [],
++                bodySize: -1,
++                closed: false,
++                settled: false,
++            };
++            const id = IDHandler.add(obj);
++            let setupKind = 'REQUEST_DATA';
++            try {
++                // wx.request accepts ArrayBuffer, not arbitrary typed views.
++                const requestBody = body === null ? null : GodotFetch.convertToUint8Array(body).buffer;
++                setupKind = 'REQUEST_SETUP';
++                obj.requestTask = wx.request({
++                    url: url,
++                    method: method,
++                    data: requestBody,
++                    header: headers,
++                    dataType: 'text',
++                    responseType: 'arraybuffer',
++                    enableChunked: false,
++                    success: (res) => {
++                        if (!GodotFetch.active(id, obj)) {
++                            return;
++                        }
++                        let kind = 'RESPONSE_STATUS';
++                        try {
++                            const status = res && res.statusCode;
++                            if (!Number.isInteger(status) || status < 100 || status > 599) {
++                                throw new TypeError('Invalid HTTP status');
++                            }
++                            kind = 'RESPONSE_HEADERS';
++                            const sourceHeaders = res.header;
++                            if (!sourceHeaders || typeof sourceHeaders !== 'object' || Array.isArray(sourceHeaders)) {
++                                throw new TypeError('Invalid HTTP headers');
++                            }
++                            const responseHeaders = Object.create(null);
++                            for (const [name, value] of Object.entries(sourceHeaders)) {
++                                if (!/^[!#$%&'*+.^_|~0-9A-Za-z\x60-]+$/.test(name) ||
++                                        !(typeof value === 'string' || (typeof value === 'number' && Number.isFinite(value))) ||
++                                        /[\x00-\x08\x0a-\x1f\x7f]/.test(String(value))) {
++                                    throw new TypeError('Invalid HTTP header field');
++                                }
++                                responseHeaders[name] = value;
++                            }
++                            kind = 'RESPONSE_DATA';
++                            // Missing/unknown data is not evidence of an empty body.
++                            const data = GodotFetch.convertToUint8Array(res.data);
++                            if (!GodotFetch.active(id, obj)) {
++                                return;
++                            }
++                            obj.response = { header: responseHeaders };
++                            obj.status = status;
++                            obj.bodySize = data.byteLength;
++                            // Godot's unknown-length consumer needs one BODY read
++                            // to observe EOF, including an explicitly empty response.
++                            obj.chunks = [data];
++                            obj.done = true;
++                            obj.reading = false;
++                            obj.settled = true;
++                        } catch (e) {
++                            GodotFetch.onerror(id, obj, kind);
++                        }
++                    },
++                    fail: (err) => {
++                        if (!GodotFetch.active(id, obj)) {
++                            return;
++                        }
++                        GodotFetch.onerror(id, obj, 'REQUEST_FAILED', GodotFetch.read_errno(err));
++                    },
++                });
++                // Whole-response mode has no optional task listener dependency.
++            } catch (e) {
++                GodotFetch.onerror(id, obj, setupKind, GodotFetch.read_errno(e));
++            }
++            return id;
++        },
++
++        free: function (id) {
++            const obj = IDHandler.get(id);
++            if (!obj) {
++                return;
++            }
++            obj.closed = true;
++            IDHandler.remove(id);
++            // Invalidate before abort: it can throw or invoke fail synchronously.
++            try {
++                if (obj.requestTask && typeof obj.requestTask.abort === 'function') {
++                    obj.requestTask.abort();
++                }
++            } catch (e) {
++                GodotFetch.log_error('REQUEST_ABORT', GodotFetch.read_errno(e));
++            }
++        },
++
++        read: function (id) {
++            // Whole-response data is queued once by success; no stream pull.
++        },
++    },
++
+     godot_js_fetch_create__sig: 'iiiiiii',
+     godot_js_fetch_create: function (p_method, p_url, p_headers, p_headers_size, p_body, p_body_size) {
+         const method = GodotRuntime.parseString(p_method);
+@@ -220,13 +217,15 @@
+             const cb = GodotRuntime.get_func(p_parse_cb);
+             const arr = Object.entries(obj.response.header).map(([h, v]) => `${h}:${v}`);
+ 
+-            const c_ptr = GodotRuntime.allocStringArray(arr);
+-
+-            const result = cb(arr.length, c_ptr, p_ref);
+-
+-            GodotRuntime.freeStringArray(c_ptr, arr.length);
+-            return 0;
+-        } catch (e) {
++            const c_ptr = GodotRuntime.allocStringArray(arr);
++
++            try {
++                cb(arr.length, c_ptr, p_ref);
++            } finally {
++                GodotRuntime.freeStringArray(c_ptr, arr.length);
++            }
++            return 0;
++        } catch (e) {
+             return 1;
+         }
+     },

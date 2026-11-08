@@ -1,0 +1,128 @@
+{
+  "schema": "official-jsbridge-source-preparation-v1",
+  "date": "2026-11-05",
+  "status": "SOURCE_ONLY_UNAPPLIED",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "forkCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "inputs": [
+    {
+      "path": "platform/web/javascript_bridge_singleton.cpp",
+      "bytes": 15502,
+      "sha256": "0ca5d3366e740ba5ef6470fb68e6eb75708b813284912ce1506bdc2c5da66146",
+      "gitBlob": "d3a62038799f6d31577f4da80f8d24c0f572aaf0",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/platform/web/javascript_bridge_singleton.cpp"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_javascript_singleton.js",
+      "bytes": 13522,
+      "sha256": "d65c74d148ca2f9bc33644cc6f6330c85f28c8803416951ac31865195f22296d",
+      "gitBlob": "3ff6abba600ded6bedefbca3a6b74b9bf2a49835",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/platform/web/js/libs/library_godot_javascript_singleton.js"
+    }
+  ],
+  "referenceFork": [
+    {
+      "path": "platform/web/javascript_bridge_singleton.cpp",
+      "bytes": 14976,
+      "sha256": "190601f92debabf3e42a7230fc280d666a3f466f4469ca85e0e58c2d90738f07"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_javascript_singleton.js",
+      "bytes": 14600,
+      "sha256": "06799fe5b4012522cc828f4b8104cdad7458a1b5d882af709aceb49d72cba2d4"
+    }
+  ],
+  "patch": {
+    "file": "engine/official-jsbridge-source.patch",
+    "bytes": 3399,
+    "sha256": "800e7cfcb793a8d8cde5b873ab527b86cab9868f9492b20974b86c8c4246b4c4",
+    "hunks": 6
+  },
+  "outputs": [
+    {
+      "path": "platform/web/javascript_bridge_singleton.cpp",
+      "bytes": 15642,
+      "sha256": "520049c2782dfa55ade6f32b39730d3ee9b24978cfd1714911b78423749f72b0"
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_javascript_singleton.js",
+      "bytes": 14781,
+      "sha256": "f4bc56da9262257ced4682ff7a17a622cf36ac890e958b91f2193dd011c8bf21"
+    }
+  ],
+  "compileContract": {
+    "existingMacro": "WECHAT_GLX_EXPERIMENTAL",
+    "wechatCppEval": "Return NIL without invoking godot_js_eval when this existing macro is defined; includes GLX-capable engine's WebGL comparison path",
+    "browserCppEval": "Full official original body retained under #else",
+    "objects": "JAVASCRIPT_EVAL_ENABLED must remain enabled to compile object bridge; no SCsub or host changes made",
+    "linkedGodotEval": "NOT_VERIFIED; final generated JS dead-code elimination requires actual build and final-glue audit"
+  },
+  "runtimeContract": {
+    "wechatPredicate": "GameGlobal exists and is non-null; wx exists and is non-null; wx.getSystemInfoSync is a function",
+    "resolverOrder": [
+      "globalThis",
+      "GameGlobal",
+      "window"
+    ],
+    "resolver": "WeChat only; access value once per root, skip thrown access, preserve null as defined, return missing sentinel without inventing an interface",
+    "browserResolver": "Official window lookup and constructor lookup/evaluation timing retained",
+    "objectConstruction": "Actual resolved constructor invoked with actual production Variant conversions; no generated Function or eval implementation introduced",
+    "objectBridge": "get_interface/create_callback/create_object, GODOTSDK audio object chain, proxy refcounts, Variant conversion and buffer methods retained"
+  },
+  "abi": {
+    "existingJsSignaturesAndProxyAnnotations": "All unchanged; checked source by source",
+    "cppExternDeclarations": "All unchanged",
+    "callbackReturn": "Official C++ discards Callable result and supplies a fresh NIL Variant; not a delivery or operation receipt",
+    "knownInheritedDeclaration": "C++ declares godot_js_wrapper_object_transfer_buffer as int while JS sig is viiii; C++ ignores the call result. This unit preserves that official declaration and does not claim compiled ABI acceptance.",
+    "pointerScope": "Current wasm32 route; no wasm64 acceptance"
+  },
+  "validation": {
+    "tests": 17,
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 865.2558,
+    "exitCode": 0,
+    "test": {
+      "file": "tests/official-jsbridge-source-tests.mjs",
+      "bytes": 14332,
+      "sha256": "14080ee189061f16c3901a859f4f469e825cb89a23bbf15846f2aba5c95b38c6"
+    },
+    "localTap": {
+      "file": ".local/official-jsbridge-source-20261105.tap",
+      "bytes": 5511,
+      "sha256": "08a06742c1ae67001155fb844b25fff478e661f2054d57a8416d3388f7120e43"
+    },
+    "strictForwardReplay": true,
+    "strictReverseReplay": true,
+    "duplicateRejected": true,
+    "officialSha256AndGitBlobSha1Verified": true,
+    "actualJsFunctions": true,
+    "heapAndCppCallbacks": "MODELED",
+    "cppBranch": "SOURCE_PROJECTION_ONLY_NOT_COMPILED",
+    "ordinaryBrowserBody": "EXACT_ORIGINAL_AFTER_PREPROCESSOR_BRANCH_REMOVAL",
+    "unrelatedJsMethods": "Exact original source retained",
+    "knownDefectNegativeControls": "Counts include expected upstream limitation reproductions; passing them does not mean defects fixed",
+    "history": "Initial 16 pass / 1 fail was test projection retaining an extra newline before C++ closing brace. Corrected projection only; production patch unchanged. Final 17/17, 0 skip."
+  },
+  "limits": [
+    "No engine/WASM/WeChat/compiler/linker execution or target package change.",
+    "No proof final linked JS omits GodotEval/eval; only selected C++ branch lacks the direct invocation.",
+    "Not an object capability sandbox. Caller access to Function/eval/constructor remains general object-bridge capability, unsupported for dynamic execution by minigame platform; no comprehensive filtering claimed.",
+    "Proxy callback exception cleanup lacks finally in official implementation; retained as a documented negative control.",
+    "Non-Uint8Array buffer views copy the whole backing buffer; SharedArrayBuffer-backed views are not specially rejected. Caller must constrain owned ArrayBuffer/Uint8Array.",
+    "Promises are proxied objects; bridge does not await or turn callback return into acknowledgement.",
+    "Original constructor/property error logging behavior remains; no privacy overhaul or untrusted-object security guarantee.",
+    "Runtime heuristic does not prove device/backend identity; unusual embedded environments and proxy/global getters remain unverified.",
+    "Full JS/C++ Variant ABI, callback lifetime and platform code restrictions require actual compiled pair and runtime verification."
+  ],
+  "license": "Applicable Godot MIT notices retained unchanged; fixed fork comparison is provenance evidence, not a new third-party permission or whole-fork equivalence claim.",
+  "SCsubChanged": false,
+  "hostChanged": false,
+  "applied": false,
+  "build": false,
+  "WASMRun": false,
+  "WeChatRun": false,
+  "upload": false,
+  "phone": false
+}

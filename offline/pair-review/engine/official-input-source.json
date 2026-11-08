@@ -1,0 +1,247 @@
+{
+  "schema": "official-input-source-preparation-v1",
+  "date": "2026-11-05",
+  "status": "SOURCE_ONLY_UNAPPLIED",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "forkCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "inputs": [
+    {
+      "path": "platform/web/js/libs/library_godot_input.js",
+      "bytes": 23574,
+      "sha256": "bdf6ec2ff64820072c44de34fdf46683a1173ea037386059ce2946b02da29db3",
+      "role": "PATCH_BASE",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/platform/web/js/libs/library_godot_input.js",
+      "gitBlob": "fce4141a0f34f5dda8e5c3fd8ba808569d72e121"
+    },
+    {
+      "path": "platform/web/godot_js.h",
+      "bytes": 7600,
+      "sha256": "7942335057dc849fae1f6c04665bdf4aeb27ecdab732bd1d3413c303328c8b16",
+      "role": "UNCHANGED_CALLBACK_SIGNATURE_REFERENCE",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/platform/web/godot_js.h"
+    },
+    {
+      "path": "platform/web/display_server_web.cpp",
+      "bytes": 49511,
+      "sha256": "2e4b1ebf3b08b39494e47f8b699797140d79d5c821263094c3997bb85af63b4e",
+      "role": "UNCHANGED_CALLBACK_SIGNATURE_REFERENCE",
+      "url": "https://github.com/godotengine/godot/blob/c050c09b105c3715e1caa57a7109cd752047fd89/platform/web/display_server_web.cpp"
+    }
+  ],
+  "referenceFork": [
+    {
+      "path": "platform/web/js/libs/library_godot_input.js",
+      "bytes": 23783,
+      "sha256": "795c86181b1848ba6c902e237d93c531093737835ca95f4909d591cb4e39c780"
+    },
+    {
+      "path": "platform/web/godot_js.h",
+      "bytes": 7649,
+      "sha256": "ad248d3c6d61181dad38a2161b6decdbeab89c9b2fadec9582b9665900ea0918"
+    },
+    {
+      "path": "platform/web/display_server_web.cpp",
+      "bytes": 49900,
+      "sha256": "0ec8154ce80fbb52352e504a2d52bbefc8584f1987909b26e3ed3fb10943cc23"
+    }
+  ],
+  "prerequisiteCorrection": {
+    "file": "engine/wechat-input-contract-v2.patch",
+    "bytes": 3515,
+    "sha256": "58dcbe5e42adbd180b550eab0b04bcca26e292f187ba9a5138d591672163d36a",
+    "derivedFork": {
+      "bytes": 24487,
+      "sha256": "e44501ecead964da4b989fac2ae3f8b2e3ccd095bee4b44d27116cee412097dd"
+    },
+    "policy": "Read v2 only; exact corrected IME object is inserted independently beside official DOM IME. Do not apply fork v2 patch directly to this official candidate or stack v1."
+  },
+  "patch": {
+    "file": "engine/official-input-source.patch",
+    "bytes": 8859,
+    "sha256": "b90bc31341eb0d1760786b72218cc82e876f8e860f239e2b168b89bc46cab9c8",
+    "hunks": 6
+  },
+  "outputs": [
+    {
+      "path": "platform/web/js/libs/library_godot_input.js",
+      "bytes": 29238,
+      "sha256": "105a1fb250fbdde6d1ee98d91325de5464f88cb6462684a7c7f7d050acc99a65"
+    }
+  ],
+  "sourceDesign": {
+    "browserIme": "Entire original $GodotIME object unchanged",
+    "wechatIme": "Separate $GodotIMEWechat object exactly equals df3 plus v2 corrected helper",
+    "selection": "$GodotIME postset selects WeChat alias once through $GodotInputPlatform; original atexit hook retained",
+    "predicate": "GameGlobal exists/non-null AND wx exists/non-null AND wx.getSystemInfoSync is a function",
+    "startup": "Host environment must be ready before postset. Backend decision is cached; runtime changes do not switch an active backend.",
+    "deps": {
+      "GodotIME": [
+        "$GodotRuntime",
+        "$GodotEventListeners",
+        "$GodotInputPlatform",
+        "$GodotIMEWechat"
+      ],
+      "GodotIMEWechat": [
+        "$GodotRuntime"
+      ],
+      "GodotInputGamepads": [
+        "$GodotRuntime",
+        "$GodotEventListeners",
+        "$GodotInputPlatform"
+      ],
+      "scope": "Source-level explicit library dependencies only; final emitted library order/DCE remains uncompiled."
+    },
+    "wechatOnly": [
+      "Native keyboard IME and empty gamepad result",
+      "mousemove route with sixth pressure: finite number preserved, otherwise zero",
+      "wheel callback mode/dx/dy; missing mode zero and existing v2 delta defaults",
+      "touch zero origin with existing scale; separate rect avoids mutating host rectangle"
+    ],
+    "browserPreserved": [
+      "DOM IME object methods and cleanup exact original",
+      "Navigator gamepad body exact after removing single WeChat guard",
+      "pointermove route and original pressure value",
+      "Original wheel mode and nullish delta behavior",
+      "Original touch offset and scale",
+      "All unrelated input and drag/drop production methods"
+    ],
+    "cleanup": "Exact v2 identity/active checks, unregister-before-hide, first cleanup failure latch, no false clear/show/init success and no silent retry"
+  },
+  "abi": {
+    "existingSignaturesAndProxies": "Unchanged against complete official source map",
+    "signatureCount": 16,
+    "signatures": [
+      {
+        "name": "godot_js_input_mouse_move_cb__sig",
+        "sig": "vi"
+      },
+      {
+        "name": "godot_js_input_mouse_wheel_cb__sig",
+        "sig": "vi"
+      },
+      {
+        "name": "godot_js_input_mouse_button_cb__sig",
+        "sig": "vi"
+      },
+      {
+        "name": "godot_js_input_touch_cb__sig",
+        "sig": "viii"
+      },
+      {
+        "name": "godot_js_input_key_cb__sig",
+        "sig": "viii"
+      },
+      {
+        "name": "godot_js_set_ime_active__sig",
+        "sig": "vi"
+      },
+      {
+        "name": "godot_js_set_ime_position__sig",
+        "sig": "vii"
+      },
+      {
+        "name": "godot_js_set_ime_cb__sig",
+        "sig": "viiii"
+      },
+      {
+        "name": "godot_js_is_ime_focused__sig",
+        "sig": "i"
+      },
+      {
+        "name": "godot_js_input_gamepad_cb__sig",
+        "sig": "vi"
+      },
+      {
+        "name": "godot_js_input_gamepad_sample_count__sig",
+        "sig": "i"
+      },
+      {
+        "name": "godot_js_input_gamepad_sample__sig",
+        "sig": "i"
+      },
+      {
+        "name": "godot_js_input_gamepad_sample_get__sig",
+        "sig": "iiiiiii"
+      },
+      {
+        "name": "godot_js_input_drop_files_cb__sig",
+        "sig": "vi"
+      },
+      {
+        "name": "godot_js_input_paste_cb__sig",
+        "sig": "vi"
+      },
+      {
+        "name": "godot_js_input_vibrate_handheld__sig",
+        "sig": "vi"
+      }
+    ],
+    "mouseMoveCallback": [
+      "x",
+      "y",
+      "relativeX",
+      "relativeY",
+      "modifiers",
+      "pressure"
+    ],
+    "wheelCallback": [
+      "deltaMode",
+      "deltaX",
+      "deltaY"
+    ],
+    "touchCallback": [
+      "type",
+      "count"
+    ],
+    "callbackSource": "Official and df3 godot_js.h and display_server_web.cpp checked; no C++ changed or executed"
+  },
+  "validation": {
+    "tests": 19,
+    "passed": 19,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 1268.8052,
+    "exitCode": 0,
+    "test": {
+      "file": "tests/official-input-source-tests.mjs",
+      "bytes": 16736,
+      "sha256": "210daccc628095ae9f6eb49031f16c7c7b4041df99fa64262b8d6f62cabfd183"
+    },
+    "localTap": {
+      "file": ".local/official-input-source-20261105.tap",
+      "bytes": 6194,
+      "sha256": "bc925d74b3ffe1b6e8de62b946d2aa83c0d98d2aa49a5b5572c5172a71e9d2d2"
+    },
+    "strictForwardReplay": true,
+    "strictReverseReplay": true,
+    "duplicateRejected": true,
+    "derivedJsParsed": true,
+    "officialDomHelperByteExact": true,
+    "correctedV2ImeHelperByteExact": true,
+    "actualJsFunctions": true,
+    "domKeyboardEventsHeap": "MODELED",
+    "cpp": "SOURCE_SIGNATURE_CHECK_ONLY",
+    "negativeControls": "Known same-object prior-session delivery limitation reproduced conditionally; passing this assertion does not mean platform observed such delivery or defect fixed"
+  },
+  "remaining": [
+    "Actual Emscripten emission/dependency order, compilation and final ABI/glue pairing.",
+    "Same-object hide/show session token ambiguity; retired-object guard does not distinguish reused callback from prior session.",
+    "showKeyboard/registration synchronous and asynchronous failure recovery remains unverified and unchanged from v2.",
+    "Chinese composition, selection/cursor edits, surrogate deletion, focus and background transitions are not verified.",
+    "Cleanup failures latch and propagate but do not restore or prove closure of native keyboard; engine exit rejection behavior is not fixed.",
+    "WeChat zero-origin touch and mouse route require actual host/window/device coordinate validation.",
+    "No real DOM browser, WeChat/native keyboard, C++/WASM or device test. Model API success is not input-delivery acceptance.",
+    "Requires actual host __globalAdapter keyboard methods; this source unit does not install or repair host methods."
+  ],
+  "license": "Applicable original Godot notices retained. Fixed fork/v2 provenance recorded; no third-party license clearance or whole-file equivalence claim.",
+  "SCsubChanged": false,
+  "hostChanged": false,
+  "engineTreeChanged": false,
+  "applied": false,
+  "build": false,
+  "engineRun": false,
+  "WeChatRun": false,
+  "upload": false,
+  "phone": false,
+  "fullImeAccepted": false
+}

@@ -108,9 +108,18 @@ export function assertOfficialRawTerminal(terminal){
  assert(d.build&&Number.isSafeInteger(d.build.bytes)&&/^[a-f0-9]{64}$/.test(d.build.sha256),'RAW_TERMINAL_BUILD_ID');
  return {status:'RAW_TASK_SUCCESS_NOT_FINAL_ENGINE',admission:'NOT_ADMITTED'};
 }
+const offlinePackName='pack-d4e5a39168f7a49bf54a67fafa6ad2ae58b44c1d.pack';
+function checkoutPackPath(plan){return path.join(plan.source,'.git','objects','pack',offlinePackName);}
+function provisionOfflinePack(plan){
+ const input=regular(path.join(repo,'offline','upstream','c050.pack'));
+ assert.deepEqual(pin(input),{bytes:71132244,sha256:'f66488de130a3d19411f447b9c2ecba7762cff51ff068b6d8a766c4a09cea550'},'RAW_OFFLINE_C050_PACK');
+ writeNew(checkoutPackPath(plan),input);
+ writeNew(path.join(plan.source,'.git','shallow'),Buffer.from(plan.sourceCommit+'\n'));
+}
 function expectedGitCommands(plan){return [['init','--template='+path.join(plan.work,'inputs/git-template'),plan.source],
   ['-C',plan.source,'config','core.autocrlf','false'],['-C',plan.source,'config','core.hooksPath',path.join(plan.work,'inputs/git-hooks')],
-  ['-C',plan.source,'remote','add','origin',plan.sourceRepository],['-C',plan.source,'fetch','--no-tags','--depth=1','origin',plan.sourceCommit],
+  ['-C',plan.source,'remote','add','origin',plan.sourceRepository],plan.request.sourceTransport ?
+    ['-C',plan.source,'index-pack',checkoutPackPath(plan)] : ['-C',plan.source,'fetch','--no-tags','--depth=1','origin',plan.sourceCommit],
   ['-C',plan.source,'checkout','--detach',plan.sourceCommit]];}
 function assertClosedCommands(commands,work){
  for(const command of commands){const result=command.result;assert(result?.closed===true&&result.outcome==='SUCCESS'&&result.exitCode===0&&result.signal===null&&Number.isInteger(result.pid)&&result.pid>0,'RAW_CHILD_NOT_SUCCESSFULLY_CLOSED');
@@ -198,7 +207,7 @@ async function executePreparedOfficialRaw(preflight){
   assert.deepEqual(json(materialization),record.materialization,'RAW_MATERIALIZATION_RECORD_CHANGED');
  };
  const sample=()=>{
-  const resources=officialRawResourceSnapshot(budgetRoot),size=measuredTree(budgetRoot),row={...resources,logicalBytes:size.bytes,transientFilesGone:size.transientGone};
+  const resources=officialRawResourceSnapshot(budgetRoot,r.sourceTransport ? r.python : undefined),size=measuredTree(budgetRoot),row={...resources,logicalBytes:size.bytes,transientFilesGone:size.transientGone};
   if(plan.controlBudgetBytes){row.controlBytes=measuredTree(work).bytes;assert(row.controlBytes<plan.controlBudgetBytes-1024*1024,'RAW_CONTROL_BUDGET_RESERVE');}
   record.samples.push(row);checkResourceHeadroom(row,{jobs:r.jobs,budgetBytes:r.budgetBytes,logicalBytes:size.bytes});return row;
  };
@@ -236,12 +245,10 @@ async function executePreparedOfficialRaw(preflight){
   }},
   {name:'SOURCE',run:async()=>{
    if(!plan.resume){
-    await git(['init','--template='+path.join(work,'inputs/git-template'),plan.source]);
-    await git(['-C',plan.source,'config','core.autocrlf','false']);
-    await git(['-C',plan.source,'config','core.hooksPath',path.join(work,'inputs/git-hooks')]);
-    await git(['-C',plan.source,'remote','add','origin',plan.sourceRepository]);
-    await git(['-C',plan.source,'fetch','--no-tags','--depth=1','origin',plan.sourceCommit]);
-    await git(['-C',plan.source,'checkout','--detach',plan.sourceCommit]);
+    for(const args of expectedGitCommands(plan)){
+     if(plan.request.sourceTransport && args[2]==='index-pack')provisionOfflinePack(plan);
+     await git(args);
+    }
    }
    task.checkpoint('SOURCE');
    const result=await sourceRecipe.materialize({source:plan.source,gitExecutable:r.gitExecutable,profile:sourceProfile,upstreamSource:path.join(work,'inputs/upstream-source.js'),write:true});

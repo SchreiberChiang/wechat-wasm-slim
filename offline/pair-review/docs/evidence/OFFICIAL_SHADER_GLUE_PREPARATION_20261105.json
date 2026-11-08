@@ -1,0 +1,348 @@
+{
+  "schema": "wxslim-official-shader-glue-preparation-v1",
+  "date": "2026-11-05",
+  "status": "SOURCE_ONLY_NOT_BUILD_READY",
+  "reference": {
+    "schema": "wxslim-official-shader-glue-reference-v1",
+    "status": "REFERENCE_REPLAY_ONLY_NOT_A_RUNTIME_CANDIDATE",
+    "input": {
+      "bytes": 478655,
+      "sha256": "982e4241ffbf1d69039e7c460fc1c403f551d414be811f0569111eed3361f2af"
+    },
+    "output": {
+      "bytes": 479575,
+      "sha256": "b7fd123675c278cab3bf7eeaceb47b2018a83d4ea5831d3f8fbe959b807ca8fa"
+    },
+    "graphics": {
+      "schema": "wxslim-official-graphics-postprocess-v1",
+      "status": "SOURCE_ONLY_REFERENCE_REPLAY",
+      "input": {
+        "bytes": 478655,
+        "sha256": "982e4241ffbf1d69039e7c460fc1c403f551d414be811f0569111eed3361f2af"
+      },
+      "output": {
+        "bytes": 479056,
+        "sha256": "2f45ea2f248c4901fa67266e80e03bd37ba679331447a74aa9ca2fe99bbcfc68"
+      },
+      "edits": [
+        {
+          "rule": "wx-glx-after-do-frame-wrapper",
+          "inputByteOffset": 321378,
+          "removed": {
+            "bytes": 74,
+            "sha256": "f188ada2b194ffc255cb7791febe3b606168ef9909defd6a3300df0564939e65"
+          },
+          "inserted": {
+            "bytes": 96,
+            "sha256": "1c240a1969c44a0c247b20c9d5dc8f9a3b2e94ea533aa945237e3e74ebc95401"
+          }
+        },
+        {
+          "rule": "commit-frame-wrapper",
+          "inputByteOffset": 350967,
+          "removed": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "inserted": {
+            "bytes": 379,
+            "sha256": "656c72842ac85b5ca90b7cfea3e510410f72b408babe1d4d81870482a82783e9"
+          }
+        }
+      ],
+      "unchangedBytesVerified": true,
+      "sourceCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+      "officialGeneratedInputVerified": false,
+      "integrated": false,
+      "compiled": false,
+      "targetExecuted": false,
+      "runtime": "NOT_RUN"
+    },
+    "steps": [
+      {
+        "rule": "WXSLIM_SHADER_FAILURE_GLUE_V1",
+        "helper": {
+          "path": "engine/shader-failure/instrument-glue.cjs",
+          "bytes": 2181,
+          "sha256": "5778bd25ed34a050bd2285b53886953528299e9ceb677573aee5a2b8efff76d0"
+        },
+        "input": {
+          "bytes": 479056,
+          "sha256": "2f45ea2f248c4901fa67266e80e03bd37ba679331447a74aa9ca2fe99bbcfc68"
+        },
+        "output": {
+          "bytes": 479350,
+          "sha256": "bde0a66dcc46fc8d854297fb9cc1f64adcee36b83ab49944ce73124346dbc37b"
+        },
+        "inputByteOffset": 322944,
+        "removed": {
+          "bytes": 572,
+          "sha256": "2915f66538c881d3f51e7552adc58415cc7b545ccbfb751dd9ff453819db8f72"
+        },
+        "inserted": {
+          "bytes": 866,
+          "sha256": "3604f7bf1702d3c2ffbcfc854ca50232cb4e331dac30fbd9eb187f836d18a1bf"
+        },
+        "otherBytesPreserved": true
+      },
+      {
+        "rule": "WXSLIM_SHADER_TYPE_RETURN_GLUE_V1",
+        "helper": {
+          "path": "engine/shader-type-return/instrument-glue.cjs",
+          "bytes": 1961,
+          "sha256": "f60329e242d84b3dcc24fb579812de6538a148ebf6c4904f2af2cac34c607c7c"
+        },
+        "input": {
+          "bytes": 479350,
+          "sha256": "bde0a66dcc46fc8d854297fb9cc1f64adcee36b83ab49944ce73124346dbc37b"
+        },
+        "output": {
+          "bytes": 479698,
+          "sha256": "e2175bc94bf2df7bc5ad6d736c4d20011a9674b5ea6f943eedaf726e23a460d2"
+        },
+        "inputByteOffset": 322636,
+        "removed": {
+          "bytes": 308,
+          "sha256": "600b48ddad0d3065acc2a5f116c399ea6ea4c0577d4381b147ac447d14036dd5"
+        },
+        "inserted": {
+          "bytes": 656,
+          "sha256": "b195361dd66a3761ebd8ce37b76ac8caa6d172d4ebc19aa113c14c091aaf7c76"
+        },
+        "otherBytesPreserved": true
+      },
+      {
+        "rule": "official-global-id-return0",
+        "input": {
+          "bytes": 479698,
+          "sha256": "e2175bc94bf2df7bc5ad6d736c4d20011a9674b5ea6f943eedaf726e23a460d2"
+        },
+        "output": {
+          "bytes": 479575,
+          "sha256": "b7fd123675c278cab3bf7eeaceb47b2018a83d4ea5831d3f8fbe959b807ca8fa"
+        },
+        "inputByteOffset": 325089,
+        "removed": {
+          "bytes": 179,
+          "sha256": "d73b59ebb69c86dc0943cf12c0d1b98d4a4acd5056a3c65ea6d8d0cc64d21b3e"
+        },
+        "inserted": {
+          "bytes": 56,
+          "sha256": "096bc7a2da0daff699228cdd075d772358042c8e818ca47f2b86f5e5e9559286"
+        },
+        "otherBytesPreserved": true
+      }
+    ],
+    "syntaxParsed": true,
+    "targetExecuted": false,
+    "baselinePatch": {
+      "path": "engine/alpha-preserve-lighting/baseline-shader-diagnostic.patch",
+      "sha256": "84204452f43c04ef40ad4efcdd37e132f11ea429a42d029b63f6222d3e781ee6"
+    },
+    "officialGeneratedInputVerified": false,
+    "completePostprocessor": false,
+    "remaining": [
+      "actual official emitted glue and native imports/invoke pairing",
+      "runtime clock/i64/error/stat compatibility decisions",
+      "secure randomness and storage/host closure",
+      "actual full/conservative build and runtime acceptance"
+    ]
+  },
+  "tests": {
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 139.583,
+    "log": {
+      "path": ".local/official-shader-glue-reference-20261105.tap",
+      "bytes": 399,
+      "sha256": "7cb163a571520bc0a87626a351eff23c7c4a30733b0fc38787c92e746642fac6"
+    }
+  },
+  "legacyRuleLedger": {
+    "source": {
+      "repository": "citizenll/godot",
+      "commit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+      "path": "godot_process.js",
+      "bytes": 4913,
+      "sha256": "c608ca71fb033f260d8875c16c43fb7901fe17f6d70c8f85d9b3c8bfa0833ccb"
+    },
+    "rules": [
+      {
+        "name": "disable-window-title",
+        "rawTextOccurrences": 0,
+        "match": {
+          "bytes": 100,
+          "sha256": "328aa306cc3fad03e17fb895d1d0ff9cece3b0e8123b2edfb90e7aefef90c670"
+        },
+        "replacement": {
+          "bytes": 53,
+          "sha256": "0eb86157391e7101b36d3c0d4bc23db5dd05f504d80177ae8e1f86063cc0d9ac"
+        },
+        "disposition": "Pending exact official-generated function and host title contract; not applied here."
+      },
+      {
+        "name": "performance-now-polyfill",
+        "rawTextOccurrences": 1,
+        "match": {
+          "bytes": 41,
+          "sha256": "55946bb620e15cdf235f1b106a7c98d8ec1f13b6253c1d01b612e3470273fca1"
+        },
+        "replacement": {
+          "bytes": 31,
+          "sha256": "c2a47f597b09446762b648567279dc5b256e2203ac0c143da0c191f9a4972e1c"
+        },
+        "disposition": "Pending monotonic host clock contract; Date.now fallback does not prove monotonicity."
+      },
+      {
+        "name": "getvalue-i64",
+        "rawTextOccurrences": 0,
+        "match": {
+          "bytes": 55,
+          "sha256": "f3a17cb2b25971cef375e134f7e8730af528115c4ec2abd25614fdeb48337f97"
+        },
+        "replacement": {
+          "bytes": 32,
+          "sha256": "8832e98206a61a44a415797dec0cd56fe1daab6cc7f816f56452fa40aec2de1e"
+        },
+        "disposition": "Non-BigInt abort-replacement anchor absent in this raw reference; do not force old low32 semantics."
+      },
+      {
+        "name": "setvalue-i64",
+        "rawTextOccurrences": 0,
+        "match": {
+          "bytes": 55,
+          "sha256": "8520e13198e94e362d3100d059ca4495e765914a3b59a0c07d54e674f6bdc764"
+        },
+        "replacement": {
+          "bytes": 251,
+          "sha256": "e8d2a695dd3664b6681fba5b46fdb18bd2266b55b83983305d80e1b937875115"
+        },
+        "disposition": "Non-BigInt abort-replacement anchor absent in this raw reference; do not add obsolete emulation blindly."
+      },
+      {
+        "name": "wx-fs-mount",
+        "rawTextOccurrences": 1,
+        "match": {
+          "bytes": 23,
+          "sha256": "000cc6fe96c1a43068e9764b45ceec422880509a5e246f737a9bb4ece9dc83af"
+        },
+        "replacement": {
+          "bytes": 25,
+          "sha256": "32c655973bb76fc62dbd4c1f2c8fcde14532bb0992c531a05592aece2be23e8b"
+        },
+        "disposition": "Excluded from official storage route; do not restore WXMEMFS rewriting."
+      },
+      {
+        "name": "wasm-runtimeerror-instanceof",
+        "rawTextOccurrences": 0,
+        "match": {
+          "bytes": 37,
+          "sha256": "395ff01871b104481eac9da4ef6aef635a296445e751c2dc5b361fbb6267409d"
+        },
+        "replacement": {
+          "bytes": 1,
+          "sha256": "3f79bb7b435b05321651daefd374cdc681dc06faa65e374e38337b88ca046dea"
+        },
+        "disposition": "Pending actual emitted error path and RuntimeError capability; no broad truthy replacement admitted."
+      },
+      {
+        "name": "wasm-runtimeerror-constructor",
+        "rawTextOccurrences": 1,
+        "match": {
+          "bytes": 41,
+          "sha256": "f91bbaadca4be3a96eee09a6090342ce7290b16e6c312c706bb10cd349a457cf"
+        },
+        "replacement": {
+          "bytes": 138,
+          "sha256": "8de7fca63436b0e5792eda3a3d198e6c6e5135c7164c51857293dd802a7e9a8d"
+        },
+        "disposition": "Pending official emitted abort function and actual constructor capability."
+      },
+      {
+        "name": "wx-glx-after-do-frame-wrapper",
+        "rawTextOccurrences": 1,
+        "match": {
+          "bytes": 74,
+          "sha256": "f188ada2b194ffc255cb7791febe3b606168ef9909defd6a3300df0564939e65"
+        },
+        "replacement": {
+          "bytes": 96,
+          "sha256": "1c240a1969c44a0c247b20c9d5dc8f9a3b2e94ea533aa945237e3e74ebc95401"
+        },
+        "disposition": "Retained in two-rule graphics reference, applied once."
+      },
+      {
+        "name": "stat-ino-guard",
+        "rawTextOccurrences": 1,
+        "match": {
+          "bytes": 35,
+          "sha256": "4a3505610e6990f08d6e74e1a213afd0cd56df67c3bb307757850e5539b6956e"
+        },
+        "replacement": {
+          "bytes": 47,
+          "sha256": "3f2466d62ca15bf51891bd60b61f1a5de8d0f80d6c2d6ef61b51b20f618e4599"
+        },
+        "disposition": "Pending selected FS getattr contract; skipping a write is not an acceptable substitute for a valid inode."
+      },
+      {
+        "name": "temp-i64-vars",
+        "rawTextOccurrences": 0,
+        "match": {
+          "bytes": 49,
+          "sha256": "32b75a6c789e00ac68111ccb18f1c97e1fc9e54185b7430b678d5326fc08e7d6"
+        },
+        "replacement": {
+          "bytes": 76,
+          "sha256": "d926e9bbefd533e4f25068d28b78acbfd3bd58b7ddfe7ebe0972c9235488a6bd"
+        },
+        "disposition": "Only justified if i64 emulation is actually retained; otherwise no dependency proved."
+      }
+    ],
+    "scope": "Anchor counts in pinned historical raw JS, not official-generated output or proof of selected runtime behavior.",
+    "sdk": {
+      "version": "4.0.10",
+      "files": [
+        {
+          "path": "src/lib/libgetvalue.js",
+          "bytes": 2125,
+          "sha256": "a270f6401911845af7c50b20dc81234557ab7b4b0e2c23b722c576ca6af7e532"
+        },
+        {
+          "path": "src/lib/libcore.js",
+          "bytes": 88682,
+          "sha256": "bf610d3ced386c2c89f76b54890a064f9e57367975a59afeeedef02ad16a8330"
+        },
+        {
+          "path": "src/lib/libsyscall.js",
+          "bytes": 39165,
+          "sha256": "91c17685e4d60e2cb8a8de8c2f6939aefadd668b97508b494165bb214809f835"
+        }
+      ],
+      "getValueSource": "libgetvalue.js:16-20/35-39 select full i64 with WASM_BIGINT; both historical emulation anchors absent in actual reference.",
+      "errorSource": "libcore.js:1993 RuntimeError instanceof is inside STACK_OVERFLOW_CHECK and precedes quit_(1,e); do not blanket rewrite unexamined error handling.",
+      "clockSource": "libcore.js:1348 non-worklet emscripten_get_now uses performance.now; existing host nowPolyfill uses Date.now-relative time; new contract not verified.",
+      "statSource": "libsyscall.js:63 writes stat.ino as i64; skipping output on falsy inode has not been justified for new storage route."
+    }
+  },
+  "files": [
+    {
+      "path": "engine/official-shader-glue-reference.mjs",
+      "bytes": 5034,
+      "sha256": "b41b42deb454f0064407659a9fe5fd4fce3bdd5b738d9a0b231daabc901117c8"
+    },
+    {
+      "path": "tests/official-shader-glue-reference-tests.mjs",
+      "bytes": 1811,
+      "sha256": "57c1cb90dc6ef37a438065e806f1118fa890ea28cae6c2f3e1abd0a7de7499c1"
+    }
+  ],
+  "generatedJsWritten": false,
+  "sourceTreeWritten": false,
+  "SDKChanged": false,
+  "WASMChanged": false,
+  "compilerRun": false,
+  "targetExecuted": false,
+  "upload": false,
+  "phone": false
+}

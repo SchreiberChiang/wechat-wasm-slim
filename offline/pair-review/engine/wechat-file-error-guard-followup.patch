@@ -1,0 +1,17 @@
+diff --git a/drivers/unix/file_access_unix.cpp b/drivers/unix/file_access_unix.cpp
+--- a/drivers/unix/file_access_unix.cpp
++++ b/drivers/unix/file_access_unix.cpp
+@@ -197,5 +197,5 @@
+ 
+ void FileAccessUnix::_close() {
+-#if defined(WEB_ENABLED) && defined(__EMSCRIPTEN_GLX__)
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
+ 	if (!f) {
+ 		// A failed open may have left a target without a live FILE.
+@@ -370,5 +370,5 @@
+ void FileAccessUnix::flush() {
+ 	ERR_FAIL_NULL_MSG(f, "File must be opened before use.");
+-#if defined(WEB_ENABLED) && defined(__EMSCRIPTEN_GLX__)
++#if defined(WEB_ENABLED) && defined(WECHAT_GLX_EXPERIMENTAL)
+ 	if (fflush(f) != 0) {
+ 		last_error = ERR_FILE_CANT_WRITE;

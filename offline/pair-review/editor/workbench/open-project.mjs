@@ -1,0 +1,93 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {randomUUID} from 'node:crypto';
+import {PLACEHOLDER_APPID} from '../../convert/lib/verify.mjs';
+
+function readLocalConfig(file) {
+  const st = fs.lstatSync(file);
+  if (!st.isFile() || st.isSymbolicLink() || st.size > 2 * 1024 * 1024 ||
+      path.relative(path.resolve(file), fs.realpathSync(file)) !== '') {
+    throw Error('请选择本机的普通 JSON 文件');
+  }
+  const text = fs.readFileSync(file, 'utf8');
+  return {text, json: JSON.parse(text.replace(/^\uFEFF/, ''))};
+}
+
+// Only replace the two placeholder fields of an official output. A retry with
+// the same source can finish a partial update. Never overwrite another AppID.
+export function configureLocalAppId(configFile, sourceFile) {
+  const root = path.dirname(configFile);
+  const kitFile = path.join(root, 'wx-game-kit/config.json');
+  const files = [configFile, kitFile];
+  const values = () => files.map((file, i) => {
+    const row = readLocalConfig(file);
+    return {...row, file, id: i === 0 ? row.json.appid : row.json.project?.app?.appID};
+  });
+  const valid = id => typeof id === 'string' && /^wx[0-9a-f]{16}$/.test(id) && id !== PLACEHOLDER_APPID;
+  if (!sourceFile) {
+    const [project, kit] = values();
+    if (!valid(project.id) || project.id !== kit.id) throw Error('请选择已有小游戏的 project.config.json 作为 AppID 来源');
+    return 0;
+  }
+  if (!path.isAbsolute(sourceFile) || path.basename(sourceFile) !== 'project.config.json') throw Error('AppID 来源须为已有小游戏的 project.config.json');
+  const source = readLocalConfig(sourceFile).json;
+  if (source.compileType !== 'game' || !valid(source.appid)) throw Error('来源小游戏缺少有效的 AppID');
+  const lock = path.join(path.dirname(root), '.wxslim-local-appid.lock');
+  let fd;
+  try {
+    fd = fs.openSync(lock, 'wx');
+    fs.writeFileSync(fd, JSON.stringify({pid:process.pid, project:root}));
+    const entries = values();
+    if (entries.some(e => e.id !== PLACEHOLDER_APPID && e.id !== source.appid)) throw Error('目标已绑定其他 AppID，保留原工程');
+    const changes = entries.filter(e => e.id === PLACEHOLDER_APPID);
+    if (changes.length) {
+      const report = readLocalConfig(path.join(path.dirname(root), 'CONVERT_REPORT.json')).json;
+      if (report.appidSource !== 'placeholder' || path.relative(root, report.minigame) !== '') throw Error('目标与官方转换回执不匹配');
+    }
+    for (const {file,text} of changes) {
+      const placeholder = JSON.stringify(PLACEHOLDER_APPID);
+      if (text.split(placeholder).length !== 2) throw Error('目标配置中的占位符不唯一');
+      const tmp = file + '.' + randomUUID() + '.tmp';
+      fs.writeFileSync(tmp, text.replace(placeholder, JSON.stringify(source.appid)), {flag:'wx', flush:true});
+      try {
+        if (readLocalConfig(file).text !== text) throw Error('目标配置已被其他进程修改');
+        fs.renameSync(tmp, file);
+      } finally {
+        if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
+      }
+    }
+    if (values().some(e => e.id !== source.appid)) throw Error('两个本地 AppID 字段核对失败');
+    return changes.length;
+  } finally {
+    if (fd !== undefined) {
+      fs.closeSync(fd);
+      fs.unlinkSync(lock);
+    }
+  }
+}
+
+// Use argv directly with the same Electron CLI entry as the installed cli.bat.
+// The selected project path is always a separate argument.
+export function openWeChatProject(configFile, appidFrom = '') {
+  if (typeof configFile !== 'string' || !path.isAbsolute(configFile) || path.basename(configFile) !== 'project.config.json') {
+    throw Error('请选择小游戏根目录中的 project.config.json');
+  }
+  const project = path.dirname(configFile);
+  const config = JSON.parse(fs.readFileSync(configFile, 'utf8').replace(/^\uFEFF/, ''));
+  if (config.compileType !== 'game' || !['game.js', 'game.json'].every(name => fs.statSync(path.join(project, name)).isFile())) {
+    throw Error('所选工程缺少小游戏入口或配置');
+  }
+  const dirs = (process.env.PATH || '').split(path.delimiter).map(s => s.replace(/^"|"$/g, '')).filter(path.isAbsolute);
+  const cli = 'resources/app.asar.unpacked/js/common/cli/index.js';
+  const install = dirs.find(dir => ['cli.bat', '微信开发者工具.exe', cli].every(name => fs.existsSync(path.join(dir, name))));
+  if (!install) throw Error('请将已安装的微信开发者工具目录加入本地 PATH，然后重开 Godot 编辑器');
+  const appIdFieldsChanged = configureLocalAppId(configFile, appidFrom);
+  const bootstrap = "const entry=process.argv[1];process.argv=[process.execPath,'--ms-enable-electron-run-as-node',entry,'--electron',...process.argv.slice(2)];require(entry)";
+  const result = spawnSync(path.join(install, '微信开发者工具.exe'), ['-e', bootstrap, path.join(install, cli), 'open', '--project', project], {
+    cwd: install, env: {...process.env, cwd: project, ELECTRON_RUN_AS_NODE: '1'}, shell: false, windowsHide: true,
+    encoding: 'utf8', timeout: 60000, maxBuffer: 256 * 1024
+  });
+  if (result.error || result.status !== 0) throw Error('微信开发者工具未确认打开，检查本机工具的服务端口和项目设置');
+  return {project, cliExitCode: result.status, appIdFieldsChanged};
+}

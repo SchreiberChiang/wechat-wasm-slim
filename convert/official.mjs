@@ -100,7 +100,7 @@ export function snapshotInputs(cfg) {
     sources: Object.fromEntries(sourceFiles.concat(isOfficialC050Profile(cfg.engineProfile)?c050SourceFiles:[],
       cfg.engineProfile===OFFICIAL_C050_CONSERVATIVE_PROFILE?['official-c050-conservative-recipe.json']:[],
       cfg.engineProfile===OFFICIAL_C050_CAPABILITY_PROFILE || cfg.engineProfile===CUSTOM_PAIR_PROFILE?['official-c050-capability-recipe.json']:[],
-      cfg.engineProfile===CUSTOM_PAIR_PROFILE?['lib/official-custom-context.mjs','lib/custom-project-usage.mjs','../lib/custom-pair-task.mjs','../lib/pck-inventory.mjs']:[],
+      cfg.engineProfile===CUSTOM_PAIR_PROFILE?['lib/official-custom-context.mjs','lib/bundled-pair.mjs','lib/custom-project-usage.mjs','../lib/custom-pair-task.mjs','../lib/pck-inventory.mjs']:[],
       cfg.engineProfile===CUSTOM_PAIR_PROFILE && customConversionContext()?.rebuilt?['../engine/rebuilt-capability-pair.mjs','../engine/retained-conservative-capability.mjs']:[],
       cfg.options.loginCode===true?['../'+LOGIN_CODE_RUNTIME_SOURCE]:[]).map(name => [name, bytesIdentity(read(path.join(home, name)))])),
     configuration,
@@ -113,7 +113,7 @@ export function checkOfficialInputs(cfg) {
   const custom=cfg.engineProfile===CUSTOM_PAIR_PROFILE?customConversionContext():null;
   const projectUsage = checkProjectUsage(cfg.projectUsage,cfg.engineProfile,snapshot.files.pck,custom?read(cfg.pck):undefined);
   const pair = checkFixedPair(read(cfg.js), read(cfg.wasm),cfg.engineProfile);
-  if(custom?.rebuilt) pair.provenance=custom.retainedFixed?'MATCHES_RETAINED_FAILED_FIXED_CAPABILITY_RAW_AND_PREPARATION':'MATCHES_COMPLETED_FIXED_CAPABILITY_RAW_AND_PREPARATION';
+  if(custom?.rebuilt && !custom.bundled) pair.provenance=custom.retainedFixed?'MATCHES_RETAINED_FAILED_FIXED_CAPABILITY_RAW_AND_PREPARATION':'MATCHES_COMPLETED_FIXED_CAPABILITY_RAW_AND_PREPARATION';
   const c050Adapter=isOfficialC050Profile(cfg.engineProfile)?prepareOfficialC050Adapter({profile:cfg.engineProfile,js:read(cfg.js),wasm:read(cfg.wasm)}):null;
   const engineContract = Object.freeze({profile:cfg.engineProfile,...getRecipeIdentity(cfg.engineProfile),projectUsageSha256:projectUsage ? sha(JSON.stringify(projectUsage)) : null,
     ...(custom?{customSource:custom.customSource}:{})});

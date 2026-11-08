@@ -1,0 +1,121 @@
+{
+  "schema": "wxslim-official-storage-source-v1",
+  "status": "SOURCE_ONLY_NOT_INTEGRATED",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "forkCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "inputs": [
+    {
+      "path": "platform/web/js/libs/library_godot_os.js",
+      "bytes": 14940,
+      "sha256": "211dfb5520e9dd1381e3c379b4d9486420a02d9f3f72c40b912e3b2a5e7daaa9"
+    },
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 4631,
+      "sha256": "d8292a8945f941c061f6484ea2bcce783d7838cde8ecad8ff3ca86ff29b36180"
+    }
+  ],
+  "prerequisite": {
+    "path": "engine/official-glx-context-source.patch",
+    "bytes": 8090,
+    "sha256": "022456eae38ce11f9fb4f6b27a4fb3f2f00582c4c1d63c823ca87d220dd7e503",
+    "output": {
+      "path": "platform/web/SCsub",
+      "bytes": 4797,
+      "sha256": "ca13e4b40828c4ad36fa0413dde082968b40ddff8d873f0e23b1b0ecabcc3802"
+    }
+  },
+  "patch": {
+    "path": "engine/official-storage-source.patch",
+    "bytes": 22114,
+    "sha256": "87f4f5de71c73f149a85b7ef1abf26bd81171fb904e3a8e739eeca07bea3f0ed"
+  },
+  "outputs": [
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 5019,
+      "sha256": "d68a2232b0a6a9c6691c7fb5849478ca4dbc36b6ab59fa66bd7786fe7c84262c"
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_os.js",
+      "bytes": 20428,
+      "sha256": "8589c54e60b2e5dc6d6a8d233fba1b5c995ab49389c61758c13973e045828dd6"
+    }
+  ],
+  "newFileBaseExistence": "ABSENT_HTTP_404",
+  "upstreamFeatureTags": {
+    "sourceRepository": "citizenll/godot",
+    "sourceCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+    "path": "platform/web/js/libs/library_godot_os.js",
+    "forkPin": {
+      "bytes": 15059,
+      "sha256": "79025fde693a2310a61c58fcca8e657bc04c6fa5eda589d0aafc8d18ee081acf"
+    },
+    "meaning": "wx presence only, not capability acceptance"
+  },
+  "ownedInit": {
+    "path": "engine/wechat-persistent-init.patch",
+    "bytes": 8437,
+    "sha256": "5959b3f9bce964a4e2f52cd935b9205249e2f3cb39a6cc30aaf43dfbfe6fddd3",
+    "officialRebaseEqualsPriorForkWithTagsRemoved": true
+  },
+  "generatedFactory": {
+    "path": "platform/web/js/libs/library_wxslim_persistent.js",
+    "bytes": 51994,
+    "sha256": "3569d531021554f8fd1831d57e9f78d3cb6bcfbdef2330d1625cab646fbfb702",
+    "inputs": [
+      {
+        "path": "convert/assets/persistent-file-transport.js",
+        "bytes": 7689,
+        "sha256": "d71b883b2d11d1767c4d353d841732b06698dd01217a41fdae2235c5347abdad"
+      },
+      {
+        "path": "convert/assets/persistent-memfs.js",
+        "bytes": 24804,
+        "sha256": "49ea92808f433e0274d6940db64cff7a0db64257c9961e6d55922285ce268b2d"
+      },
+      {
+        "path": "convert/assets/persistent-session.js",
+        "bytes": 15971,
+        "sha256": "50f0d67a588132fa171aafb510f3bd2800ba3f89f020d22eb584191b6b8081c4"
+      }
+    ],
+    "deps": [
+      "$FS",
+      "$MEMFS"
+    ],
+    "constants": [
+      "EACCES",
+      "EBUSY",
+      "EEXIST",
+      "EFBIG",
+      "EINVAL",
+      "EIO",
+      "EISDIR",
+      "ENODEV",
+      "ENOENT",
+      "ENOSPC",
+      "ENOTDIR",
+      "ENOTEMPTY",
+      "ENOTSUP",
+      "EPERM",
+      "S_IFDIR",
+      "S_IFMT",
+      "S_IFREG"
+    ],
+    "written": false
+  },
+  "officialBrowserOsUnchanged": true,
+  "selectedOnlyByUseWxGlx": true,
+  "legacyFsShimIncluded": false,
+  "legacyWxMemfsMountRewriteIncluded": false,
+  "limitations": [
+    "Current missing-directory failure classification is preserved and still unresolved.",
+    "FileAccessUnix error propagation plus macro followup must separately be present and verified before admitting a build.",
+    "SCons generation, SDK expansion, real WASM start and file IO not executed.",
+    "Current full/conservative render packages are unchanged and do not inherit storage acceptance.",
+    "Generated factory pins require reviewed refresh after component changes; no arbitrary supplied hash bypass."
+  ],
+  "compiled": false,
+  "runtime": false
+}

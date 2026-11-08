@@ -1,0 +1,503 @@
+{
+  "schema": "wxslim-capabilities-v1",
+  "version": "2026-11-07.login-option.1",
+  "route": "official-transformer-fixed-full-and-conservative",
+  "scopeNote": "仅当前官方宿主；历史社区宿主、其他候选或新构建不继承设备验收。实现状态不等于功能已通过。",
+  "evidence": {
+    "combined-resource-c050-ios-two-sessions": {
+      "kind": "device-observation",
+      "scope": {
+        "packageId": "wxslim-a85db5df36cdbe96e2a3",
+        "platform": "ios",
+        "system": "iOS 18.3.1",
+        "model": "iPhone 16 Pro<iPhone17,1>",
+        "wechatVersion": "8.0.75",
+        "sdkVersion": "3.17.6",
+        "backend": "glx"
+      },
+      "report": "docs/RESOURCE_PLATFORM_BINDING_IOS_20261106.md",
+      "logSha256": [
+        "99e8375f6f8fcf74b4a5237d04d69f366125cb7b1fda8f2dd7f0c9af4a944e92"
+      ],
+      "observations": [
+        "同设备两会话实际GLX初始化；资源目标level及shared依赖挂载回执成功、16×16内容标记匹配",
+        "用户回忆确认两次蓝白方格可见、切页返回正常；未收到旧wx绑定启动错误，原warn记录保留"
+      ],
+      "excludes": [
+        "安卓",
+        "一般游戏依赖闭包",
+        "多关卡连续加载",
+        "独立数据包API",
+        "长期稳定性",
+        "完整vConsole或逐操作原生取证"
+      ]
+    },
+    "official-conservative-ios-first-open": {
+      "kind": "device-observation",
+      "scope": {
+        "packageId": "wxslim-548ddf5fb92e31cb8fe6",
+        "platform": "ios",
+        "system": "iOS 18.3.1",
+        "model": "iPhone 16 Pro",
+        "wechatVersion": "8.0.75",
+        "sdkVersion": "3.17.6",
+        "backend": "glx"
+      },
+      "report": "docs/OFFICIAL_CONSERVATIVE_DEVICE_20261104.md",
+      "logSha256": [
+        "3653973ebe43ef1c50b5d2252c4700fe075217fe0d46cffea4b73c6cd305699e"
+      ],
+      "observations": [
+        "保守裁剪548简单场景首开，纹理方块、48%红片及阴影可见",
+        "实际GLX；用户确认持续旋转、未冻结或自行退出；原警告保留"
+      ],
+      "excludes": [
+        "精确观察时长",
+        "重进及长期稳定性",
+        "其他设备/SDK或任意裁剪配方",
+        "输入/音频/存档/网络/多PCK资源分包"
+      ]
+    },
+    "official-conservative-android-first-open": {
+      "kind": "device-observation",
+      "scope": {
+        "packageId": "wxslim-548ddf5fb92e31cb8fe6",
+        "platform": "android",
+        "system": "Android 10",
+        "model": "VCE-AL00",
+        "wechatVersion": "8.0.79",
+        "sdkVersion": "3.17.5",
+        "backend": "glx"
+      },
+      "report": "docs/OFFICIAL_CONSERVATIVE_DEVICE_20261104.md",
+      "logSha256": [
+        "8de52a0688ff6c402832fb36b5dd2d2bc6c906b16ff35011fcf364b6488cc249"
+      ],
+      "observations": [
+        "保守裁剪548简单场景首开，纹理方块、48%红片及阴影可见",
+        "实际GLX；用户确认持续旋转、未冻结或自行退出；原警告保留"
+      ],
+      "excludes": [
+        "同官方宿主完整版安卓对照",
+        "精确观察时长/重进/长期稳定性",
+        "其他设备/SDK或任意裁剪配方",
+        "输入/音频/存档/网络/多PCK资源分包"
+      ]
+    },
+    "official-ios-simple-three-launches": {
+      "kind": "device-observation",
+      "scope": {
+        "packageId": "wxslim-55108e38cf76224da538",
+        "platform": "ios",
+        "system": "iOS 18.3.1",
+        "model": "iPhone 16 Pro",
+        "wechatVersion": "8.0.75",
+        "sdkVersion": "3.17.6",
+        "backend": "glx"
+      },
+      "report": "docs/GLX_OFFICIAL_CONVERSION_EXECUTION_20261104.md",
+      "logSha256": [
+        "1e831c99c57b79314f6824b9fe9a92e1003446ae8a514662473625959f0b69ac",
+        "13f09d4cfdbc35c3d1a8d968d83591c178698f6c895ed185b988577c605e674d",
+        "c51196043337b5034c995da6bc076f08a89b5209c5335b7f9caedb56d895f4f7"
+      ],
+      "observations": [
+        "首开、一次三点重新进入、一次重开微信后的简单场景画面",
+        "纹理方块、48%红片及阴影可见，日志观察实际GLX"
+      ],
+      "excludes": [
+        "安卓",
+        "其他设备或SDK",
+        "长期稳定性",
+        "新构建产物",
+        "触摸/中文输入/音频/存档/网络",
+        "截图以外的持续动画证明"
+      ]
+    }
+  },
+  "capabilities": [
+    {
+      "id": "official-convert",
+      "name": "官方转换与简单首包启动",
+      "status": "implemented",
+      "sources": [
+        "convert/official-execute.mjs",
+        "convert/lib/conversion-core.mjs",
+        "convert/assets/godot-bridge.js"
+      ],
+      "evidence": [
+        "official-ios-simple-three-launches",
+        "official-conservative-ios-first-open",
+        "official-conservative-android-first-open"
+      ],
+      "limit": "仅各精确候选的首包简单场景；548保守包已有两端首开，不能继承551重开证据或开放未测基础能力。"
+    },
+    {
+      "id": "render-glx",
+      "name": "GLX渲染",
+      "status": "implemented",
+      "sources": [
+        "convert/assets/render-runtime.js",
+        "convert/lib/inputs.mjs"
+      ],
+      "evidence": [
+        "official-ios-simple-three-launches",
+        "official-conservative-ios-first-open",
+        "official-conservative-android-first-open"
+      ],
+      "limit": "不支持GLX即停止，不静默回退；仅明确设备范围有画面证据。"
+    },
+    {
+      "id": "render-webgl",
+      "name": "显式WebGL参考",
+      "status": "implemented",
+      "sources": [
+        "convert/assets/render-runtime.js",
+        "docs/evidence/CAPABILITY_DEMO_DESKTOP_20261104.json"
+      ],
+      "evidence": [],
+      "limit": "官方宿主cb287在电脑3.17.5/WebGL2运行；资源UI候选3e85在电脑3.17.6/WebGL2完成按钮加载及纹理画面检查。能力观察候选wxslim-161514e9c37eb16dffeb在电脑3.17.6/WebGL2显示纹理、48%红片和阴影，跨截图方块姿态变化。见各自脱敏收据；只限这些桌面观察，不是手机或GLX验收。"
+    },
+    {
+      "id": "render-metal",
+      "name": "Metal路径",
+      "status": "unsupported",
+      "sources": [
+        "convert/lib/inputs.mjs"
+      ],
+      "evidence": [],
+      "limit": "固定转换配置enableMetal=false；未接入与验收。"
+    },
+    {
+      "id": "input-touch",
+      "name": "触摸输入",
+      "status": "implemented",
+      "sources": [
+        "convert/assets/godot-bridge.js",
+        "docs/GODOT_WECHAT_STAGE0_INTERFACES_20261104.md",
+        "docs/evidence/CAPABILITY_DEMO_DESKTOP_20261104.json",
+        "docs/BASIC_CAPABILITY_PARALLEL_20261105.md",
+        "engine/official-input-source.json",
+        "convert/official-c050-recipe.json",
+        "docs/C050_BASIC_CAPABILITY_STATUS_20261106.md",
+        "docs/RESOURCE_PLATFORM_BINDING_IOS_20261106.md",
+        "docs/C050_CAPABILITY_SOURCE_CANDIDATES_20261106.md",
+        "docs/OFFICIAL_C050_CAPABILITY_PAIR_20261106.md"
+      ],
+      "evidence": [],
+      "limit": "旧df3/1615和c050/a85d的拖动观察仅属原候选，不扩为多点、坐标/像素比或逐事件验收。full-official-c050-capability-dev已完成7源/2对象增量构建及配对离线检查；其输入会话补丁不继承旧包设备结果，尚未运行新配对。未新增设备证据绑定，supported-use仍不放行。"
+    },
+    {
+      "id": "input-ime",
+      "name": "中文虚拟键盘",
+      "status": "implemented",
+      "sources": [
+        "convert/assets/godot-bridge.js",
+        "convert/assets/wx-compat.js",
+        "docs/GODOT_WECHAT_STAGE0_20261104.md",
+        "engine/official-input-source.json",
+        "convert/official-c050-recipe.json",
+        "docs/C050_BASIC_CAPABILITY_STATUS_20261106.md",
+        "docs/C050_CAPABILITY_SOURCE_CANDIDATES_20261106.md",
+        "docs/OFFICIAL_C050_CAPABILITY_PAIR_20261106.md"
+      ],
+      "evidence": [],
+      "limit": "旧df3、历史full-official-c050-dev与新full-official-c050-capability-dev分别记录。新功能配方已加入IME会话令牌、迟到回调隔离、show/注册失败清理及finally释放修正，完成增量构建和源码/配对离线检查；历史配方没有自动升级。中文组合、光标、删除和真实键盘会话仍未验收，新配对尚未运行，不能借用旧设备结果或放行supported-use。"
+    },
+    {
+      "id": "audio",
+      "name": "音频播放与恢复",
+      "status": "implemented",
+      "sources": [
+        "convert/assets/godot-bridge.js",
+        "docs/evidence/CAPABILITY_DEMO_DESKTOP_20261104.json",
+        "docs/BASIC_CAPABILITY_PARALLEL_20261105.md",
+        "engine/official-audio-lifecycle.json",
+        "engine/official-audio-start-contract.json",
+        "convert/official-c050-recipe.json",
+        "docs/C050_BASIC_CAPABILITY_STATUS_20261106.md",
+        "docs/RESOURCE_PLATFORM_BINDING_IOS_20261106.md",
+        "docs/C050_CAPABILITY_SOURCE_CANDIDATES_20261106.md",
+        "docs/OFFICIAL_C050_CAPABILITY_PAIR_20261106.md"
+      ],
+      "evidence": [],
+      "limit": "旧df3/1615及c050/a85d的短音观察不可移给新配对。full-official-c050-capability-dev已编入异步起播等待期间的暂停意图处理，完成离线配对核验，尚未运行，也未据此自动接管hide/show。普通长音和packaged音频须分别核验；真实路由、暂停/恢复、缓存失败及同进程后台行为尚待验收，finished或超过3秒不证明native播放成功；未新增设备绑定或放行supported-use。"
+    },
+    {
+      "id": "persistent-save",
+      "name": "持久存档",
+      "status": "unsupported",
+      "sources": [
+        "convert/assets/godot-bridge.js",
+        "docs/GODOT_WECHAT_STAGE0_20261104.md",
+        "docs/PERSISTENT_SAVE_SOURCE_REVIEW_20261104.md",
+        "docs/PERSISTENT_GUARD_INCREMENTAL_20261105.md",
+        "docs/PERSISTENT_INIT_CAUSE_DESKTOP_20261105.md",
+        "docs/STORAGE_CHINESE_PREVIEW_20261106.md",
+        "docs/evidence/STORAGE_CN_IOS_20261106.json"
+      ],
+      "evidence": [],
+      "limit": "此通用能力入口仍拒绝旧默认/七补丁fresh配方，不因开发包通过而放宽执行门禁。历史7526初始化失败另存；新官方c050完整开发配方已完成ac384a电脑及5f4a iPhone16Pro/iOS18.3.1/微信8.0.75/SDK3.17.6/GLX的9步写入与新会话7步只读，四文件实际元数据/字节一致，自动定位无需粘贴。该开发配方经专门任务门禁执行，不等于任意引擎或一般生产存档验收；安卓、断电/进程冷重启耐久性及最终通用能力放行仍缺。详见STORAGE_CHINESE_PREVIEW_20261106.md。"
+    },
+    {
+      "id": "secure-random",
+      "name": "引擎安全随机源",
+      "status": "unsupported",
+      "sources": [
+        "docs/OFFICIAL_PLATFORM_STORAGE_CRYPTO_20261104.md",
+        "docs/OFFICIAL_SECURE_RANDOM_BRIDGE_20261105.md",
+        "docs/evidence/STORAGE_CN_IOS_20261106.json"
+      ],
+      "evidence": [],
+      "limit": "旧配对Math.random shim仍不支持安全用途。新官方c050开发配方另有WECHAT_CTR_DRBG_V1宿主接线，ac384a电脑与5f4a iOS已各观察一次原生32字节请求返回，完整1024字节输出区清零且不公开随机内容。该结果仅PASS_NATIVE_ABI_ONLY，cryptographicQuality=NOT_TESTED；不能由接口成功推导加密安全或为通用入口放行。新旧配方须分开，仍需独立安全审阅及约定范围验收。"
+    },
+    {
+      "id": "network-http",
+      "name": "HTTP",
+      "status": "implemented",
+      "sources": [
+        "convert/assets/wx-compat.js",
+        "docs/WECHAT_HTTP_CONTRACT_REVIEW_20261105.md",
+        "docs/WECHAT_HTTP_PATCH_PREPARATION_20261105.md",
+        "engine/official-http-source.json",
+        "engine/official-http-selection.json",
+        "convert/official-c050-recipe.json",
+        "docs/C050_BASIC_CAPABILITY_STATUS_20261106.md",
+        "docs/C050_CAPABILITY_SOURCE_CANDIDATES_20261106.md",
+        "docs/OFFICIAL_C050_CAPABILITY_PAIR_20261106.md",
+        "docs/NETWORK_WASM_DESKTOP_20261107.md"
+      ],
+      "evidence": [],
+      "limit": "旧df3和历史c050配方分别保留。新full-official-c050-capability-dev已编入默认80/443端口规范化及HTTPClient有效空响应头一次读取修正。2026-11-07的cc8e93电脑WebGL2/3.17.5已用实际Godot WASM完成本机二进制200、503、空204、断连及取消，服务端对应记录齐全；这不证明默认端口、无响应头、公网HTTPS、证书、合法域名或手机验收，不放行通用supported-use。"
+    },
+    {
+      "id": "network-websocket",
+      "name": "WebSocket",
+      "status": "implemented",
+      "sources": [
+        "convert/assets/wx-compat.js",
+        "docs/WECHAT_WEBSOCKET_CONTRACT_REVIEW_20261105.md",
+        "engine/official-websocket-combination.json",
+        "docs/NETWORK_WASM_DESKTOP_20261107.md",
+        "convert/official-c050-recipe.json",
+        "docs/C050_BASIC_CAPABILITY_STATUS_20261106.md"
+      ],
+      "evidence": [],
+      "limit": "旧df3创建失败0/-1不一致已在当前c050官方组合统一为-1，并继承对象生命周期修正。2026-11-07的cc8e93电脑WebGL2/3.17.5已用实际Godot WebSocketPeer完成本机文本/二进制回显、1000正常关闭、关闭后拒绝发送与1006异常断开，服务端有对应记录。宿主WebSocket/SDK包装/wx回退分支仍未逐项区分，异步send/close、UTF-8关闭原因、队列量、公网WSS及手机仍缺；不放行通用supported-use。"
+    },
+    {
+      "id": "network-tcp-udp",
+      "name": "TCP/UDP及ENet",
+      "status": "unsupported",
+      "sources": [
+        "convert/assets/wx-compat.js",
+        "docs/GODOT_WECHAT_STAGE0_INTERFACES_20261104.md"
+      ],
+      "evidence": [],
+      "limit": "固定web构建NetSocketWeb的open/bind/connect/send/recv均返回ERR_UNAVAILABLE；平台有API不等于Godot已接通。"
+    },
+    {
+      "id": "login-code",
+      "name": "微信临时登录凭证",
+      "status": "implemented",
+      "sources": [
+        "convert/official.mjs",
+        "convert/lib/conversion-core.mjs",
+        "convert/lib/official-contract.mjs",
+        "lib/task-core.mjs",
+        "convert/assets/login-code-runtime.js",
+        "lib/login-code-interfaces.mjs",
+        "lib/godot-login-code.gd",
+        "docs/LOGIN_CODE_SOURCE_PREPARATION_20261107.md"
+      ],
+      "evidence": [],
+      "limit": "共同官方转换配置loginCode显式布尔选项，默认关闭，仅固定c050开发配方；本地插件复用同一计划和执行链。由原始interfaces重新派生，阻止重复拼接，审核原始输入和输出哈希；安装不调用登录。显式请求、一次取码、迟到回调隔离，无游客回退或业务请求。只有离线模型与静态解析，尚未接当前demo或真实调用微信接口；临时code不能替代业务登录，不记录code、AppSecret或session_key。"
+    },
+    {
+      "id": "login-business",
+      "name": "真实业务登录",
+      "status": "missing",
+      "sources": [
+        "docs/GODOT_WECHAT_PLUGIN_GOAL_20261104.md"
+      ],
+      "evidence": [],
+      "limit": "没有通用后端；AppSecret不进入客户端；模拟流程须明确标识。"
+    },
+    {
+      "id": "lifecycle-recovery",
+      "name": "后台恢复与资源恢复",
+      "status": "pending",
+      "sources": [
+        "convert/assets/render-runtime.js",
+        "docs/evidence/CAPABILITY_DEMO_DESKTOP_20261104.json",
+        "convert/assets/simple-delivery-interface.js",
+        "docs/RESOURCE_PLATFORM_BINDING_IOS_20261106.md",
+        "docs/C050_BASIC_CAPABILITY_STATUS_20261106.md"
+      ],
+      "evidence": [],
+      "limit": "自有宿主仍以hide/show/resize计数为主，未形成通用暂停恢复合同。旧1615电脑hide=0/show=1与c050/a85d第二会话已有hide/show记录须分开；后者也不证明长音、画面或存档的同进程后台恢复。切页正常、启动show及新会话重开不能替代该验收；状态保持pending，开发模式也不放行。"
+    },
+    {
+      "id": "project-pck-export",
+      "name": "固定编辑器工程PCK导出",
+      "status": "implemented",
+      "sources": [
+        "lib/project-pck-export.mjs",
+        "lib/task-core.mjs"
+      ],
+      "evidence": [],
+      "limit": "仅开发测试入口。固定编辑器和明确Web全资源preset，实际工程输入及导出前后校验；允许正常导入缓存和新增import/uid文件，不复制工程。复用共用任务控制器，取消等待当前子进程结束，不强杀、不回滚导入。预算为事前余量和事后检查，非实时磁盘配额。未执行真实工程导出，模型检查不代表运行通过；不推断依赖闭包、微信或GLX画面通过，supported-use不放行。"
+    },
+    {
+      "id": "resource-subpackages",
+      "name": "多PCK游戏资源分包",
+      "status": "implemented",
+      "sources": [
+        "convert/assets/custom-package.js",
+        "lib/pck-inventory.mjs",
+        "lib/resource-pack-plan.mjs",
+        "lib/resource-load-state.mjs",
+        "lib/resource-mount-command.mjs",
+        "convert/assets/resource-subpackage-reader.js",
+        "convert/assets/resource-command-bridge.js",
+        "lib/godot-resource-pack-session.gd",
+        "lib/godot-resource-command-receiver.gd",
+        "convert/assets/resource-host-lifecycle.js",
+        "lib/godot-resource-scene-loader.gd",
+        "lib/resource-scene-command.mjs",
+        "convert/assets/resource-load-state-core.js",
+        "convert/assets/resource-mount-command-core.js",
+        "convert/assets/resource-scene-command-core.js",
+        "convert/assets/resource-executor.js",
+        "convert/assets/resource-interfaces-runtime.js",
+        "lib/resource-interfaces-bundle.mjs",
+        "lib/resource-runtime-fixture.mjs",
+        "lib/resource-runtime-assembly.mjs",
+        "lib/resource-partition-task.mjs",
+        "lib/resource-interfaces-task.mjs",
+        "lib/resource-assembly-task.mjs",
+        "lib/godot-resource-game-facade.gd",
+        "lib/resource-game-facade-sources.mjs",
+        "docs/RESOURCE_RUNTIME_EXECUTION_20261104.md"
+      ],
+      "evidence": [
+        "combined-resource-c050-ios-two-sessions"
+      ],
+      "limit": "一般工程仍限开发验证。a85d在明确iPhone/3.17.6/GLX两会话完成单一level及shared依赖加载，用户确认显示与切页返回；仅该候选范围有设备证据，不能继承给新包。原3e85电脑取消/缺包失败及c2be启动失败证据保留。共用拆包、接口生成任务已有离线检查，实际新导出/转换整链及插件执行未验收。缺普通游戏常驻接线、多关卡连续加载、自动依赖/UID闭包、持久版本缓存、下载中取消与完整生命周期设备验收。"
+    },
+    {
+      "id": "engine-build-persistent-dev",
+      "name": "独立持久化开发引擎构建",
+      "status": "unsupported",
+      "sources": [
+        "engine/persistent-build.mjs",
+        "engine/persistent-build-plan.mjs",
+        "lib/task-core.mjs",
+        "tests/task-core-tests.mjs",
+        "docs/PERSISTENT_GUARD_INCREMENTAL_20261105.md"
+      ],
+      "evidence": [],
+      "limit": "旧七补丁fresh计划尚不含FileAccessUnix两处guard修正，共用任务CLI/core的execute暂拒新增执行；plan及历史任务status/cancel仍可用。direct旧脚本仅保留历史入口，本门禁不保证对其硬拦截，不宣称全局禁用。已完成的两宏增量产物须单独开发准入与真实WASM验收，不能冒充旧fresh配方；不开放persistent-save，不改冻结构建器/source审计及full/conservative门禁，不继承旧设备证据。"
+    },
+    {
+      "id": "engine-official-pair-prepare",
+      "name": "官方原始配对的JS后处理准备",
+      "status": "implemented",
+      "sources": [
+        "engine/official-pair-prepare.mjs",
+        "lib/pair-task.mjs",
+        "engine/custom-pair-source.mjs",
+        "lib/custom-pair-task.mjs",
+        "lib/task-core.mjs",
+        "docs/OFFICIAL_PAIR_PREPARATION_CLI_20261106.md"
+      ],
+      "evidence": [],
+      "limit": "固定c050 full/conservative/full-capability仍按原始字节选择既定身份及7条规则；custom分支必须重新审核真正成功的共同raw任务、源码选择和实际配对，不接受任意JS路径或调用方hash覆盖。仅开发用途，向已批准的既有父目录排他写新JS和收据，不复制WASM或创建目录；custom不得写入原raw任务树。短操作没有TASK、阶段流或中途取消，失败保留部分文件，不自动重试。成功保持PREPARED_NOT_ADMITTED；custom新成功链尚未实际执行，不能据此转换或继承任何设备通过记录。"
+    },
+    {
+      "id": "engine-build-official-raw-dev",
+      "name": "官方固定源码原始引擎开发构建",
+      "status": "implemented",
+      "sources": [
+        "engine/official-build-preflight.mjs",
+        "engine/official-build-raw.mjs",
+        "lib/task-core.mjs",
+        "docs/OFFICIAL_RAW_EXECUTOR_20261105.md",
+        "docs/SHARED_TASK_CORE_20261104.md"
+      ],
+      "evidence": [],
+      "limit": "共用入口复用官方c050固定配方和既有raw执行器，仅development-test可显式执行。新输出目录、空间和构建必须另获批准。SUCCESS只表示原始JS/WASM/symbols捕获与raw审核终态，仍RAW_CAPTURED_NOT_FINALIZED、NOT_ADMITTED；不自动后处理、转换、运行或继承设备证据。不开放特殊resume；本轮共用接线仅离线检查，没有新增构建。"
+    },
+    {
+      "id": "engine-build-fixed",
+      "name": "固定完整/保守引擎构建",
+      "status": "implemented",
+      "sources": [
+        "engine/fixed-engine.mjs",
+        "engine/fixed-build.mjs",
+        "lib/task-core.mjs",
+        "docs/FIXED_ENGINE_CLI_20261104.md"
+      ],
+      "evidence": [],
+      "limit": "此历史固定构建的共用任务入口只开放开发测试；新构建不继承旧设备验收。输入、资源、源码、配对和终态仍由原执行器核验，本action的真实构建/取消尚未通过插件执行。面板已有共同执行UI和另一个官方源码构建计划表单，但不能用PCK导出/转换取消的结果替代此构建验收；新官方c050使用独立action和显式源码配方。"
+    },
+    {
+      "id": "trim-fixed-glx",
+      "name": "成功配方的保守裁剪GLX",
+      "status": "implemented",
+      "sources": [
+        "engine/fixed-engine-plan.mjs",
+        "engine/fixed-build.mjs",
+        "engine/fixed-source-audit.mjs",
+        "engine/fixed-module-audit.mjs",
+        "engine/alpha-preserve-lighting/delivery-build.mjs",
+        "convert/lib/official-engine-admission.mjs",
+        "docs/OFFICIAL_CONSERVATIVE_ROUTE_20261104.md",
+        "engine/fixed-engine.mjs"
+      ],
+      "evidence": [
+        "official-conservative-ios-first-open",
+        "official-conservative-android-first-open"
+      ],
+      "limit": "固定conservative构建及官方转换审计通过，548包已在明确两台设备/SDK上简单场景首开正常，保留警告。仅该配方及同包证据，不是任意模块裁剪或长期稳定性通过。构建CLI已接共用执行器并完成合同/现任务status检查，新CLI完整重构建和新项目资源依赖审计仍待实测。"
+    },
+    {
+      "id": "wasm-function-split",
+      "name": "WASM函数分包",
+      "status": "pending",
+      "sources": [
+        "split/kit.mjs"
+      ],
+      "evidence": [],
+      "limit": "历史工具存在，当前修复引擎未验收；排在裁剪GLX之后，不能复用别的WASM采集。"
+    },
+    {
+      "id": "plugin-export-ui",
+      "name": "新Godot导出插件（仅本地）",
+      "status": "implemented",
+      "sources": [
+        "lib/task-core.mjs",
+        "docs/OFFICIAL_DELIVERY_ENTRY_20261107.md",
+        "docs/SHARED_TASK_CORE_20261104.md"
+      ],
+      "evidence": [],
+      "limit": "仅本地的新导出插件已接共同CLI，含配置、PCK导出、配对准备、转换、资源接线、计划/确认/执行/状态和安全取消。固定编辑器真实Control曾完成一次PCK导出及一次转换自然退出后的安全取消；属于headless面板逻辑与真实子进程证据，不是可见dock完整操作或生成游戏验收。当前标已实现待验证，supported-use不放行；插件源码/专用UI/产物仅本地，不提交推送，旧wx_split插件不是本入口。"
+    },
+    {
+      "id": "safe-task-cancel",
+      "name": "统一安全取消",
+      "status": "missing",
+      "sources": [
+        "convert/lib/official-task.mjs",
+        "convert/lib/owned-process.mjs",
+        "wxslim.mjs",
+        "trim/trim.mjs",
+        "split/kit.mjs",
+        "engine/fixed-engine.mjs",
+        "engine/fixed-build.mjs"
+      ],
+      "evidence": [],
+      "limit": "official及固定构建有任务身份、取消等待与终态保护；本地真实Control已在一次转换子进程启动后请求取消，等待自然退出且停止后续组包，并非强杀或回滚。该证据不能覆盖重负载构建取消、旧trim/split和全部GUI流程，故全局统一能力仍保持missing；各已实现任务按其明确范围执行，不冒充全局可用。"
+    }
+  ]
+}

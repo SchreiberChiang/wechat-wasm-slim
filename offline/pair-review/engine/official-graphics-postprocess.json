@@ -1,0 +1,84 @@
+{
+  "schema": "wxslim-official-graphics-postprocess-metadata-v1",
+  "status": "SOURCE_ONLY_NOT_INTEGRATED",
+  "source": {
+    "repository": "citizenll/godot",
+    "commit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+    "path": "godot_process.js",
+    "bytes": 4913,
+    "sha256": "c608ca71fb033f260d8875c16c43fb7901fe17f6d70c8f85d9b3c8bfa0833ccb",
+    "rules": [
+      "wx-glx-after-do-frame-wrapper (lines 50-54)",
+      "ensureCommitFrameWrapper (lines 94-114)"
+    ],
+    "exactReplacementBodiesVerified": true
+  },
+  "rawReference": {
+    "archiveRelativePath": "persistent-dev-01/postcompile-02/artifacts/emscripten-before-godot-process.js",
+    "captureRecord": "persistent-dev-01/postcompile-02/evidence/parent-audit.json",
+    "captureStatus": "PASS_CONTINUATION_STATIC_ONLY",
+    "bytes": 478655,
+    "sha256": "982e4241ffbf1d69039e7c460fc1c403f551d414be811f0569111eed3361f2af",
+    "origin": "fork df3 plus existing project patches; not official c050 output"
+  },
+  "derivedReference": {
+    "bytes": 479056,
+    "sha256": "2f45ea2f248c4901fa67266e80e03bd37ba679331447a74aa9ca2fe99bbcfc68"
+  },
+  "receipt": {
+    "schema": "wxslim-official-graphics-postprocess-v1",
+    "status": "SOURCE_ONLY_REFERENCE_REPLAY",
+    "input": {
+      "bytes": 478655,
+      "sha256": "982e4241ffbf1d69039e7c460fc1c403f551d414be811f0569111eed3361f2af"
+    },
+    "output": {
+      "bytes": 479056,
+      "sha256": "2f45ea2f248c4901fa67266e80e03bd37ba679331447a74aa9ca2fe99bbcfc68"
+    },
+    "edits": [
+      {
+        "rule": "wx-glx-after-do-frame-wrapper",
+        "inputByteOffset": 321378,
+        "removed": {
+          "bytes": 74,
+          "sha256": "f188ada2b194ffc255cb7791febe3b606168ef9909defd6a3300df0564939e65"
+        },
+        "inserted": {
+          "bytes": 96,
+          "sha256": "1c240a1969c44a0c247b20c9d5dc8f9a3b2e94ea533aa945237e3e74ebc95401"
+        }
+      },
+      {
+        "rule": "commit-frame-wrapper",
+        "inputByteOffset": 350967,
+        "removed": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "inserted": {
+          "bytes": 379,
+          "sha256": "656c72842ac85b5ca90b7cfea3e510410f72b408babe1d4d81870482a82783e9"
+        }
+      }
+    ],
+    "unchangedBytesVerified": true,
+    "sourceCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+    "officialGeneratedInputVerified": false,
+    "integrated": false,
+    "compiled": false,
+    "targetExecuted": false,
+    "runtime": "NOT_RUN"
+  },
+  "boundaries": [
+    "Only pinned whole-byte raw input admitted; no user hash override.",
+    "inspectOfficialGraphicsInput checks anchors only and is not an admission API.",
+    "Only dynamic afterDoFrame lookup and commit-frame wrapper are derived; all remaining bytes reverse-splice verified.",
+    "Wrapper preserves original call then currentContext.flush then currentContext.commit; no additional swaps, flushes or retries.",
+    "Dynamic closure resolves Module._glxCommandBufferFlush at callback time with Module receiver.",
+    "Commit wrapper preserves original return and exception behavior; missing optional context methods retain existing skips.",
+    "WXMEMFS, clocks, i64, RuntimeError, title, stat, invoke mappings and shader instrumentation are excluded.",
+    "Native library/context lifecycle, official compiler output and runtime rendering remain unverified.",
+    "No build integration, candidate package, JS/WASM execution or new official recipe acceptance."
+  ]
+}

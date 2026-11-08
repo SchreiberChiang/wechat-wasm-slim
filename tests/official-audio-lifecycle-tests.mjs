@@ -1,10 +1,10 @@
+import {readOfficialSource} from './pinned-godot-source.mjs';
 // Replay + isolated actual-method models. No engine/WASM or real platform API.
 // Explicit --fetch-fixed-audio reads only the already-approved official JS body.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import https from 'node:https';
 import crypto from 'node:crypto';
 import {replayUnifiedPatch} from '../engine/fixed-source-audit.mjs';
 const meta=JSON.parse(fs.readFileSync(new URL('../engine/official-audio-lifecycle.json',import.meta.url),'utf8'));
@@ -19,8 +19,8 @@ const canonical=n=>JSON.stringify(n,(k,v)=>['start','end','raw'].includes(k)?und
 function members(ast){const m=new Map();function add(list,p){for(const n of list){const name=p+'.'+key(n);m.set(name,n);if(n.value?.type==='ObjectExpression')add(n.value.properties,name);}}
   for(const n of ast.body){if(n.type==='ClassDeclaration')add(n.body.body,n.id.name);if(n.type==='VariableDeclaration')for(const d of n.declarations)if(d.init?.type==='ObjectExpression')add(d.init.properties,d.id.name);}return m;}
 let source,output,map,baseMap;
-if(process.argv.includes('--fetch-fixed-audio')){
-  const bytes=await new Promise((resolve,reject)=>https.get(`https://raw.githubusercontent.com/godotengine/godot/${basis.baseCommit}/${path}`,r=>{if(r.statusCode!==200){r.resume();reject(Error('OFFICIAL_SOURCE_HTTP'));return;}const chunks=[];r.on('data',b=>chunks.push(b));r.on('end',()=>resolve(Buffer.concat(chunks)));r.on('error',reject)}).on('error',reject));
+if(process.env.WXSLIM_C050_GIT || process.argv.includes('--fetch-fixed-audio')){
+  const bytes=await readOfficialSource(basis.baseCommit,path);
   const official=basis.inputs.find(p=>p.path===path);assert.deepEqual(pin(bytes),{bytes:official.bytes,sha256:official.sha256});
   const part=sourcePatch.toString().split(/(?=^diff --git )/m).find(x=>x.startsWith('diff --git a/'+path+' '));
   source=replayUnifiedPatch(Buffer.from(part),()=>bytes).get(path).text;

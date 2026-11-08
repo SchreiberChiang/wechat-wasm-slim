@@ -1,0 +1,63 @@
+{
+  "schema": "wxslim-official-glx-context-source-v1",
+  "status": "SOURCE_ONLY_NOT_INTEGRATED",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "forkCommit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+  "patch": {
+    "path": "engine/official-glx-context-source.patch",
+    "bytes": 8090,
+    "sha256": "022456eae38ce11f9fb4f6b27a4fb3f2f00582c4c1d63c823ca87d220dd7e503"
+  },
+  "inputs": [
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 4631,
+      "sha256": "d8292a8945f941c061f6484ea2bcce783d7838cde8ecad8ff3ca86ff29b36180"
+    },
+    {
+      "path": "platform/web/js/patches/patch_em_gl.js",
+      "bytes": 2778,
+      "sha256": "2b740dcfb23623ca015d57a0260c9821aacb038b313ef5a2b1d415f6555e2d3a",
+      "unchanged": true
+    }
+  ],
+  "newFile": {
+    "path": "platform/web/js/patches/wxslim_glx_context.js",
+    "baseExistence": "ABSENT_HTTP_404",
+    "bytes": 7316,
+    "sha256": "4d426a5599e22dfd8a441068eda54595416d291ac10039a10aba77592ef0574e"
+  },
+  "outputs": [
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 4797,
+      "sha256": "ca13e4b40828c4ad36fa0413dde082968b40ddff8d873f0e23b1b0ecabcc3802"
+    },
+    {
+      "path": "platform/web/js/patches/wxslim_glx_context.js",
+      "bytes": 7316,
+      "sha256": "4d426a5599e22dfd8a441068eda54595416d291ac10039a10aba77592ef0574e"
+    }
+  ],
+  "provenance": {
+    "repository": "citizenll/godot",
+    "commit": "df3cdd9bc9941a20cb5575d781cde6f937637bcb",
+    "path": "platform/web/js/patches/patch_em_gl.js",
+    "bytes": 7860,
+    "sha256": "7f08edb7d3e7f3badc6c8b520b12c7424a9e52b223407ded92ae8f700bc01a0e",
+    "extraction": "Byte-exact prefix before the only addOnPostRun(function () {; existing Godot license header retained"
+  },
+  "checks": {
+    "strictReplay": true,
+    "duplicateRejected": true,
+    "hookParsed": true,
+    "officialGlSourceUnchanged": true,
+    "existingHookBodyUnchanged": true
+  },
+  "policy": "Only build-selected post-js for use_wx_glx. No export-availability test during installation, no runtime fallback added. Original native warning/null and installation limitations retained; official converter observer and final paired-output gates still required.",
+  "semanticDelta": "SCsub selects a new separate post-js only for GLX builds; original official patch_em_gl.js remains unchanged. Actual SCons ordering/compiled glue not yet verified.",
+  "applied": false,
+  "compiled": false,
+  "runtime": "NOT_RUN",
+  "licenseCleared": false
+}

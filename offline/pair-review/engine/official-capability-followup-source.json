@@ -1,0 +1,1008 @@
+{
+  "schema": "official-capability-followup-source-v1",
+  "date": "2026-11-06",
+  "status": "SOURCE_ONLY_UNREGISTERED_NO_JS_WASM",
+  "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+  "profiles": [
+    "full",
+    "conservative"
+  ],
+  "dependencies": [
+    {
+      "path": "engine/official-capability-followup-source.mjs",
+      "bytes": 9851,
+      "sha256": "02ebd0c7b057eecac9432077a9f3fbec13632d0e42e1398fc89cbdcda4ec942c"
+    },
+    {
+      "path": "engine/official-build-source.mjs",
+      "bytes": 18613,
+      "sha256": "4491ecd781787eef770e9096537d787a692c988977383bdc1d58e512f3efdc34"
+    },
+    {
+      "path": "engine/official-build-plan.mjs",
+      "bytes": 12832,
+      "sha256": "9808a1c63c80fa533e7237270bf9ca7f8f045c051645635857897c32db76829d"
+    },
+    {
+      "path": "engine/official-build-plan.json",
+      "bytes": 21014,
+      "sha256": "53cf9b93bf79d5b9c8e68c6aaf1af82dda964e5043c9e586d5377f078be2611d"
+    },
+    {
+      "path": "engine/official-ime-session-source.mjs",
+      "bytes": 2920,
+      "sha256": "252f47e60aba8e5399e57fd4444f23254854ecec89a8323510f56241451050e1"
+    },
+    {
+      "path": "engine/official-ime-session-source.patch",
+      "bytes": 11437,
+      "sha256": "b8265150c9f620a149933659971726a55ee26774ff5e3962db03b83cc46b1ec0"
+    },
+    {
+      "path": "engine/official-ime-session-source.json",
+      "bytes": 5938,
+      "sha256": "98d3d2fe688926718faac439a188e2b77c89bff8bb8494c5d27b8335c01f98c2"
+    },
+    {
+      "path": "engine/official-http-response-source.mjs",
+      "bytes": 5170,
+      "sha256": "29385c4bae4746861383f01bfac46521869265c41658fe15f56769e1a8aff0e2"
+    },
+    {
+      "path": "engine/official-http-response-source.patch",
+      "bytes": 4400,
+      "sha256": "6873efb8eff6e610a3b40c74796ace1236c01fd0b3441bf0655f0ccbdbaecbad"
+    },
+    {
+      "path": "engine/official-http-response-source.json",
+      "bytes": 3779,
+      "sha256": "f3b74db6c94bd3911cdc1f71d5a8ef44f59939b647e65731c2f1358fd71d046e"
+    },
+    {
+      "path": "engine/official-audio-pending-pause.mjs",
+      "bytes": 4075,
+      "sha256": "5859038027386247d6374c5f7fc2b76298466f0124d5776589af324607836acc"
+    },
+    {
+      "path": "engine/official-audio-pending-pause.patch",
+      "bytes": 13182,
+      "sha256": "5a95ebd5309be3bc3b18cc066d845b6bb9edd95987db90ed955efb7c94690fac"
+    },
+    {
+      "path": "engine/official-audio-pending-pause.json",
+      "bytes": 2203,
+      "sha256": "9ae005d45d8732200626723541776cf4a0fa1ab8daee6a77a0d47d09415807ef"
+    },
+    {
+      "path": "engine/official-lifecycle-notifications.mjs",
+      "bytes": 9870,
+      "sha256": "3638e91c69c3a4caab2870c8ce3aad5d1091f3f41d8bef2eba0b91ea3a066e4b"
+    },
+    {
+      "path": "engine/official-lifecycle-notifications.patch",
+      "bytes": 32924,
+      "sha256": "ac1a01d742f6dbd523fd377d1c57413e9ecc78ac384a6cdff62216fea9dd5a0b"
+    },
+    {
+      "path": "engine/official-lifecycle-notifications.json",
+      "bytes": 5581,
+      "sha256": "1d5f6a4123f294d50874ec850b3e284e2652bccdbf7fe63dd68e8fdc8c05406d"
+    }
+  ],
+  "followupPatches": [
+    {
+      "path": "engine/official-ime-session-source.patch",
+      "bytes": 11437,
+      "sha256": "b8265150c9f620a149933659971726a55ee26774ff5e3962db03b83cc46b1ec0"
+    },
+    {
+      "path": "engine/official-http-response-source.patch",
+      "bytes": 4400,
+      "sha256": "6873efb8eff6e610a3b40c74796ace1236c01fd0b3441bf0655f0ccbdbaecbad"
+    },
+    {
+      "path": "engine/official-audio-pending-pause.patch",
+      "bytes": 13182,
+      "sha256": "5a95ebd5309be3bc3b18cc066d845b6bb9edd95987db90ed955efb7c94690fac"
+    },
+    {
+      "path": "engine/official-lifecycle-notifications.patch",
+      "bytes": 32924,
+      "sha256": "ac1a01d742f6dbd523fd377d1c57413e9ecc78ac384a6cdff62216fea9dd5a0b"
+    }
+  ],
+  "baseOutputs": [
+    {
+      "path": "platform/web/detect.py",
+      "bytes": 17570,
+      "sha256": "3558e308750cafc529d6e8367790ab55648df585b88bb1fabde0d93ecf8529ab",
+      "added": false
+    },
+    {
+      "path": "platform/web/display_server_web.cpp",
+      "bytes": 49864,
+      "sha256": "e462b18a1f8f5be4e6b40c82fb549b93de78239387db1c30f7aac89f3a665eaa",
+      "added": false
+    },
+    {
+      "path": "platform/web/display_server_web.h",
+      "bytes": 16580,
+      "sha256": "52f77625f2370be75cc0f199b63c0be87c9db1bd27b4d93b9a7d4d6adb4ee08e",
+      "added": false
+    },
+    {
+      "path": "platform/web/godot_js.h",
+      "bytes": 7649,
+      "sha256": "ad248d3c6d61181dad38a2161b6decdbeab89c9b2fadec9582b9665900ea0918",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_display.js",
+      "bytes": 26928,
+      "sha256": "f1ddd92cff6b7fae79eac3c41007fdab9b4aa9c29513024fa1799427e5518aa5",
+      "added": false
+    },
+    {
+      "path": "servers/rendering/renderer_canvas_cull.cpp",
+      "bytes": 106472,
+      "sha256": "3e4a3060df39b46cd61e939970a0a853da1b2a71fe22237c80b99fd8a3e3110e",
+      "added": false
+    },
+    {
+      "path": "drivers/gles3/storage/utilities.cpp",
+      "bytes": 19064,
+      "sha256": "5ebd9f0339d54b702c1e6faa591bb1ccd326dd96b893cc11de7b3c4406f4932c",
+      "added": false
+    },
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 5459,
+      "sha256": "94677374bcddeb1805833f892e4ff5a4698da22b66e90e6d1529fafb04c5e99d",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/patches/wxslim_glx_context.js",
+      "bytes": 7316,
+      "sha256": "4d426a5599e22dfd8a441068eda54595416d291ac10039a10aba77592ef0574e",
+      "added": true
+    },
+    {
+      "path": "platform/web/javascript_bridge_singleton.cpp",
+      "bytes": 15642,
+      "sha256": "520049c2782dfa55ade6f32b39730d3ee9b24978cfd1714911b78423749f72b0",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_javascript_singleton.js",
+      "bytes": 14781,
+      "sha256": "f4bc56da9262257ced4682ff7a17a622cf36ac890e958b91f2193dd011c8bf21",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_os.js",
+      "bytes": 15186,
+      "sha256": "f686ba1a5c4e01bfb78ad45f17f0ff1b58ec80a72334cf84b37dd4cd0ae2dc4a",
+      "added": true
+    },
+    {
+      "path": "drivers/unix/file_access_unix.cpp",
+      "bytes": 20048,
+      "sha256": "3ea539e3cbb06e411256d88bea6734f4686a5dcb7e329fdade22e8416720066c",
+      "added": false
+    },
+    {
+      "path": "drivers/gles3/shaders/scene.glsl",
+      "bytes": 101794,
+      "sha256": "6a957961db53b6225daaaf5f69253f80ca22a75a98c30b3ab5a21a65ab4da967",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_input.js",
+      "bytes": 29238,
+      "sha256": "105a1fb250fbdde6d1ee98d91325de5464f88cb6462684a7c7f7d050acc99a65",
+      "added": false
+    },
+    {
+      "path": "platform/web/audio_driver_web.cpp",
+      "bytes": 21523,
+      "sha256": "fa0c5d0c1e39f8759a3c14e8afc48ffb7545d6224121d66f3fa5cf6684cc5b43",
+      "added": false
+    },
+    {
+      "path": "platform/web/godot_audio.h",
+      "bytes": 5889,
+      "sha256": "94e09c15ff221b837bb1f4d353e00f03ba9918552779c63dcf2dc04b91ebeaa9",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_audio.js",
+      "bytes": 123483,
+      "sha256": "d990e5d6dbbb860883812009b303c1e950ee7c59c8902ad34db7e301f623ba5e",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_fetch.js",
+      "bytes": 12888,
+      "sha256": "4bdaefe74d6cfd7c77b919fe71a9bc0b462701fb5eff358bc4259f5bc33cba10",
+      "added": true
+    },
+    {
+      "path": "drivers/gles3/shader_gles3.cpp",
+      "bytes": 29539,
+      "sha256": "6544b24c320d62994bde0984a21b83bbbd70ae7336860da6076f8af3b57300a0",
+      "added": false
+    },
+    {
+      "path": "drivers/gles3/wxslim_shader_failure.h",
+      "bytes": 4984,
+      "sha256": "cd6d99284f270998168d0091031a50b47fcd548815138310035195ac169b8224",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_shader_failure.js",
+      "bytes": 6815,
+      "sha256": "c1e9386f676e77d8883b634f3781a7737a3f8fe6e0694be7db0a82fbe4ac5ce6",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_shader_type_return.js",
+      "bytes": 1607,
+      "sha256": "7becb45ffff5cc6049321e8f16da91440f78bd75ce2a16d935233a8d63b0b606",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/patches/wxslim_shader_instrument.cjs",
+      "bytes": 2181,
+      "sha256": "5778bd25ed34a050bd2285b53886953528299e9ceb677573aee5a2b8efff76d0",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/patches/wxslim_shader_type_instrument.cjs",
+      "bytes": 1961,
+      "sha256": "f60329e242d84b3dcc24fb579812de6538a148ebf6c4904f2af2cac34c607c7c",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_upstream_fs.js",
+      "bytes": 35127,
+      "sha256": "495a4b31b3952195025d65507ce33bf8b6704e3066aa8ad7311a288a73f8f551",
+      "added": true
+    },
+    {
+      "path": "modules/websocket/library_godot_websocket.js",
+      "bytes": 9860,
+      "sha256": "d6a7d738f45b313f43d20cba130a279e8f7d26b33eef884d1892d7a72b773b65",
+      "added": false
+    },
+    {
+      "path": "modules/websocket/emws_peer.cpp",
+      "bytes": 8220,
+      "sha256": "64dd4dda388ffd23394238972e25be7e7c125db39f3dfc3bb7b5c114316ffec5",
+      "added": false
+    },
+    {
+      "path": "core/crypto/crypto_core.cpp",
+      "bytes": 13168,
+      "sha256": "c215fae7602085875a5d22fc99bf54e425e86d3e3bd48ee447fcdafdc8e21b9c",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_crypto.js",
+      "bytes": 4605,
+      "sha256": "a1f30e4fb8b13a295922ef6e85700e38c5354e171d23828a7103ba3622759666",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_wechat_entropy.js",
+      "bytes": 3241,
+      "sha256": "411a142bdc51e941b2088265066d3de8566bfd5152a5b2527efedadaa1c9ab01",
+      "added": true
+    }
+  ],
+  "extraOfficialInputs": [
+    {
+      "path": "platform/web/http_client_web.cpp",
+      "bytes": 9722,
+      "sha256": "ebd199b1b79a4dfdf8ea9b8b19b518b0ede083104a0cf8b7218ece97df8b1ff6",
+      "gitBlob": "b3c5f2fc87e2e601d0016835f428f547ce870ec0"
+    },
+    {
+      "path": "platform/web/http_client_web.h",
+      "bytes": 4720,
+      "sha256": "4f38e788c3c5af798cf5426fa19667b773771c45b5eb701521ce78757d0d817f",
+      "gitBlob": "a76896ebf134010089c6578f5d3d8657d7e4dc96"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "platform/web/detect.py",
+      "bytes": 17570,
+      "sha256": "3558e308750cafc529d6e8367790ab55648df585b88bb1fabde0d93ecf8529ab",
+      "added": false
+    },
+    {
+      "path": "platform/web/display_server_web.cpp",
+      "bytes": 50351,
+      "sha256": "31689a5a72545a0eed81aa6df3435dc713e46a7082f7d1a42e4bd4055a82db50",
+      "added": false
+    },
+    {
+      "path": "platform/web/display_server_web.h",
+      "bytes": 16580,
+      "sha256": "52f77625f2370be75cc0f199b63c0be87c9db1bd27b4d93b9a7d4d6adb4ee08e",
+      "added": false
+    },
+    {
+      "path": "platform/web/godot_js.h",
+      "bytes": 7649,
+      "sha256": "ad248d3c6d61181dad38a2161b6decdbeab89c9b2fadec9582b9665900ea0918",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_display.js",
+      "bytes": 31670,
+      "sha256": "8f2a6aa8ef1266d5d1810e2ca43397ff6df9045086c0f4823344bb43d32b6d0b",
+      "added": false
+    },
+    {
+      "path": "servers/rendering/renderer_canvas_cull.cpp",
+      "bytes": 106472,
+      "sha256": "3e4a3060df39b46cd61e939970a0a853da1b2a71fe22237c80b99fd8a3e3110e",
+      "added": false
+    },
+    {
+      "path": "drivers/gles3/storage/utilities.cpp",
+      "bytes": 19064,
+      "sha256": "5ebd9f0339d54b702c1e6faa591bb1ccd326dd96b893cc11de7b3c4406f4932c",
+      "added": false
+    },
+    {
+      "path": "platform/web/SCsub",
+      "bytes": 5459,
+      "sha256": "94677374bcddeb1805833f892e4ff5a4698da22b66e90e6d1529fafb04c5e99d",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/patches/wxslim_glx_context.js",
+      "bytes": 7316,
+      "sha256": "4d426a5599e22dfd8a441068eda54595416d291ac10039a10aba77592ef0574e",
+      "added": true
+    },
+    {
+      "path": "platform/web/javascript_bridge_singleton.cpp",
+      "bytes": 15642,
+      "sha256": "520049c2782dfa55ade6f32b39730d3ee9b24978cfd1714911b78423749f72b0",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_javascript_singleton.js",
+      "bytes": 14781,
+      "sha256": "f4bc56da9262257ced4682ff7a17a622cf36ac890e958b91f2193dd011c8bf21",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_os.js",
+      "bytes": 15186,
+      "sha256": "f686ba1a5c4e01bfb78ad45f17f0ff1b58ec80a72334cf84b37dd4cd0ae2dc4a",
+      "added": true
+    },
+    {
+      "path": "drivers/unix/file_access_unix.cpp",
+      "bytes": 20048,
+      "sha256": "3ea539e3cbb06e411256d88bea6734f4686a5dcb7e329fdade22e8416720066c",
+      "added": false
+    },
+    {
+      "path": "drivers/gles3/shaders/scene.glsl",
+      "bytes": 101794,
+      "sha256": "6a957961db53b6225daaaf5f69253f80ca22a75a98c30b3ab5a21a65ab4da967",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_input.js",
+      "bytes": 30921,
+      "sha256": "1b6270ef5f78c818917db5022224793625a9af1d7014ba36471f1d9e36f27b80",
+      "added": false
+    },
+    {
+      "path": "platform/web/audio_driver_web.cpp",
+      "bytes": 21523,
+      "sha256": "fa0c5d0c1e39f8759a3c14e8afc48ffb7545d6224121d66f3fa5cf6684cc5b43",
+      "added": false
+    },
+    {
+      "path": "platform/web/godot_audio.h",
+      "bytes": 5889,
+      "sha256": "94e09c15ff221b837bb1f4d353e00f03ba9918552779c63dcf2dc04b91ebeaa9",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_audio.js",
+      "bytes": 123854,
+      "sha256": "9fb0c52a2a71c7d40cb81c24d5b80dff12e7fed99b01007c9269a63526d47d7d",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_fetch.js",
+      "bytes": 13524,
+      "sha256": "4a365c9a42b8fa9d0fd2b9ccb32c7eb4bcc1c2ce2c793959019f023ad2eb5f48",
+      "added": true
+    },
+    {
+      "path": "drivers/gles3/shader_gles3.cpp",
+      "bytes": 29539,
+      "sha256": "6544b24c320d62994bde0984a21b83bbbd70ae7336860da6076f8af3b57300a0",
+      "added": false
+    },
+    {
+      "path": "drivers/gles3/wxslim_shader_failure.h",
+      "bytes": 4984,
+      "sha256": "cd6d99284f270998168d0091031a50b47fcd548815138310035195ac169b8224",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_shader_failure.js",
+      "bytes": 6815,
+      "sha256": "c1e9386f676e77d8883b634f3781a7737a3f8fe6e0694be7db0a82fbe4ac5ce6",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_shader_type_return.js",
+      "bytes": 1607,
+      "sha256": "7becb45ffff5cc6049321e8f16da91440f78bd75ce2a16d935233a8d63b0b606",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/patches/wxslim_shader_instrument.cjs",
+      "bytes": 2181,
+      "sha256": "5778bd25ed34a050bd2285b53886953528299e9ceb677573aee5a2b8efff76d0",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/patches/wxslim_shader_type_instrument.cjs",
+      "bytes": 1961,
+      "sha256": "f60329e242d84b3dcc24fb579812de6538a148ebf6c4904f2af2cac34c607c7c",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_wxslim_upstream_fs.js",
+      "bytes": 35127,
+      "sha256": "495a4b31b3952195025d65507ce33bf8b6704e3066aa8ad7311a288a73f8f551",
+      "added": true
+    },
+    {
+      "path": "modules/websocket/library_godot_websocket.js",
+      "bytes": 9860,
+      "sha256": "d6a7d738f45b313f43d20cba130a279e8f7d26b33eef884d1892d7a72b773b65",
+      "added": false
+    },
+    {
+      "path": "modules/websocket/emws_peer.cpp",
+      "bytes": 8220,
+      "sha256": "64dd4dda388ffd23394238972e25be7e7c125db39f3dfc3bb7b5c114316ffec5",
+      "added": false
+    },
+    {
+      "path": "core/crypto/crypto_core.cpp",
+      "bytes": 13168,
+      "sha256": "c215fae7602085875a5d22fc99bf54e425e86d3e3bd48ee447fcdafdc8e21b9c",
+      "added": false
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_crypto.js",
+      "bytes": 4605,
+      "sha256": "a1f30e4fb8b13a295922ef6e85700e38c5354e171d23828a7103ba3622759666",
+      "added": true
+    },
+    {
+      "path": "platform/web/js/libs/library_godot_wechat_entropy.js",
+      "bytes": 3241,
+      "sha256": "411a142bdc51e941b2088265066d3de8566bfd5152a5b2527efedadaa1c9ab01",
+      "added": true
+    },
+    {
+      "path": "platform/web/http_client_web.cpp",
+      "bytes": 10239,
+      "sha256": "f9bf25cf51a15d12913f810def34ef84cb6ba0bc4bd3bbc37bb6180af24b2ec9",
+      "added": false
+    },
+    {
+      "path": "platform/web/http_client_web.h",
+      "bytes": 4762,
+      "sha256": "69f109a0a40ee04731f3e1291ee2611c0254e1eddb0475c83f00438341c180c3",
+      "added": false
+    }
+  ],
+  "changedPaths": [
+    "platform/web/js/libs/library_godot_input.js",
+    "platform/web/js/libs/library_wxslim_fetch.js",
+    "platform/web/http_client_web.cpp",
+    "platform/web/http_client_web.h",
+    "platform/web/js/libs/library_godot_audio.js",
+    "platform/web/js/libs/library_godot_display.js",
+    "platform/web/display_server_web.cpp"
+  ],
+  "httpPaths": [
+    "platform/web/js/libs/library_wxslim_fetch.js",
+    "platform/web/http_client_web.cpp",
+    "platform/web/http_client_web.h"
+  ],
+  "preservedSourcePaths": [
+    "platform/web/SCsub",
+    "platform/web/detect.py",
+    "platform/web/godot_js.h",
+    "platform/web/js/libs/library_wxslim_os.js"
+  ],
+  "baseArgumentTemplate": [
+    "platform=web",
+    "target=template_release",
+    "arch=wasm32",
+    "threads=no",
+    "wasm_simd=no",
+    "dlink_enabled=no",
+    "use_wx_glx=yes",
+    "javascript_eval=yes",
+    "opengl3=yes",
+    "optimize=size",
+    "debug_symbols=no",
+    "use_closure_compiler=no",
+    "initial_memory=32",
+    "stack_size=5120",
+    "lto=thin",
+    "--jobs=<NOT_SELECTED>",
+    "modules_enabled_by_default=yes",
+    "build_profile=<SELECTED_PROFILE_SNAPSHOT>",
+    "wx_glx_lib=<EXACT_026E_LIBRARY>",
+    "linkflags=--emit-symbol-map -Wl,--thinlto-jobs=8"
+  ],
+  "baseLibrary": {
+    "bytes": 3866614,
+    "sha256": "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8",
+    "path": "NOT_SELECTED"
+  },
+  "upstreamSource": {
+    "path": "NOT_SELECTED",
+    "fixedSource": {
+      "path": "platform/web/js/libs/library_godot_memfs.js",
+      "bytes": 30148,
+      "sha256": "a96d4cde41cf91a83a77cb4eb6f23d40e3231f3c4d1a84465198a5e128c77d95"
+    },
+    "repository": "godothub/godot-minigame",
+    "commit": "099277108e30c0af92bcbbbe7171fa073ae37606",
+    "repositoryPath": "skills/sources/godot-4.6.2-rc-a16e481cf4/platform/web/js/libs/library_godot_fs.js",
+    "sourcePathMeaning": "source.path below is the reviewed local-input name, not the path in the cited upstream repository",
+    "actualBytesRead": false,
+    "locationPolicy": "Explicit caller-supplied absolute upstream path, authenticated by fixed size and SHA256; actual local selections recorded only in .local."
+  },
+  "sourceCounts": {
+    "fixedOfficialBlobs": 25,
+    "overlayParentFilesOutsideBaseOutputs": 2,
+    "overlappingBaseInputPaths": 1,
+    "additionalDistinctOfficialBlobs": 1,
+    "distinctOfficialBlobs": 26,
+    "baseDerivedOutputs": 31,
+    "combinedOutputs": 33,
+    "changedPaths": 7,
+    "unchangedComparedWithBasePlusExtras": 26
+  },
+  "privateLayoutChange": {
+    "path": "platform/web/http_client_web.h",
+    "change": "One private bool response_headers_available",
+    "requiresRecompileOfAffectedCppConsumers": true,
+    "externalJsAbiChanged": false
+  },
+  "scope": "Independent fixed-source composition of IME, HTTP response, pending audio pause and lifecycle notification R2; no executor/recipe registration or source materialization",
+  "audioPauseCandidateIncluded": true,
+  "applied": false,
+  "materialized": false,
+  "compiled": false,
+  "executorRegistered": false,
+  "recipeRegistered": false,
+  "executionAuthorized": false,
+  "usableJsWasm": false,
+  "engineTreeChanged": false,
+  "originalTwentyPatchRecipeChanged": false,
+  "originalCheckerChanged": false,
+  "historicalSuccessReceiptsChanged": false,
+  "runtime": "NOT_RUN",
+  "network": "NOT_RUN",
+  "phone": "NOT_RUN",
+  "validation": {
+    "status": "PASS_FOUR_PATCH_SOURCE_COMBINATION_ONLY_NOT_BUILD_READY",
+    "revision": 2,
+    "attempts": 1,
+    "authorizedNewRevisionAfterFailure": true,
+    "totalLifecycleCombinationAttemptsIncludingPreservedR1": 2,
+    "automaticRetries": 0,
+    "tests": 8,
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 1658.0905,
+    "exitCode": 0,
+    "node": "v24.18.0",
+    "test": {
+      "path": "tests/official-capability-followup-source-tests.mjs",
+      "bytes": 11646,
+      "sha256": "5bf6398619b5e419d3977e9c31cbab73bb6ca50005d0fdcf80454813948da74a"
+    },
+    "tap": {
+      "path": ".local/official-capability-followup-source-lifecycle-r2-20261106.tap",
+      "bytes": 2167,
+      "sha256": "ee60a5d18ea5a82acafee1bf995052569a5569e7d8afa5a13c0ba192f67e9d7a"
+    },
+    "gitRead": {
+      "processes": 1,
+      "commitObjects": 1,
+      "distinctBlobObjects": 26,
+      "command": "Explicit Git --no-optional-locks --no-replace-objects -C <explicit source> cat-file --batch",
+      "workingTreeFilesReadAsOfficialSource": false,
+      "objectTypeAndSha1Verified": true,
+      "sha256AndSizeVerified": true
+    },
+    "combinations": {
+      "full": 1,
+      "conservative": 1,
+      "outputsEqual": true,
+      "officialInputs": 26,
+      "baseOutputs": 31,
+      "outputFiles": 33,
+      "followupPatches": 4,
+      "changedPaths": 7,
+      "unchangedBasePlusExtrasPaths": 26,
+      "strictReverseReplayBackTo31BaseOutputs": true
+    },
+    "validatedOutputManifest": {
+      "bytes": 4647,
+      "sha256": "d393a05d4fff09fbc67e21c00728a3df429b702bffa4471fbdcccd0e04fccbfc",
+      "encoding": "UTF-8 JSON.stringify of sorted-by-path {path,bytes,sha256} records"
+    },
+    "old51And7And17And25BehaviorModelsRerun": false,
+    "sourceMaterialized": false,
+    "compiled": false,
+    "engineExecuted": false,
+    "platformExecuted": false,
+    "scope": "One authorized revised combination check; full/conservative source buffers only, no old behavior models, native/SDK/engine/build/device execution"
+  },
+  "limitations": [
+    "Authentication covers named Git blobs and fixed upstream source plus source-level replay, not a whole checkout audit.",
+    "Outputs are source buffers in memory; no executable JS/WASM pair exists for this candidate.",
+    "No new C++ compilation, glue/ABI pairing, platform SDK, browser/network or phone evidence.",
+    "Original full/conservative profile module compatibility and all existing executor gates remain in force.",
+    "HTTP private header layout requires recompiling affected consumers; existing binaries cannot be relabeled as this candidate.",
+    "Port normalization tests elsewhere prove helper handling only, not complete HTTPRequest IPv6 or userinfo support.",
+    "Pending pause preserves intent before loading/setup finishes; it does not wire host hide/show, prove background restoration, or establish actual playback evidence.",
+    "Lifecycle adds an explicit $GodotOS JS dependency while keeping signatures/proxies and ABI unchanged.",
+    "Lifecycle R2 keeps cleanup failure/cause latched but resolves its exit hook to preserve existing final FS sync; resolution is not listener-removal success.",
+    "Other existing OS hooks can still reject finish_async; no OS source is modified.",
+    "No native receipt for void lifecycle callback, background restoration, game pause policy or automatic audio recovery is proven."
+  ],
+  "overlappingOfficialInputPaths": [
+    "platform/web/http_client_web.cpp"
+  ],
+  "priorTwoDeltaComposition": {
+    "snapshotManifest": ".local/official-capability-followup-before-audio-20261106.manifest.json",
+    "validation": {
+      "status": "PASS_SOURCE_COMBINATION_ONLY_NOT_BUILD_READY",
+      "tests": 7,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 1273.4035,
+      "exitCode": 0,
+      "node": "v24.18.0",
+      "test": {
+        "path": "tests/official-capability-followup-source-tests.mjs",
+        "bytes": 10019,
+        "sha256": "d7545fd77bc7bf536041affabc54dc27c235a86ce1e22003836cfc68e2e52f4b"
+      },
+      "tap": {
+        "path": ".local/official-capability-followup-source-20261106.portable.tap",
+        "bytes": 1827,
+        "sha256": "0d6da9fde35585dfd6436675c023b03441ffa0fe7fcb5b2e36c724f6e951d9b5"
+      },
+      "priorAttempt": {
+        "tap": {
+          "path": ".local/official-capability-followup-source-20261106.tap",
+          "bytes": 1046,
+          "sha256": "010da1b2f0d15a2fc04fd808d358dddc2425179b0387018ba0c2609e1750b147"
+        },
+        "status": "FAILED_ORCHESTRATION_ASSERTION_BEFORE_GIT_BATCH_OR_SOURCE_REPLAY",
+        "reason": "Initial expected 27 distinct paths corrected to actual26; http_client_web.cpp was already one of the original25 official inputs."
+      },
+      "gitRead": {
+        "command": "git --no-optional-locks --no-replace-objects -C <explicit source> cat-file --batch",
+        "commitObjects": 1,
+        "distinctBlobObjects": 26,
+        "pathExpressions": "c050c09b105c3715e1caa57a7109cd752047fd89:<fixed path>",
+        "objectTypeAndSha1Verified": true,
+        "sha256AndSizeVerified": true,
+        "workingTreeFilesReadAsOfficialSource": false,
+        "processesPerSuccessfulRun": 1,
+        "firstFailedOrchestrationRanGit": false
+      },
+      "combinations": {
+        "full": 1,
+        "conservative": 1,
+        "outputsEqual": true,
+        "strictReverseReplayBackTo31BaseOutputs": true,
+        "unchangedBasePlusExtrasPaths": 29,
+        "scope": "Per successful validation run; original 51/7 IME/HTTP behavior models not run."
+      },
+      "negativeControls": [
+        "official blob drift",
+        "upstream source drift",
+        "additional .cpp/.h drift or missing",
+        "wrong profile",
+        "extra mutation option",
+        "duplicate overlay full33 map",
+        "duplicate overlay patched31 map",
+        "each patch replay on already patched output"
+      ],
+      "originalBehaviorModelsRerun": false,
+      "old51And7BehaviorModelsRerun": false,
+      "command": "Set explicit absolute WXSLIM_CAPABILITY_FOLLOWUP_SOURCE and WXSLIM_CAPABILITY_FOLLOWUP_REQUEST; request supplies absolute gitExecutable/upstreamSource. Run explicitly selected Node --test --test-reporter=tap tests/official-capability-followup-source-tests.mjs.",
+      "scope": "One read-only fixed Git-object batch and full/conservative source replay in memory; no engine factory, WASM, C++ or platform execution.",
+      "earlierSuccessfulRevision": {
+        "test": {
+          "path": "tests/official-capability-followup-source-tests.mjs",
+          "bytes": 9858,
+          "sha256": "3f945e9a27ef6e70ed598f0734de92160775b04541937d34d28980cb521e3429"
+        },
+        "tap": {
+          "path": ".local/official-capability-followup-source-20261106.final.tap",
+          "bytes": 1827,
+          "sha256": "1c646651c57c564a857ccec57d9776f135539eb30f9fdafcc016ff7c9e54a191"
+        },
+        "reasonForNewValidation": "Remove machine-fixed Git/upstream path equality; retain explicit caller paths with regular/no-link and pinned content authentication."
+      },
+      "successfulValidationRuns": 2
+    },
+    "sourceCounts": {
+      "fixedOfficialBlobs": 25,
+      "overlayParentFilesOutsideBaseOutputs": 2,
+      "overlappingBaseInputPaths": 1,
+      "additionalDistinctOfficialBlobs": 1,
+      "distinctOfficialBlobs": 26,
+      "baseDerivedOutputs": 31,
+      "combinedOutputs": 33,
+      "changedPaths": 4,
+      "unchangedComparedWithBasePlusExtras": 29
+    },
+    "audioPauseCandidateIncluded": false,
+    "snapshotManifestIdentity": {
+      "path": ".local/official-capability-followup-before-audio-20261106.manifest.json",
+      "bytes": 1016,
+      "sha256": "41bcd8c1ad2c7563204d1b81b9d134d6223456fd161dc52df5f44e46c20b3ebb"
+    }
+  },
+  "audioPause": {
+    "path": "platform/web/js/libs/library_godot_audio.js",
+    "input": {
+      "bytes": 123483,
+      "sha256": "d990e5d6dbbb860883812009b303c1e950ee7c59c8902ad34db7e301f623ba5e"
+    },
+    "output": {
+      "bytes": 123854,
+      "sha256": "9fb0c52a2a71c7d40cb81c24d5b80dff12e7fed99b01007c9269a63526d47d7d"
+    },
+    "changedMethods": [
+      "_GodotAudio.$GodotAudio.WX.startSample",
+      "_GodotAudio.$GodotAudio.WX.setPause"
+    ],
+    "backendSelectionUnchanged": true,
+    "poolPolicyUnchanged": true,
+    "errorContractsUnchanged": true,
+    "productionABIUnchanged": true,
+    "hideShowWiring": "NOT_ADDED"
+  },
+  "priorThreeDeltaComposition": {
+    "snapshots": [
+      {
+        "path": ".local/official-capability-followup-before-lifecycle-20261106.mjs",
+        "bytes": 7786,
+        "sha256": "d2963d496d28863bc4aa5a2569fc0757f680489d903c2354101ebd2081919b35"
+      },
+      {
+        "path": ".local/official-capability-followup-before-lifecycle-20261106.json",
+        "bytes": 27949,
+        "sha256": "35fbe60f1247e2b75ca0ff59b37d38156303ad3b9a40d9282082e7fd81de4bdf"
+      },
+      {
+        "path": ".local/official-capability-followup-before-lifecycle-20261106.tests.mjs",
+        "bytes": 10460,
+        "sha256": "fc387af379573b7be97ac9c2470e614a6ab24bb70331b23a75aaf6f32272804e"
+      },
+      {
+        "path": ".local/official-capability-followup-before-lifecycle-20261106.tap",
+        "bytes": 1871,
+        "sha256": "29a3dc905072acb5c2cfbb18fb701a00a0fd0240a265ee144197261997f342c4"
+      }
+    ],
+    "validation": {
+      "status": "PASS_THREE_DELTA_SOURCE_COMBINATION_ONLY_NOT_BUILD_READY",
+      "tests": 7,
+      "passed": 7,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 1491.9403,
+      "exitCode": 0,
+      "node": "v24.18.0",
+      "test": {
+        "path": "tests/official-capability-followup-source-tests.mjs",
+        "bytes": 10460,
+        "sha256": "fc387af379573b7be97ac9c2470e614a6ab24bb70331b23a75aaf6f32272804e"
+      },
+      "tap": {
+        "path": ".local/official-capability-followup-source-audio-20261106.tap",
+        "bytes": 1871,
+        "sha256": "29a3dc905072acb5c2cfbb18fb701a00a0fd0240a265ee144197261997f342c4"
+      },
+      "successfulValidationRuns": 1,
+      "attempts": 1,
+      "automaticRetries": 0,
+      "originalBehaviorModelsRerun": false,
+      "old51And7And17BehaviorModelsRerun": false,
+      "gitRead": {
+        "processes": 1,
+        "commitObjects": 1,
+        "distinctBlobObjects": 26,
+        "command": "Explicit Git --no-optional-locks --no-replace-objects -C <explicit source> cat-file --batch",
+        "pathExpressions": "c050c09b105c3715e1caa57a7109cd752047fd89:<fixed path>",
+        "objectTypeAndSha1Verified": true,
+        "sha256AndSizeVerified": true,
+        "workingTreeFilesReadAsOfficialSource": false
+      },
+      "combinations": {
+        "full": 1,
+        "conservative": 1,
+        "outputsEqual": true,
+        "officialInputs": 26,
+        "baseOutputs": 31,
+        "outputFiles": 33,
+        "followupPatches": 3,
+        "changedPaths": 5,
+        "unchangedBasePlusExtrasPaths": 28,
+        "strictReverseReplayBackTo31BaseOutputs": true
+      },
+      "negativeControls": [
+        "official blob drift",
+        "upstream source drift",
+        "additional .cpp/.h drift or missing",
+        "wrong profile",
+        "extra mutation option",
+        "duplicate overlay full33 map",
+        "duplicate overlay patched31 map",
+        "each of three patches replayed on already patched output"
+      ],
+      "command": "Set explicit absolute WXSLIM_CAPABILITY_FOLLOWUP_SOURCE and WXSLIM_CAPABILITY_FOLLOWUP_REQUEST; request supplies absolute gitExecutable/upstreamSource. Run explicitly selected Node --test --test-reporter=tap tests/official-capability-followup-source-tests.mjs.",
+      "scope": "Single new combination test invocation: one read-only Git-object batch and full/conservative source replay in memory; no old behavior model, engine factory, WASM, C++ or platform execution."
+    },
+    "sourceCounts": {
+      "fixedOfficialBlobs": 25,
+      "overlayParentFilesOutsideBaseOutputs": 2,
+      "overlappingBaseInputPaths": 1,
+      "additionalDistinctOfficialBlobs": 1,
+      "distinctOfficialBlobs": 26,
+      "baseDerivedOutputs": 31,
+      "combinedOutputs": 33,
+      "changedPaths": 5,
+      "unchangedComparedWithBasePlusExtras": 28
+    }
+  },
+  "lifecycleCandidateIncluded": true,
+  "lifecycle": {
+    "revision": 2,
+    "inputs": {
+      "platform/web/js/libs/library_godot_display.js": {
+        "bytes": 26928,
+        "sha256": "f1ddd92cff6b7fae79eac3c41007fdab9b4aa9c29513024fa1799427e5518aa5"
+      },
+      "platform/web/display_server_web.cpp": {
+        "bytes": 49864,
+        "sha256": "e462b18a1f8f5be4e6b40c82fb549b93de78239387db1c30f7aac89f3a665eaa"
+      }
+    },
+    "outputs": {
+      "platform/web/js/libs/library_godot_display.js": {
+        "bytes": 31670,
+        "sha256": "8f2a6aa8ef1266d5d1810e2ca43397ff6df9045086c0f4823344bb43d32b6d0b"
+      },
+      "platform/web/display_server_web.cpp": {
+        "bytes": 50351,
+        "sha256": "31689a5a72545a0eed81aa6df3435dc713e46a7082f7d1a42e4bd4055a82db50"
+      }
+    },
+    "explicitNewDependency": "$GodotOS",
+    "productionABI": "existing godot_js_display_notification_cb viiiii and callback(int), unchanged",
+    "atexitFailurePolicy": "Cleanup stays failed and blocks re-registration; log fixed code plus actual cause at most twice, retain logging failures, finally resolve so this hook cannot block existing final FS sync. Initialization still throws original errors.",
+    "scope": "NOTIFICATIONS_ONLY_NO_GAME_PAUSE_OR_AUDIO_RECOVERY",
+    "shutdownResolution": "CONTINUATION_ONLY_NOT_CLEANUP_SUCCESS",
+    "voidCallbackNativeReceipt": "NOT_PROVEN",
+    "startupBoundary": "Registration-time events ignored without replay; initial show only establishes foreground; not-ready native main loop may drop attempts",
+    "originalOSSourceChanged": false,
+    "independentChecks": {
+      "status": "PASS_SOURCE_JS_MODELS_OS_COMPOSITION_CPP_STATIC_ONLY",
+      "revision": 2,
+      "tests": 25,
+      "passed": 25,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "durationMs": 301.3908,
+      "log": ".local/official-lifecycle-notifications-r2-20261106.tap",
+      "logFormat": "TAP_13",
+      "logIdentity": {
+        "bytes": 6174,
+        "sha256": "4ecc438f6ede8ccb796164a0b25bbba7d8a98dd1c2d1abea4d7e1565e8e5caf0"
+      },
+      "inputHashesAndMtimesUnchanged": true,
+      "cpp": "EXACT_INSERTION_AND_GUARD_STRUCTURE_ONLY_NOT_COMPILED",
+      "js": "Actual AST-extracted candidate; modeled wx/native callbacks",
+      "osComposition": "Actual fixed GodotOS.finish_async AST function with modeled FS.sync and deferred callback; cleanup and logger throws both retain failures and allow final sync/callback"
+    },
+    "cleanupFailureSemantics": {
+      "atexitResolve": "Shutdown continuation only; does not mean listeners were removed successfully",
+      "failureLatched": true,
+      "reRegistrationBlocked": true,
+      "allCleanupCausesRetained": true,
+      "actualCauseLogLimitPerSession": 2,
+      "loggingFailureRetained": true,
+      "automaticRetry": false
+    }
+  },
+  "sourceCountsValidation": "VALIDATED_BY_FOUR_PATCH_COMBINATION_R2",
+  "lifecycleCombinationFailedHistory": {
+    "metadata": {
+      "path": ".local/official-capability-followup-lifecycle-r1-failed-20261106.json",
+      "bytes": 34797,
+      "sha256": "cae2c817f6ef434a862d050e419adabcc28fdb9a71c7392012518827c21d2a16"
+    },
+    "helper": {
+      "path": ".local/official-capability-followup-lifecycle-r1-failed-20261106.mjs",
+      "bytes": 9844,
+      "sha256": "dfd3c097fa400945d531b5466aca6526dc143b9821a4ae8ebf6ca3ca4d2efcd4"
+    },
+    "validation": {
+      "status": "FAILED_OFFLINE_CHECKER_CROSS_REALM_ARRAY_ASSERTION",
+      "attempts": 1,
+      "automaticRetries": 0,
+      "exitCode": 1,
+      "reportedTests": 1,
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "durationMs": 838.8812,
+      "test": {
+        "path": "tests/official-capability-followup-source-tests.mjs",
+        "bytes": 11646,
+        "sha256": "5bf6398619b5e419d3977e9c31cbab73bb6ca50005d0fdcf80454813948da74a"
+      },
+      "tap": {
+        "path": ".local/official-capability-followup-source-lifecycle-20261106.tap",
+        "bytes": 2025,
+        "sha256": "ba90d0fc87e940a02982cea0818754d5ec2faef64653f2aff608b1f3737fca33"
+      },
+      "phase": "Full in-memory overlay after lifecycle strict patch/preparer equality, before final changed-path/output-pin assertions; conservative not started",
+      "assertion": "FOLLOWUP_ONLY_DISPLAY_OS_DEPENDENCY_ADDED",
+      "reason": "Acorn VM Array.map result has different realm prototype than expected host spread array; logged actual/expected element values match",
+      "runtimeFailureClaim": false,
+      "fixedGitBatchRan": true,
+      "fullOverlayAttempts": 1,
+      "conservativeOverlayAttempts": 0,
+      "sourceMaterialized": false,
+      "compiled": false,
+      "old51And7And17And25BehaviorModelsRerun": false,
+      "scope": "Failed combination checker only; no complete full/conservative combination pass; stop without fix/retry"
+    }
+  },
+  "lifecycleCombinationRevision": {
+    "revision": 2,
+    "change": "Use host Array.from(Acorn elements, mapper) instead of VM Array.map; element validation unchanged",
+    "onlyOneApprovedExpressionChanged": true,
+    "reason": "Deep strict comparison includes realm prototype even when string elements are equal",
+    "sourceOrRuntimeFailure": false
+  }
+}

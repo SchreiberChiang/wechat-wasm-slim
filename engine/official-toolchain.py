@@ -28,7 +28,7 @@ POLICY = HERE / "fixed-toolchain-cache.json"
 INPUTS = [Path(__file__).resolve(), LOCK, POLICY, HERE / "requirements-scons.lock",
           HERE / "official-cache-build.py",
           HERE / "fixed-dependency-audit.py", HERE / "official-build-preflight.mjs",
-          HERE / "fixed-build.mjs", HERE / "alpha-preserve-lighting/delivery-resources.ps1"]
+          HERE / "fixed-build.mjs", HERE / "alpha-preserve-lighting/delivery-resources.ps1", HERE / "windows-resource-counters.py"]
 
 
 def require(ok, code):
@@ -145,12 +145,17 @@ class ExactHttpsRedirect(urllib.request.HTTPRedirectHandler):
         return super().redirect_request(request, fp, code, msg, headers, newurl)
 
 
-def execute(root, base_python, jobs=6, budget_bytes=8 * GIB, *, write=False):
+def execute(root, base_python, jobs=6, budget_bytes=8 * GIB, *, write=False, offline_inputs=None):
     require(write is True, "EXPLICIT_WRITE_REQUIRED")
     require(os.name == "nt", "FIXED_WINDOWS_TOOLCHAIN")
     root, base_python = Path(root), Path(base_python)
     request = plan(root, base_python, jobs, budget_bytes)
     lock, policy = inputs()
+    if offline_inputs is not None:
+        offline_inputs = Path(offline_inputs)
+        require(offline_inputs.is_absolute() and offline_inputs.is_dir() and
+                offline_inputs.resolve() == offline_inputs, "OFFLINE_INPUT_DIRECTORY")
+        request["inputMode"] = "offline"
     require(not root.exists() and not root.is_symlink() and not root.is_junction(), "FRESH_ROOT_REQUIRED")
     require(root.parent.is_dir() and root.parent.resolve() == root.parent, "ORDINARY_PARENT_REQUIRED")
     require(base_python.resolve() == base_python, "ORDINARY_BASE_PYTHON_PATH")
@@ -208,7 +213,7 @@ def execute(root, base_python, jobs=6, budget_bytes=8 * GIB, *, write=False):
         require(identity(node)["sha256"] == lock["driverExecutableSha256"], "RESOURCE_NODE_IDENTITY")
         code = ("import {officialRawResourceSnapshot as snapshot} from " + json.dumps((HERE / "official-build-preflight.mjs").as_uri()) + ";"
                 "import {checkResourceHeadroom as check} from " + json.dumps((HERE / "fixed-build.mjs").as_uri()) + ";"
-                "const s=snapshot(" + json.dumps(str(root)) + ");process.stdout.write(JSON.stringify(s));"
+                "const s=snapshot(" + json.dumps(str(root)) + "," + json.dumps(str(base_python) if offline_inputs is not None else None) + ");process.stdout.write(JSON.stringify(s));"
                 "check(s," + json.dumps({"jobs": jobs, "budgetBytes": budget_bytes, "initial": initial, "logicalBytes": guard()}) + ");")
         result = subprocess.run([str(node), "--input-type=module", "-e", code], cwd=root, env=env,
                                 capture_output=True, text=True, encoding="utf8", creationflags=subprocess.CREATE_NO_WINDOW)
@@ -261,8 +266,13 @@ def execute(root, base_python, jobs=6, budget_bytes=8 * GIB, *, write=False):
         output = root / "downloads" / spec["name"]
         limit = spec.get("bytes", 2 * 1024 ** 2)
         begin, count = time.monotonic(), 0
-        opener = urllib.request.build_opener(ExactHttpsRedirect())
-        with opener.open(spec["url"], timeout=60) as response, output.open("xb") as sink:
+        if offline_inputs is None:
+            response = urllib.request.build_opener(ExactHttpsRedirect()).open(spec["url"], timeout=60)
+        else:
+            source = offline_inputs / spec["name"]
+            require(source.is_file() and source.resolve() == source, "OFFLINE_INPUT_MISSING:" + spec["name"])
+            response = source.open("rb")
+        with response, output.open("xb") as sink:
             while chunk := response.read(1024 ** 2):
                 require(not cancelled, "CANCEL_REQUESTED")
                 count += len(chunk)
@@ -306,8 +316,11 @@ def execute(root, base_python, jobs=6, budget_bytes=8 * GIB, *, write=False):
         run("create-venv", [base_python, "-B", "-m", "venv", root / "tools/venv"])
         require(identity(python)["sha256"] == policy["pythonExeSha256"], "VENV_EXECUTABLE_IDENTITY")
         requirements = root / "inputs/requirements-scons.lock"
-        run("scons-download", [python, "-B", "-m", "pip", "--isolated", "--no-cache-dir", "download", "--index-url", "https://pypi.org/simple",
-                               "--only-binary=:all:", "--no-deps", "--require-hashes", "--retries", "0", "-r", requirements, "-d", root / "downloads"])
+        if offline_inputs is None:
+            run("scons-download", [python, "-B", "-m", "pip", "--isolated", "--no-cache-dir", "download", "--index-url", "https://pypi.org/simple",
+                                   "--only-binary=:all:", "--no-deps", "--require-hashes", "--retries", "0", "-r", requirements, "-d", root / "downloads"])
+        else:
+            download({"name": "scons-4.11.1-py3-none-any.whl", **policy["sconsWheel"]})
         wheels = list((root / "downloads").glob("*.whl"))
         require(len(wheels) == 1 and identity(wheels[0]) == policy["sconsWheel"], "SCONS_WHEEL_IDENTITY")
         run("scons-install", [python, "-B", "-m", "pip", "--isolated", "install", "--no-index", "--no-deps", "--require-hashes",
@@ -357,10 +370,11 @@ if __name__ == "__main__":
     parser.add_argument("--jobs", type=int, default=6)
     parser.add_argument("--budget-bytes", type=int, default=8 * GIB)
     parser.add_argument("--write", action="store_true")
+    parser.add_argument("--offline-inputs", type=Path, help="Read the pinned archives and wheel from this directory")
     args = parser.parse_args()
     try:
         if args.write:
-            result = execute(args.root, args.base_python, args.jobs, args.budget_bytes, write=True)
+            result = execute(args.root, args.base_python, args.jobs, args.budget_bytes, write=True, offline_inputs=args.offline_inputs)
             print(json.dumps({"status": result["status"], "seconds": result["seconds"], "root": str(args.root), "runtime": "NOT_RUN"}))
             sys.exit(0 if result["status"] == "PASS_DEPENDENCIES_ONLY" else (2 if result["status"] == "CANCELLED" else 1))
         print(json.dumps(plan(args.root, args.base_python, args.jobs, args.budget_bytes), indent=2))

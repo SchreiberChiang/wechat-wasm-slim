@@ -1,0 +1,12 @@
+diff --git a/platform/web/SCsub b/platform/web/SCsub
+--- a/platform/web/SCsub
++++ b/platform/web/SCsub
+@@ -38,7 +38,7 @@
+     "js/libs/library_godot_audio.js",
+     "js/libs/library_godot_display.js",
+     "js/libs/library_godot_emscripten.js",
+-    "js/libs/library_godot_fetch.js",
++    "js/libs/library_wxslim_fetch.js" if env["use_wx_glx"] else "js/libs/library_godot_fetch.js",
+     "js/libs/library_godot_webmidi.js",
+     "js/libs/library_wxslim_os.js" if env["use_wx_glx"] else "js/libs/library_godot_os.js",
+     "js/libs/library_godot_runtime.js",

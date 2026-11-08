@@ -1,0 +1,34 @@
+{
+  "schema": "exact-byte-edits-v1",
+  "path": "godot-loader.js",
+  "beforeSha256": "0e6bde33b9a63d3f452209838f0ef110a33890df8bc97fdedf25728bf00c03a4",
+  "afterSha256": "1dd408fa7a69e2f4652033d6f08c12d70bb6f233cb3074bd0e7510173aa1ae1b",
+  "verifiedParentSha256": "0a403044162aba78f19cb67c8759791c80832e8d7a4b5616c4e09cc0948d584d",
+  "note": "Retains verified loader behavior; removes only two historical timing calls and their catch warnings. No new context or rendering edits.",
+  "edits": [
+    {
+      "start": 3878,
+      "end": 3878,
+      "removedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "insert": "\n            if (useWXGLX) {\n                this.gl = null;\n                this.__wxslimGLXContextDeferred = true;\n                return;\n            }"
+    },
+    {
+      "start": 8996,
+      "end": 8996,
+      "removedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "insert": "if (this.__wxslimLoaderTerminal) return;\n            "
+    },
+    {
+      "start": 10842,
+      "end": 10842,
+      "removedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "insert": "\n            if (this.__wxslimLoaderTerminal) return;"
+    },
+    {
+      "start": 16102,
+      "end": 16102,
+      "removedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "insert": "if (this.__wxslimLoaderTerminal) return;\n            this.__wxslimLoaderTerminal = true;\n            "
+    }
+  ]
+}

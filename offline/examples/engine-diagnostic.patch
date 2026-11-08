@@ -1,0 +1,136 @@
+diff --git a/engine/official-capability-followup-source.json b/engine/official-capability-followup-source.json
+--- a/engine/official-capability-followup-source.json
++++ b/engine/official-capability-followup-source.json
+@@ -75,18 +75,18 @@
+     },
+     {
+       "path": "engine/official-lifecycle-notifications.mjs",
+-      "bytes": 9870,
+-      "sha256": "3638e91c69c3a4caab2870c8ce3aad5d1091f3f41d8bef2eba0b91ea3a066e4b"
++      "bytes": 9892,
++      "sha256": "7e63b05872cd99349f427d0b8d2ce50673f72fa4224bab4189067563c1d40594"
+     },
+     {
+       "path": "engine/official-lifecycle-notifications.patch",
+-      "bytes": 32924,
+-      "sha256": "ac1a01d742f6dbd523fd377d1c57413e9ecc78ac384a6cdff62216fea9dd5a0b"
++      "bytes": 32946,
++      "sha256": "d57caf2b8981ff36f5dca9fd2c75f94a938ca8955ea551de874395aa904008aa"
+     },
+     {
+       "path": "engine/official-lifecycle-notifications.json",
+-      "bytes": 5581,
+-      "sha256": "1d5f6a4123f294d50874ec850b3e284e2652bccdbf7fe63dd68e8fdc8c05406d"
++      "bytes": 5699,
++      "sha256": "ed4c789babdf45ec026b8cc7668c73000189b93f21a190516a3cfa6e0cdaba78"
+     }
+   ],
+   "followupPatches": [
+@@ -107,8 +107,8 @@
+     },
+     {
+       "path": "engine/official-lifecycle-notifications.patch",
+-      "bytes": 32924,
+-      "sha256": "ac1a01d742f6dbd523fd377d1c57413e9ecc78ac384a6cdff62216fea9dd5a0b"
++      "bytes": 32946,
++      "sha256": "d57caf2b8981ff36f5dca9fd2c75f94a938ca8955ea551de874395aa904008aa"
+     }
+   ],
+   "baseOutputs": [
+@@ -322,8 +322,8 @@
+     },
+     {
+       "path": "platform/web/display_server_web.cpp",
+-      "bytes": 50351,
+-      "sha256": "31689a5a72545a0eed81aa6df3435dc713e46a7082f7d1a42e4bd4055a82db50",
++      "bytes": 50373,
++      "sha256": "5106bed52d17bacba8b8b0d3e5ce498e4cc4cd598ea986ae0fea38f8108aec56",
+       "added": false
+     },
+     {
+@@ -911,8 +911,8 @@
+         "sha256": "8f2a6aa8ef1266d5d1810e2ca43397ff6df9045086c0f4823344bb43d32b6d0b"
+       },
+       "platform/web/display_server_web.cpp": {
+-        "bytes": 50351,
+-        "sha256": "31689a5a72545a0eed81aa6df3435dc713e46a7082f7d1a42e4bd4055a82db50"
++        "bytes": 50373,
++        "sha256": "5106bed52d17bacba8b8b0d3e5ce498e4cc4cd598ea986ae0fea38f8108aec56"
+       }
+     },
+     "explicitNewDependency": "$GodotOS",
+@@ -1004,5 +1004,17 @@
+     "onlyOneApprovedExpressionChanged": true,
+     "reason": "Deep strict comparison includes realm prototype even when string elements are equal",
+     "sourceOrRuntimeFailure": false
++  },
++  "developmentExample": {
++    "source": "platform/web/display_server_web.cpp",
++    "before": {
++      "bytes": 50351,
++      "sha256": "31689a5a72545a0eed81aa6df3435dc713e46a7082f7d1a42e4bd4055a82db50"
++    },
++    "after": {
++      "bytes": 50373,
++      "sha256": "5106bed52d17bacba8b8b0d3e5ce498e4cc4cd598ea986ae0fea38f8108aec56"
++    },
++    "scope": "Diagnostic text only. Existing device and historical receipts retain their original scope."
+   }
+ }
+diff --git a/engine/official-lifecycle-notifications.json b/engine/official-lifecycle-notifications.json
+--- a/engine/official-lifecycle-notifications.json
++++ b/engine/official-lifecycle-notifications.json
+@@ -3,8 +3,8 @@
+   "status": "SOURCE_ONLY_NOT_APPLIED",
+   "baseCommit": "c050c09b105c3715e1caa57a7109cd752047fd89",
+   "patch": {
+-    "bytes": 32924,
+-    "sha256": "ac1a01d742f6dbd523fd377d1c57413e9ecc78ac384a6cdff62216fea9dd5a0b"
++    "bytes": 32946,
++    "sha256": "d57caf2b8981ff36f5dca9fd2c75f94a938ca8955ea551de874395aa904008aa"
+   },
+   "preparation": {
+     "schema": "wxslim-official-lifecycle-notifications-v1",
+@@ -25,8 +25,8 @@
+         "sha256": "8f2a6aa8ef1266d5d1810e2ca43397ff6df9045086c0f4823344bb43d32b6d0b"
+       },
+       "platform/web/display_server_web.cpp": {
+-        "bytes": 50351,
+-        "sha256": "31689a5a72545a0eed81aa6df3435dc713e46a7082f7d1a42e4bd4055a82db50"
++        "bytes": 50373,
++        "sha256": "5106bed52d17bacba8b8b0d3e5ce498e4cc4cd598ea986ae0fea38f8108aec56"
+       }
+     },
+     "changedExistingMembers": [
+@@ -116,5 +116,6 @@
+     "actualCauseLogLimitPerSession": 2,
+     "loggingFailureRetained": true,
+     "automaticRetry": false
+-  }
++  },
++  "developmentExample": "Changed diagnostic text. Historical engine and device evidence retains its original scope."
+ }
+diff --git a/engine/official-lifecycle-notifications.mjs b/engine/official-lifecycle-notifications.mjs
+--- a/engine/official-lifecycle-notifications.mjs
++++ b/engine/official-lifecycle-notifications.mjs
+@@ -108,7 +108,7 @@
+         OS_Web *os = OS_Web::get_singleton();
+         MainLoop *main_loop = os ? os->get_main_loop() : nullptr;
+         if (!main_loop) {
+-            WARN_PRINT_ONCE("GODOT_WECHAT_LIFECYCLE_MAIN_LOOP_NOT_READY");
++            WARN_PRINT_ONCE("GODOT_WECHAT_LIFECYCLE_MAIN_LOOP_NOT_READY: notification skipped");
+             return;
+         }
+         main_loop->notification(p_notification);
+diff --git a/engine/official-lifecycle-notifications.patch b/engine/official-lifecycle-notifications.patch
+--- a/engine/official-lifecycle-notifications.patch
++++ b/engine/official-lifecycle-notifications.patch
+@@ -910,7 +910,7 @@
+ +        OS_Web *os = OS_Web::get_singleton();
+ +        MainLoop *main_loop = os ? os->get_main_loop() : nullptr;
+ +        if (!main_loop) {
+-+            WARN_PRINT_ONCE("GODOT_WECHAT_LIFECYCLE_MAIN_LOOP_NOT_READY");
+++            WARN_PRINT_ONCE("GODOT_WECHAT_LIFECYCLE_MAIN_LOOP_NOT_READY: notification skipped");
+ +            return;
+ +        }
+ +        main_loop->notification(p_notification);

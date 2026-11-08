@@ -27,7 +27,7 @@ const implementationPaths=['engine/official-build-preflight.mjs','engine/officia
  'engine/fixed-module-audit.mjs','engine/official-raw-artifacts.mjs','engine/official-glue-inspection.mjs','engine/official-glx-library/audit-linkage.cjs',
  'engine/official-build-source.mjs','engine/fixed-build.mjs','engine/fixed-engine-plan.mjs','engine/fixed-engine-policy.json',
  'engine/fixed-build-lifecycle.mjs','engine/fixed-dependency-audit.py','engine/fixed-toolchain-cache.json',
- 'engine/alpha-preserve-lighting/delivery-resources.ps1','trim/lib/build.mjs','convert/lib/owned-process.mjs','convert/lib/official-task.mjs'];
+ 'engine/alpha-preserve-lighting/delivery-resources.ps1','engine/windows-resource-counters.py','trim/lib/build.mjs','convert/lib/owned-process.mjs','convert/lib/official-task.mjs'];
 function regular(file){
  const s=fs.lstatSync(file);assert(s.isFile()&&!s.isSymbolicLink(),'OFFICIAL_PREFLIGHT_REGULAR_FILE');
  assert.equal(norm(fs.realpathSync(file)),norm(file),'OFFICIAL_PREFLIGHT_LINKED_FILE');
@@ -47,7 +47,9 @@ export function normalizeOfficialRawBuildRequest(value){
  const schema=Object.getOwnPropertyDescriptor(value??{},'schema');
  assert(schema&&Object.hasOwn(schema,'value'),'OFFICIAL_RAW_DATA_FIELDS');
  const custom=schema.value===OFFICIAL_CUSTOM_RAW_REQUEST;
- const r=exact(value,['schema','profile',...pathFields,'jobs','budgetBytes',...(custom?['features']:[])]);
+ const local=Object.hasOwn(value,'sourceTransport');
+ const r=exact(value,['schema','profile',...pathFields,'jobs','budgetBytes',...(custom?['features']:[]),...(local?['sourceTransport']:[])]);
+ if(local)assert.equal(r.sourceTransport,'bundled-c050-pack','OFFICIAL_RAW_UNKNOWN_SOURCE_TRANSPORT');
  assert(OFFICIAL_RAW_REQUEST_SCHEMAS.includes(r.schema),'OFFICIAL_RAW_RECIPE_SCHEMA');
  assert((custom?['custom']:['full','conservative']).includes(r.profile),'OFFICIAL_RAW_EXPLICIT_PROFILE');
  if(custom)r.features=normalizeCustomWasmRequest(r.features);
@@ -126,9 +128,14 @@ export function validateOfficialRawPlacement(value){
  return {status:'PASS_PLACEMENT_ONLY',protectedPaths,pythonBase:base,upstreamBoundary,workCreated:false};
 }
 
-export function officialRawResourceSnapshot(directory){
- const ps=path.join(process.env.SystemRoot||'C:/Windows','System32/WindowsPowerShell/v1.0/powershell.exe');
- const info=JSON.parse(execFileSync(ps,['-NoProfile','-File',path.join(root,'engine/alpha-preserve-lighting/delivery-resources.ps1')],{windowsHide:true,encoding:'utf8',timeout:20000}));
+export function officialRawResourceSnapshot(directory, pythonExecutable) {
+ const options = {windowsHide:true, encoding:'utf8', timeout:20000};
+ const powershell = path.join(process.env.SystemRoot || 'C:/Windows', 'System32/WindowsPowerShell/v1.0/powershell.exe');
+ const counterProgram = pythonExecutable || powershell;
+ const counterArgs = pythonExecutable
+   ? ['-I', '-B', path.join(root,'engine/windows-resource-counters.py')]
+   : ['-NoProfile', '-File', path.join(root,'engine/alpha-preserve-lighting/delivery-resources.ps1')];
+ const info = JSON.parse(execFileSync(counterProgram, counterArgs, options));
  const disk=fs.statfsSync(directory);return {at:new Date().toISOString(),freeMemory:os.freemem(),totalMemory:os.totalmem(),cpuCount:os.availableParallelism(),freeDisk:disk.bavail*disk.bsize,...info};
 }
 export function preflightOfficialRawBuild(value){
@@ -152,7 +159,7 @@ export function preflightOfficialRawBuild(value){
   {env,cwd:path.dirname(r.work),encoding:'utf8',windowsHide:true,maxBuffer:16*1024*1024,timeout:120000}));
  assert.equal(dependencies.status,'PASS_DEPENDENCIES_ONLY');
  assert.deepEqual(dependencies.policy,{bytes:sourcePlan.toolchain.policy.bytes,sha256:sourcePlan.toolchain.policy.sha256},'OFFICIAL_RAW_DEPENDENCY_POLICY');
- const resources=officialRawResourceSnapshot(path.dirname(r.work));checkResourceHeadroom(resources,{jobs:r.jobs,budgetBytes:r.budgetBytes,initial:true});
+ const resources=officialRawResourceSnapshot(path.dirname(r.work),r.sourceTransport ? r.python : undefined);checkResourceHeadroom(resources,{jobs:r.jobs,budgetBytes:r.budgetBytes,initial:true});
  assert.deepEqual(implementations(),before,'OFFICIAL_RAW_IMPLEMENTATION_DRIFT');assert.deepEqual(pin(regular(r.gitExecutable)),gitIdentity,'OFFICIAL_RAW_GIT_DRIFT');
  assert.deepEqual(pythonBase(r),placement.pythonBase,'OFFICIAL_RAW_PYTHON_CONFIG_DRIFT');assert.deepEqual(pin(regular(placement.pythonBase.executable)),baseIdentity,'OFFICIAL_RAW_PYTHON_BASE_DRIFT');
  assert.equal(hash(regular(r.python)),sourcePlan.toolchain.expectedPython.exeSha256,'OFFICIAL_RAW_PYTHON_DRIFT');

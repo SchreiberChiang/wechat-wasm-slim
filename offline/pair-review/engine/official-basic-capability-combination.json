@@ -1,0 +1,25 @@
+{
+  "schema":"wxslim-official-basic-capability-combination-plan-v1",
+  "status":"SOURCE_ONLY_NOT_RUN_NOT_BUILD_READY",
+  "baseCommit":"c050c09b105c3715e1caa57a7109cd752047fd89",
+  "dependencies":[
+    {"path":"engine/official-websocket-combination-audit.mjs","bytes":7329,"sha256":"5ab7e0273fbd5cd680444783356eb609d333aee4e67559b8a5e71c9af0c74af7"},
+    {"path":"engine/official-websocket-combination.json","bytes":3371,"sha256":"daeace257dfe87394aced2271af1412e023c45de1d0977f785e1071242124f42"},
+    {"path":"engine/official-secure-random-source.json","bytes":6042,"sha256":"8ba607338580006fd8173d3a679e059ae1d804791b5f6313bd61cc1543219ad8"},
+    {"path":"engine/official-secure-random-source.patch","bytes":12892,"sha256":"65f9b666ac923f2fa70734e9ebca3b4fd77001e2a405f8350de17055696c07d2"},
+    {"path":"engine/official-audio-start-contract.mjs","bytes":9981,"sha256":"ab87a6b82a30c7969cf84022b61373fc375048b8f87c50a7e92f821943d9bed7"},
+    {"path":"engine/official-audio-start-contract.json","bytes":2873,"sha256":"395121985d46714f0744f2aeaf30d401d95fe6330619446604a1d662b2a10365"},
+    {"path":"engine/official-audio-start-contract.patch","bytes":7927,"sha256":"1889f8441e7ae293a0c09c406f834077b81c5708200892f2b352a472a4bfcaa8"}
+  ],
+  "scsubParent":{"path":"platform/web/SCsub","bytes":5222,"sha256":"842155120881426601361ab89df643c0323d91f6fac9f74591e1b60db1b9e4da"},
+  "composition":"18 historical/storage/WebSocket patches; then existing secure-random patch with only its append-only SCsub hunk rebased; then audio-start-contract. No old checker or patch is changed.",
+  "expectedInputFiles":25,
+  "expectedOutputFiles":31,
+  "outputAccounting":"28 predecessor outputs plus crypto_core.cpp and two new JS files. core/crypto/SCsub is read-only and excluded from outputs.",
+  "scsubIdentity":"Actual combined hash is computed in the receipt. Before relocation, exact reverse projection to the pinned historical secure-random output proves the rebased bytes; upstream storage selection remains intact. An explicit additional post-patch transform moves the identical unique entropy block from EOF to before JS_LIBS consumption; exact reverse reconstruction proves all other bytes unchanged.",
+  "postPatchTransform":"EXPLICIT_POST_PATCH_SCSUB_BLOCK_RELOCATION (not counted or hidden as an original patch)",
+  "exportsAdded":["_godot_wechat_random_buffer"],
+  "buildParametersAdded":[],
+  "hostIntegrated":false,
+  "validation":{"newCombination":"NOT_RUN","compiler":"NOT_RUN","runtime":"NOT_RUN","phone":"NOT_RUN"}
+}

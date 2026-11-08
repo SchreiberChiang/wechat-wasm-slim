@@ -1,0 +1,123 @@
+diff --git a/platform/web/detect.py b/platform/web/detect.py
+--- a/platform/web/detect.py
++++ b/platform/web/detect.py
+@@ -61,6 +61,8 @@
+             "Use Emscripten PROXY_TO_PTHREAD option to run the main application code to a separate thread",
+             False,
+         ),
++        ("wx_glx_lib", "Explicit path to the pinned 4.0.10 WeChat GLX archive", ""),
++        BoolVariable("use_wx_glx", "Enable the pinned WeChat GLX development configuration", False),
+         BoolVariable("wasm_simd", "Use WebAssembly SIMD to improve CPU performance", True),
+     ]
+ 
+@@ -102,6 +104,39 @@
+     return target, source
+ 
+ 
++def _wxslim_configure_glx(env: "SConsEnvironment", cc_semver):
++    # Source-only migration candidate: this branch intentionally retains the
++    # successful development recipe's relaxed link/null-write settings.
++    if not env["use_wx_glx"]:
++        return
++    if cc_semver != (4, 0, 10):
++        raise ValueError("WXGLX_REQUIRES_EMSCRIPTEN_4_0_10")
++    if env["arch"] != "wasm32" or env["threads"] or env["wasm_simd"] or env["dlink_enabled"] or env["proxy_to_pthread"] or not env["opengl3"]:
++        raise ValueError("WXGLX_REQUIRES_WASM32_SINGLE_THREAD_NO_SIMD_NO_DLINK_OPENGL3")
++    requested_library = str(env["wx_glx_lib"]).strip()
++    if not requested_library:
++        raise ValueError("WXGLX_EXPLICIT_LIBRARY_REQUIRED")
++    wx_glx_lib = os.path.abspath(requested_library)
++    if not os.path.isfile(wx_glx_lib) or os.path.getsize(wx_glx_lib) != 3866614:
++        raise ValueError("WXGLX_LIBRARY_SIZE_OR_FILE")
++    import hashlib
++
++    with open(wx_glx_lib, "rb") as library_file:
++        library_bytes = library_file.read(3866615)
++    if len(library_bytes) != 3866614 or hashlib.sha256(library_bytes).hexdigest() != "026efcefd31c8359310876d5865a47354be28de593b8d30fbfc5c82d73587aa8":
++        raise ValueError("WXGLX_LIBRARY_SHA256")
++    # configure() precedes SConstruct's disable_exceptions handling.
++    env["disable_exceptions"] = False
++    env.Append(CXXFLAGS=["-fexceptions"])
++    env.Append(LINKFLAGS=["-fexceptions"])
++    env.Append(CPPDEFINES=["WECHAT_GLX_EXPERIMENTAL"])
++    # LEGACY_COMPATIBILITY: these are inherited success-recipe settings,
++    # not evidence that unresolved symbols or null writes are safe.
++    env.Append(LINKFLAGS=["-sCHECK_NULL_WRITES=0"])
++    env["EXPORTED_RUNTIME_METHODS"] += ["ccall", "cwrap", "stringToUTF8", "lengthBytesUTF8"]
++    env.Append(LINKFLAGS=["-sERROR_ON_UNDEFINED_SYMBOLS=0", wx_glx_lib])
++
++
+ def configure(env: "SConsEnvironment"):
+     env["CC"] = "emcc"
+     env["CXX"] = "em++"
+@@ -155,6 +190,8 @@
+         # Retain function names for backtraces at the cost of file size.
+         env.Append(LINKFLAGS=["--profiling-funcs"])
+ 
++    _wxslim_configure_glx(env, cc_semver)
++
+     if env.editor_build and env["initial_memory"] < 64:
+         print_info("Forcing `initial_memory=64` as it is required for the web editor.")
+         env["initial_memory"] = 64
+@@ -241,6 +278,25 @@
+     env["ARCOM_POSIX"] = env["ARCOM"].replace("$TARGET", "$TARGET.posix").replace("$SOURCES", "$SOURCES.posix")
+     env["ARCOM"] = "${TEMPFILE('$ARCOM_POSIX','$ARCOMSTR')}"
+ 
++    # Keep the separately reviewed Windows response-file adapter only in GLX builds.
++    if env["use_wx_glx"] and os.name == "nt":
++        # ENGINE_LAB_WINDOWS_LINK_RESPONSE_V2
++        import shlex
++        from SCons.Platform import TempFileMunge
++
++        class LinkTempFileMungeV2(TempFileMunge):
++            def __call__(self, target, source, env, for_signature):
++                if for_signature:
++                    return self.cmd
++                link_env = env.Clone()
++                link_env["TEMPFILEARGESCFUNC"] = lambda arg: shlex.quote(str(arg))
++                link_env["TEMPFILEENCODING"] = "utf-8"
++                return super().__call__(target, source, link_env, for_signature)
++
++        env["LINKCOM_POSIX_V2"] = env["LINKCOM"].replace("$TARGET", "$TARGET.posix").replace("$SOURCES", "$SOURCES.posix")
++        env["LINK_TEMPFILE_V2"] = LinkTempFileMungeV2
++        env["LINKCOM"] = "${LINK_TEMPFILE_V2('$LINKCOM_POSIX_V2','$LINKCOMSTR')}"
++
+     # All intermediate files are just object files.
+     env["OBJPREFIX"] = ""
+     env["OBJSUFFIX"] = ".o"
+@@ -260,7 +316,8 @@
+         # This setting just makes WebGL 2 APIs available, it does NOT disable WebGL 1.
+         env.Append(LINKFLAGS=["-sMAX_WEBGL_VERSION=2"])
+         # Allow use to take control of swapping WebGL buffers.
++        if not env["use_wx_glx"]:
++            env.Append(LINKFLAGS=["-sOFFSCREEN_FRAMEBUFFER=1"])
+-        env.Append(LINKFLAGS=["-sOFFSCREEN_FRAMEBUFFER=1"])
+         # Disables the use of *glGetProcAddress() which is inefficient.
+         # See https://emscripten.org/docs/tools_reference/settings_reference.html#gl-enable-get-proc-address
+         env.Append(LINKFLAGS=["-sGL_ENABLE_GET_PROC_ADDRESS=0"])
+@@ -303,7 +360,10 @@
+         env.Append(LINKFLAGS=["-fvisibility=hidden"])
+         env.extra_suffix = ".dlink" + env.extra_suffix
+ 
++    # Preserve the official browser setting; GLX retains the successful recipe's
++    # omission of this flag. Emscripten 4.0.10 still defaults WASM_BIGINT to true.
++    if not env["use_wx_glx"] or env["arch"] == "wasm64":
++        env.Append(LINKFLAGS=["-sWASM_BIGINT"])
+-    env.Append(LINKFLAGS=["-sWASM_BIGINT"])
+     env.Append(CCFLAGS=[f"-sMEMORY64={0 if env['arch'] == 'wasm32' else 1}"])
+     env.Append(LINKFLAGS=[f"-sMEMORY64={0 if env['arch'] == 'wasm32' else 1}"])
+ 
+@@ -322,9 +382,10 @@
+     # Wrap the JavaScript support code around a closure named Godot.
+     env.Append(LINKFLAGS=["-sMODULARIZE=1", "-sEXPORT_NAME='Godot'"])
+ 
++    # Preserve official browser longjmp; the pinned GLX exception runtime uses emscripten.
++    longjmp_mode = "emscripten" if env["use_wx_glx"] else "wasm"
++    env.Append(CCFLAGS=["-sSUPPORT_LONGJMP='%s'" % longjmp_mode])
++    env.Append(LINKFLAGS=["-sSUPPORT_LONGJMP='%s'" % longjmp_mode])
+-    # Force long jump mode to 'wasm'
+-    env.Append(CCFLAGS=["-sSUPPORT_LONGJMP='wasm'"])
+-    env.Append(LINKFLAGS=["-sSUPPORT_LONGJMP='wasm'"])
+ 
+     # Allow increasing memory buffer size during runtime. This is efficient
+     # when using WebAssembly (in comparison to asm.js) and works well for

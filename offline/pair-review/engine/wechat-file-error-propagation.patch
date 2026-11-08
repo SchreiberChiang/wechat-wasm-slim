@@ -1,0 +1,119 @@
+diff --git a/drivers/unix/file_access_unix.cpp b/drivers/unix/file_access_unix.cpp
+--- a/drivers/unix/file_access_unix.cpp
++++ b/drivers/unix/file_access_unix.cpp
+@@ -195,29 +195,70 @@
+ 	return OK;
+ }
+ 
+-void FileAccessUnix::_close() {
+-	if (!f) {
+-		return;
+-	}
+-
+-	fclose(f);
+-	f = nullptr;
+-
+-	if (close_notification_func) {
+-		close_notification_func(path, flags);
+-	}
+-
+-	if (!save_path.is_empty()) {
+-		int rename_error = rename(path.utf8().get_data(), save_path.utf8().get_data());
+-
+-		if (rename_error && close_fail_notify) {
+-			close_fail_notify(save_path);
+-		}
+-
+-		save_path = "";
+-		ERR_FAIL_COND(rename_error != 0);
+-	}
+-}
++void FileAccessUnix::_close() {
++#if defined(WEB_ENABLED) && defined(__EMSCRIPTEN_GLX__)
++	if (!f) {
++		// A failed open may have left a target without a live FILE.
++		save_path = "";
++		return; // Keep the last close/flush error available after repeated close().
++	}
++
++	const String closed_path = path;
++	const String target_path = save_path;
++	const int closed_flags = flags;
++	// This target belongs to this close only, including all failure exits.
++	save_path = "";
++	const bool had_write_error = (closed_flags & WRITE) && (last_error == ERR_FILE_CANT_WRITE || ferror(f));
++	const int close_error = fclose(f);
++	f = nullptr; // fclose consumes FILE even when it reports failure.
++
++	if (close_error != 0 || had_write_error) {
++		last_error = (closed_flags & WRITE) ? ERR_FILE_CANT_WRITE : ERR_FILE_CANT_READ;
++		// Keep the temp file and path (get_path_absolute()) for explicit recovery.
++		if (close_fail_notify) {
++			close_fail_notify(target_path.is_empty() ? closed_path : target_path);
++		}
++		return; // Never replace the destination after a failed write/close.
++	}
++
++	if (close_notification_func) {
++		close_notification_func(closed_path, closed_flags);
++	}
++
++	if (!target_path.is_empty()) {
++		const int rename_error = rename(closed_path.utf8().get_data(), target_path.utf8().get_data());
++		if (rename_error != 0) {
++			last_error = ERR_FILE_CANT_WRITE;
++			if (close_fail_notify) {
++				close_fail_notify(target_path);
++			}
++		}
++		ERR_FAIL_COND(rename_error != 0);
++	}
++#else
++	if (!f) {
++		return;
++	}
++
++	fclose(f);
++	f = nullptr;
++
++	if (close_notification_func) {
++		close_notification_func(path, flags);
++	}
++
++	if (!save_path.is_empty()) {
++		int rename_error = rename(path.utf8().get_data(), save_path.utf8().get_data());
++
++		if (rename_error && close_fail_notify) {
++			close_fail_notify(save_path);
++		}
++
++		save_path = "";
++		ERR_FAIL_COND(rename_error != 0);
++	}
++#endif
++}
+ 
+ bool FileAccessUnix::is_open() const {
+ 	return (f != nullptr);
+@@ -326,10 +367,17 @@
+ 	}
+ }
+ 
+-void FileAccessUnix::flush() {
+-	ERR_FAIL_NULL_MSG(f, "File must be opened before use.");
+-	fflush(f);
+-}
++void FileAccessUnix::flush() {
++	ERR_FAIL_NULL_MSG(f, "File must be opened before use.");
++#if defined(WEB_ENABLED) && defined(__EMSCRIPTEN_GLX__)
++	if (fflush(f) != 0) {
++		last_error = ERR_FILE_CANT_WRITE;
++	}
++	// Successful stdio flushing does not prove native persistence or clear errors.
++#else
++	fflush(f);
++#endif
++}
+ 
+ bool FileAccessUnix::store_buffer(const uint8_t *p_src, uint64_t p_length) {
+ 	ERR_FAIL_NULL_V_MSG(f, false, "File must be opened before use.");
