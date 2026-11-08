@@ -105,6 +105,8 @@ var _devtools: LineEdit
 var _wasmsplit_key: LineEdit
 var _wasm_collect_button: Button
 var _wasm_release_button: Button
+var _wasm_fresh_button: Button
+var _wasm_fresh_confirm: ConfirmationDialog
 var _preview_button: Button
 var _wasm_line: Label
 var _qr_dialog: AcceptDialog
@@ -841,6 +843,18 @@ func _build_footer() -> void:
 	footer.add_child(wasm_row)
 	_wasm_collect_button = _footer_button(wasm_row, "生成采集包", "WASM 分包第 1 步：上传引擎、云端预处理（几分钟），生成采集包。之后扫预览二维码，在手机上把游戏主要流程玩一遍。", "wasmsplit-collect")
 	_wasm_release_button = _footer_button(wasm_row, "生成正式分包", "WASM 分包第 2 步：按手机上采集到的函数拆分引擎，首包只放用到的函数，启动更快。", "wasmsplit-release")
+	# 完整重采：换引擎编号让微信后台当成新包，之前的采集结果都不用。要先确认。
+	_wasm_fresh_button = Button.new()
+	_wasm_fresh_button.text = "完整重采"
+	_wasm_fresh_button.tooltip_text = "从零开始采集：换一个引擎编号（官方 switch-md5），微信后台当成新包，之前采到的函数都不算。\n一般用「生成采集包」继续补采就够了；采集结果明显不对时再用。"
+	_wasm_fresh_button.custom_minimum_size = Vector2(90, 30)
+	_wasm_fresh_button.pressed.connect(func(): _wasm_fresh_confirm.popup_centered())
+	wasm_row.add_child(_wasm_fresh_button)
+	_wasm_fresh_confirm = ConfirmationDialog.new()
+	_wasm_fresh_confirm.title = "完整重采"
+	_wasm_fresh_confirm.dialog_text = "从零开始重新采集？\n\n会换一个引擎编号并重新上传引擎，微信后台当成全新的包，之前采到的函数都不再使用。当前的分包副本会另存，不删除。\n之后要用手机（iPhone 和安卓都建议）把游戏主要流程重新玩一遍。"
+	_wasm_fresh_confirm.confirmed.connect(func(): _quick_start("wasmsplit-fresh"))
+	add_child(_wasm_fresh_confirm)
 	_preview_button = _footer_button(wasm_row, "预览二维码", "用开发者工具生成手机预览二维码（上传到微信，扫码即可在手机上打开）。", "preview")
 	_wasm_line = _wrapped(footer)
 	_qr_dialog = AcceptDialog.new()
@@ -1336,25 +1350,25 @@ func _quick_start(mode: String, open_run := "") -> void:
 			return
 		_clear_field_errors()
 		request = {"project": _game_project(), "settings": _quick_settings(), "run": _last_run.get("run", ""), "open": true}
-	elif mode in ["wasmsplit-collect", "wasmsplit-release", "preview"]:
+	elif mode in ["wasmsplit-collect", "wasmsplit-fresh", "wasmsplit-release", "preview"]:
 		if not _last_run_usable():
 			return
 		_clear_field_errors()
-		request = {"project": _game_project(), "settings": _quick_settings(), "run": _last_run.get("run", "")}
+		request = {"project": _game_project(), "settings": _quick_settings(), "run": _last_run.get("run", ""), "fresh": mode == "wasmsplit-fresh"}
 	else:
 		_clear_field_errors()
 		request = {"project": _game_project(), "settings": _quick_settings()}
-	var spawned := _spawn_adapter(node, mode, request)
+	var spawned := _spawn_adapter(node, "wasmsplit-collect" if mode == "wasmsplit-fresh" else mode, request)
 	if spawned.is_empty():
 		return
 	# 记下发起时的设置：运行期间若又保存了新设置，结果只算在发起时那份设置名下。
 	_job = spawned
 	_job.merge({"started": Time.get_ticks_msec(), "settings": JSON.stringify(_saved), "run": ""})
 	_task_line.text = {"plan": "任务：正在检查…", "run": "任务：开始导出…", "open": "任务：正在打开开发者工具…", "refresh": "任务：开始更新游戏资源…",
-		"wasmsplit-collect": "任务：开始生成采集包…", "wasmsplit-release": "任务：开始生成正式分包…", "preview": "任务：正在生成预览二维码…"}[mode]
+		"wasmsplit-collect": "任务：开始生成采集包…", "wasmsplit-fresh": "任务：开始完整重采…", "wasmsplit-release": "任务：开始生成正式分包…", "preview": "任务：正在生成预览二维码…"}[mode]
 	_task_line.tooltip_text = ""
 	_log_line({"plan": "开始检查设置和游戏工程。", "run": "开始导出并转换，运行目录在输出目录下。", "open": "打开 " + str(request.get("run", "")), "refresh": "只重新导出游戏资源，放进 " + str(request.get("run", "")),
-		"wasmsplit-collect": "WASM 分包：生成采集包（会上传引擎到微信后台）。", "wasmsplit-release": "WASM 分包：按采集结果生成正式分包。", "preview": "用开发者工具生成手机预览二维码。"}[mode])
+		"wasmsplit-collect": "WASM 分包：生成采集包（会上传引擎到微信后台）。", "wasmsplit-fresh": "WASM 分包：完整重采（换引擎编号，从零采集）。", "wasmsplit-release": "WASM 分包：按采集结果生成正式分包。", "preview": "用开发者工具生成手机预览二维码。"}[mode])
 	_poll_elapsed = 0.0
 	_status_elapsed = 0.0
 	set_process(true)
@@ -1525,13 +1539,18 @@ func _on_quick_result(job: Dictionary, result: Dictionary) -> void:
 				for part in result.get("parts", []):
 					parts.append("%s %.2f MB" % [str(part.get("part", "")), float(part.get("bytes", 0)) / 1048576.0])
 				if collect:
-					_task_line.text = "任务：采集包已就绪（%d 秒）%s" % [seconds, "，沿用上次的" if result.get("reused", false) else ""]
+					var how: String = {"reused": "，沿用已有的采集包", "supplement": "，继续补采（正式包已另存）", "cloud-existing": "，云端已有结果，在它上面继续采集", "fresh": "，完整重采（新引擎编号 %s）" % str(result.get("md5", "")), "first": ""}.get(str(result.get("mode", "")), "")
+					_task_line.text = "任务：采集包已就绪（%d 秒）%s" % [seconds, how]
+					if result.has("collectedBefore"):
+						_log_line("开始采集前，云端已有 %d / %d 个函数。" % [int(result.get("collectedBefore", 0)), int(result.get("totalFunctions", 0))])
 					_log_line("采集包：" + str(result.get("minigame", "")) + "（" + " · ".join(parts) + "）")
 					if str(result.get("symbols", "")) == "placeholder":
 						_log_line("这个引擎没有随附符号表，用了按编号生成的占位名；分包照常，只是官方工具的日志里看不到函数名。")
 					_log_line("下一步：扫预览二维码，在手机上把游戏主要流程玩一遍，然后点「生成正式分包」。")
 				else:
-					_task_line.text = "任务：正式分包已生成（%d 秒）· 采集到 %d / %d 个函数" % [seconds, int(result.get("collectedFunctions", 0)), int(result.get("totalFunctions", 0))]
+					_task_line.text = "任务：正式分包已生成（%d 秒）· 共 %d / %d 个函数，这一轮新增 %d" % [seconds, int(result.get("collectedFunctions", 0)), int(result.get("totalFunctions", 0)), int(result.get("addedThisRound", 0))]
+					if int(result.get("addedThisRound", 0)) == 0:
+						_log_line("这一轮没有新增函数：手机上走的路线之前都采集过了（或者采集包没有被打开）。")
 					_log_line("正式分包：" + " · ".join(parts) + "。wasmcode 是首包；wasmcode1 用到没采集到的函数时才下载；wasmcode2 在启动 30 秒后才下载。")
 				# 做完直接给手机扫码用的二维码。
 				_job = {}
@@ -1768,7 +1787,9 @@ func _refresh() -> void:
 	_preview_button.disabled = busy or no_run
 	_wasm_collect_button.disabled = busy or no_run or _saved.wasmsplitKey.is_empty()
 	_wasm_release_button.disabled = busy or no_run or _saved.wasmsplitKey.is_empty() or wasm_state.is_empty()
-	_wasm_collect_button.text = "生成中…" if busy and _job.mode == "wasmsplit-collect" else ("重新生成采集包" if wasm_state == "released" else "生成采集包")
+	_wasm_collect_button.text = "生成中…" if busy and _job.mode == "wasmsplit-collect" else ("继续补采" if wasm_state == "released" else "生成采集包")
+	_wasm_collect_button.tooltip_text = "在已有采集结果上再采一轮：正式包另存，生成采集包，用手机（比如安卓）走一遍新路线，再生成正式分包。" if wasm_state == "released" else "WASM 分包第 1 步：上传引擎、云端预处理，生成采集包。之后扫预览二维码，在手机上把游戏主要流程玩一遍。"
+	_wasm_fresh_button.disabled = busy or no_run or _saved.wasmsplitKey.is_empty() or wasm_state.is_empty()
 	_wasm_release_button.text = "生成中…" if busy and _job.mode == "wasmsplit-release" else "生成正式分包"
 	if no_run:
 		_wasm_line.text = "WASM 分包：先「导出并转换」一次"
@@ -1777,7 +1798,7 @@ func _refresh() -> void:
 	elif wasm_state == "collecting":
 		_wasm_line.text = "WASM 分包：采集包已就绪 → 扫码在手机上玩一遍 → 生成正式分包"
 	elif wasm_state == "released":
-		_wasm_line.text = "WASM 分包：已拆分（采集到 %d / %d 个函数）。开发者工具打开、只更新游戏资源都针对分包后的工程" % [int(wasm.get("collectedFunctions", 0)), int(wasm.get("totalFunctions", 0))]
+		_wasm_line.text = "WASM 分包：已拆分（共 %d / %d 个函数，上一轮新增 %d）。要补安卓等新路线就点「继续补采」" % [int(wasm.get("collectedFunctions", 0)), int(wasm.get("totalFunctions", 0)), int(wasm.get("addedThisRound", 0))]
 	else:
 		_wasm_line.text = "WASM 分包：未开始。先生成采集包（会上传引擎到微信后台）"
 

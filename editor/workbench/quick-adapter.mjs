@@ -109,7 +109,7 @@ export async function runQuickAdapter(configFile, mode, token, {plan = quickPlan
       const options = {project: request.project, settingsFile, editor: config.editorExecutable};
       if (RUN_MODES.includes(mode) && (typeof request.run !== 'string' || !path.isAbsolute(request.run))) reject('QUICK_ADAPTER_RUN', '没有要处理的运行');
       const wasmsplit = {'wasmsplit-collect': quickWasmSplitCollect, 'wasmsplit-release': quickWasmSplitRelease, preview: quickPreview}[mode];
-      result = wasmsplit ? await wasmsplit({...options, run: request.run, devtools: request.settings?.devtools || ''}, {report}) : mode === 'plan' ? await plan(options) : mode === 'refresh' ? await refresh({...options, run: request.run}, {report, openProject: request.open === true ? open : null})
+      result = wasmsplit ? await wasmsplit({...options, run: request.run, devtools: request.settings?.devtools || '', fresh: mode === 'wasmsplit-collect' && request.fresh === true}, {report}) : mode === 'plan' ? await plan(options) : mode === 'refresh' ? await refresh({...options, run: request.run}, {report, openProject: request.open === true ? open : null})
         : await run(options, {report, openProject: request.open === true ? open : null});
       // 计划详情体积大且面板不直接展示，只保留摘要；完整计划仍可由 quick plan 命令行重现。
       if (result.exportPlanDetail) delete result.exportPlanDetail;
