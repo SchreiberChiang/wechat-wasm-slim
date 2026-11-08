@@ -1,0 +1,19 @@
+{
+  "schema": "wxslim-skip-prewarm-acceptance-v1",
+  "at": "2026-11-08T10:30:00Z",
+  "sourceCommit": "cad2d79",
+  "release": {"directory": "../release-cad2d79", "files": 347, "bytes": 327363380, "manifestIdentity": "9df76bc77d554efd606741df6b1424a13e31ca84c1c5b24ae4d54ed27be09f15"},
+  "enginePatch": {"commit": "d9d9a84", "file": "drivers/gles3/rasterizer_scene_gles3.cpp", "setting": "startup/gles3/skip_default_3d_prewarm", "default": false},
+  "rebuilds": {
+    "conservative": {"rawTaskId": "4a984a92-4d04-4315-8ac0-77f116f9ab33", "jobs": 4, "minutes": 46, "wasm": {"bytes": 62429349, "sha256": "ba57f1ff58b2ad2f170d564a761176895becc059cb534d776b9c25016eb3047d"}, "verifyRebuilt": "PASS_SOURCE_STATIC_ONLY", "settingStringInWasm": true},
+    "pure-2d": {"rawTaskId": "53c9e607-067d-4f36-9827-2bca83c82e64", "jobs": 10, "minutes": 24, "wasm": {"bytes": 52244236, "sha256": "ac7eaa363b5d7835f1bbe3aa049e6625621a91fd711729e41ef72219c1c11ff5"}, "verifyRebuilt": "PASS_SOURCE_STATIC_ONLY", "settingStringInWasm": true},
+    "full": "NOT_REBUILT_BY_CHOICE"
+  },
+  "commandLine": {
+    "game": "copy of verify/分包试用游戏 (scene packs)",
+    "conservativeSkip": {"status": "SUCCESS", "bootDataHasSetting": true, "totalPackage": "10.11 MB"},
+    "pure2dSkip": {"status": "SUCCESS", "bootDataHasSetting": true, "totalPackage": "8.91 MB"}
+  },
+  "userGui": {"template": "2d", "result": "PASS", "userReply": "变快了", "scope": "user compared startup with and without the option; timings not recorded"},
+  "notVerified": ["measured startup times", "first 3D draw stall on a 3D game using the conservative template", "refresh path toggling only the option (covered by tests, not clicked)"]
+}
