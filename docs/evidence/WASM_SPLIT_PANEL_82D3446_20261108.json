@@ -1,0 +1,121 @@
+{
+  "schema": "wxslim-wasm-split-panel-acceptance-v1",
+  "date": "2026-11-08",
+  "timezone": "Asia/Shanghai",
+  "sourceCommitAtStart": "581b611",
+  "branch": "claude/panel-simplify",
+  "release": {
+    "directory": "../release-82d3446",
+    "runtimeCommit": "82d3446",
+    "installedManifestMatchesRelease": true,
+    "manifestSha256": "a2e0fe597c90be05852ddb0253a20a136511b4faed4a756fef2abdfaad408713"
+  },
+  "game": "verify/分包试用游戏",
+  "run": "verify/分包试用输出/分包试用游戏-20261108-212013",
+  "settings": {
+    "template": "2d",
+    "glx": true,
+    "loginCode": true,
+    "orientation": "portrait",
+    "locale": "zh_CN",
+    "scenePacks": ["level1", "level2"],
+    "skipPrewarmAtExport": false,
+    "skipPrewarmAfterUserRefresh": true
+  },
+  "evidenceKinds": {
+    "panelControlsAndCancellation": "assistant observed the Godot UI and local receipts",
+    "panelWorkflowAndPhoneGameplay": "user operated the panel and phones, then reported success",
+    "artifacts": "assistant read existing local files; no additional preview upload or device test during recording"
+  },
+  "assistantObserved": {
+    "missing2dConfirmation": "PASS: saving an unchecked confirmation disabled export and displayed 2D 模板未确认; restoring it re-enabled actions",
+    "cancelBeforeStart": "PASS: dismissing the export confirmation did not create its proposed run directory",
+    "cancelDuringConversion": {
+      "run": "verify/分包试用输出/分包试用游戏-20261108-211834",
+      "status": "CANCELLED",
+      "code": "QUICK_CANCELLED",
+      "message": "convert 已按取消请求停止"
+    }
+  },
+  "userAcceptance": {
+    "result": "PASS_REPORTED_BY_USER",
+    "reply": "都测完了，面板流程、手机登录和两关都正常。",
+    "deviceClarification": "采集是iOS采集的，运行正式分包是16pro和华为nove4，这次没问题，但是以前是有这方面的问题的",
+    "collectionPlatform": "iOS",
+    "releaseDevices": [
+      {"model": "iPhone 16 Pro", "platform": "iOS", "osVersion": null, "result": "PASS_REPORTED_BY_USER"},
+      {"model": "Huawei nova 4", "platform": "Android", "osVersion": null, "result": "PASS_REPORTED_BY_USER"}
+    ],
+    "covered": [
+      "面板生成采集包、自动显示二维码、生成正式分包和独立预览二维码",
+      "正式分包在两台手机上登录、进入两关、返回菜单",
+      "从面板打开开发者工具、只更新游戏资源、修改第一关标题后更新",
+      "用户报告跳过默认 3D 预热有效果；未取得新的计时数据"
+    ]
+  },
+  "localReceipts": {
+    "export": {"status": "SUCCESS", "packageId": "wxslim-d700e7cd0a6170a59c17", "finishedAt": "2026-11-08T13:21:01.196Z"},
+    "wasmSplit": {
+      "state": "released",
+      "at": "2026-11-08T13:24:51.931Z",
+      "collectedFunctions": 12056,
+      "totalFunctions": 66145,
+      "profileIncrementFuncNum": 0,
+      "lastCollectFuncTime": 0,
+      "subVersion": 2,
+      "freshCollectionProven": false,
+      "reason": "init log downloaded and applied existing cloud split artifacts; zero increment is not proof of fresh iOS/Android collection",
+      "wasmCodeMd5": "0804821ba8a10d1",
+      "compressedPartBytes": {"wasmcode": 3322626, "wasmcode1": 4199851, "wasmcode2": 7418592}
+    },
+    "refreshes": [
+      {"at": "2026-11-08T13:31:00.316Z", "changed": false, "changedPacks": [], "interfacesChanged": false},
+      {"at": "2026-11-08T13:32:47.382Z", "changed": true, "packageId": "wxslim-a91bb6078aba7240dd8c", "changedPacks": ["level1"], "interfacesChanged": true},
+      {"at": "2026-11-08T13:33:54.940Z", "changed": true, "packageId": "wxslim-d7eeb8d784891b8c7f0d", "changedPacks": [], "interfacesChanged": true}
+    ],
+    "refreshTarget": "wasmsplit/minigame",
+    "latestPreview": {"file": "preview-1794144666340.jpg", "localTime": "2026-11-08 21:31:36 +08:00", "beforeLastTwoRefreshes": true}
+  },
+  "prewarmReview": {
+    "setting": "startup/gles3/skip_default_3d_prewarm",
+    "sources": ["engine/official-startup-prewarm.patch", "lib/quick-flow.mjs:555", "lib/quick-flow.mjs:631", "lib/pck-project-setting.mjs"],
+    "baseAndRefreshedRenderConfigWasmSha256": "ac7eaa363b5d7835f1bbe3aa049e6625621a91fd711729e41ef72219c1c11ff5",
+    "basePck": {"setting": null, "meaning": "absent, engine defaults to false", "sha256": "9bd3ae60ce385a61f13c9bcb1b96e783b695fa1a07e71eaebc836629f0acae5a"},
+    "refreshedSplitPck": {"setting": true, "sha256": "3db6c9fa4ff77a39f60ee2650a74a13c876b3525098576fda697b68400773d91"},
+    "pckMetadataMatchesActualBytes": true,
+    "conclusion": "Enabling skip on this unchanged 2D engine edits the exported PCK setting and removes a startup prewarm call; it does not require rebuilding or recollecting the WASM. A changed engine requires new matching split artifacts. New engine execution paths may require supplementary collection and device validation.",
+    "postRefreshPhoneVerification": "NOT_SEPARATELY_CONFIRMED: latest preview predates the final prewarm-enabled local refresh"
+  },
+  "historicalAndroidReview": {
+    "repositorySource": "git show 51d2394:docs/PLAYBOOK.md (collection point 2 and runtime issues table)",
+    "localSource": "F:/GLX-Claude/early-026e-20261026/adapter/docs/PLAYBOOK.md:21-34",
+    "historicalGame": "打砖块, 2026-10-15 to 2026-10-16; not this round's fixed test game",
+    "findings": [
+      "Only desktop/iOS collection missed InputEventScreenDrag::get_velocity on Android touch dragging.",
+      "Old click-download mode could stay PENDING for 30 seconds because waiterMode tasks required await(); the old runtime patch separated normal asynchronous click loading from synchronous fallback loading."
+    ],
+    "currentSources": ["split/lib/runtime-patches.mjs:61", "split/lib/runtime-patches.mjs:119", "lib/wasm-split.mjs", "lib/quick-wasm-split.mjs"],
+    "currentBoundary": "The quick panel uses the official split flow plus its collection preload patch, not the old split/kit.mjs click-gate release assembly. Do not infer the historical waiter bug still reproduces or copy its patches without a current reproduction.",
+    "thisRound": "iOS-collected release passed on iPhone 16 Pro and Huawei nova 4 according to the user; this does not prove all Android engine/input paths were collected."
+  },
+  "remaining": [
+    "Provide a real supplementary-profile collection cycle; init of an already split engine can reuse cloud release artifacts. Official dosplit without --release is the candidate to review.",
+    "Provide optional fresh collection via switch-md5 on an unsplit copy; the official tool refuses split projects.",
+    "Validate Android-specific touch/drag and uncollected-function loading, then iOS/Android release paths after actual supplementary collection.",
+    "Full template WASM splitting remains unverified.",
+    "Phone operating-system, WeChat and SDK versions were not recorded for this round.",
+    "The last local resource refresh was not separately previewed and verified on both phones."
+  ],
+  "gameContentAfterAcceptance": {
+    "onlyChangedFileComparedWithAssistantBaseline": "levels/level1.tscn",
+    "titleBefore": "Pack: Level 1 (111133)",
+    "titleOnDisk": "Pack: Level 1 (test",
+    "restoration": "NOT_CONFIRMED: user's test title remains; assistant did not overwrite user edits"
+  },
+  "recordingActions": {
+    "changedRuntime": false,
+    "ranRegression": false,
+    "uploadedPreview": false,
+    "pushedGitHub": false
+  }
+}
